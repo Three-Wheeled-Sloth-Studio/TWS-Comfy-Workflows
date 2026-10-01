@@ -1,0 +1,35 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: 2026-10-01
+decisions:
+  - id: embedded-deny-by-default-worktree
+    status: accepted
+    date: 2026-10-01
+    decision: Keep the Git worktree at the live ComfyUI data root with a deny-by-default ignore file and independent tracked-path validation.
+    rationale: Runtime paths remain direct and there is no duplicate source tree, while models, media, outputs, general user state, and third-party nodes are excluded aggressively.
+    consequences:
+      - Every new tracked root path must be explicitly allowlisted in both .gitignore and scripts/validate_repository.py.
+      - Force-added files are still rejected by validation and CI.
+  - id: cpu-windowed-continuation
+    status: accepted
+    date: 2026-09-30
+    decision: Store completed latent chunks in CPU memory and pass only Wan's latest 19 latent frames as continuation motion context.
+    rationale: Core Wan conditioning already truncates reference motion latent to 19 frames; retaining progressively concatenated GPU latents is unnecessary.
+    consequences:
+      - Final latent concatenation occurs once after the loop.
+      - Native loop execution state may still retain other per-iteration GPU/runtime objects and remains under investigation.
+  - id: cached-reference-conditioning
+    status: accepted
+    date: 2026-10-01
+    decision: Extract and reuse reference-image latent conditioning from the initial Wan pass.
+    rationale: Re-encoding an unchanged image forced VAE and diffusion-model swapping on every extension.
+    consequences:
+      - The VAE prepares only for the initial conditioning and final decode.
+      - Reference-image changes require a new initial pass.
+  - id: generate-low-res-upscale-later
+    status: accepted
+    date: 2026-09-30
+    decision: Generate at a practical 16:9 Wan resolution, currently 832x480, and upscale as post-processing.
+    rationale: Native 720p and 1080p generation exceed practical VRAM and system-memory margins on the current machine.
+    consequences:
+      - Delivery-quality evaluation must include temporal stability of the upscaler.

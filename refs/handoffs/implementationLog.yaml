@@ -1,0 +1,8 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: TEMPLATE_TODO_DATE
+entries:
+  - date: TEMPLATE_TODO_DATE
+    summary: TEMPLATE_TODO
+    files: []
+    validation: []

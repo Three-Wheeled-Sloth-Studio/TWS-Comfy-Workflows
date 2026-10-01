@@ -1,0 +1,15 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: 2026-10-01
+integration:
+  id: comfyui
+  status: active
+  mode: Local ComfyUI Desktop data directory with project files installed at native runtime paths.
+  config_fields:
+    - user/default/workflows
+    - custom_nodes/comfyui_audio_duration_plan
+    - models/diffusion_models
+    - models/text_encoders
+    - models/audio_encoders
+    - models/vae
+    - models/loras

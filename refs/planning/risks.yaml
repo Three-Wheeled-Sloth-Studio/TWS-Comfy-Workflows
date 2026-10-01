@@ -1,0 +1,24 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: 2026-10-01
+risks:
+  - id: native-loop-gpu-retention
+    status: open
+    severity: high
+    summary: Dynamically expanded loop iterations still cause progressive GPU pressure and slower sampling after roughly 12 extensions.
+    mitigation: Instrument memory per iteration and replace the native loop with separately executed, disk-checkpointed chunks if cache ownership cannot be controlled.
+  - id: no-resume-checkpoints
+    status: open
+    severity: high
+    summary: A late OOM or restart loses every completed chunk because the current run writes only the final video.
+    mitigation: Add atomic per-chunk latent or video checkpoints plus a resumable manifest.
+  - id: final-decode-not-validated
+    status: open
+    severity: medium
+    summary: Full-song CPU latent concatenation and tiled VAE decode have not completed in the current workflow.
+    mitigation: Measure a successful full run before declaring the workflow production-ready; move to streaming decode/assembly if necessary.
+  - id: public-repo-data-leak
+    status: mitigated
+    severity: high
+    summary: The repository is located inside a live ComfyUI data folder containing large and user-specific files.
+    mitigation: Deny-by-default ignore rules, exact workflow/node allowlists, tracked-path CI validation, and forbidden model/media extensions.

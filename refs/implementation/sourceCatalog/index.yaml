@@ -1,0 +1,28 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  generated_by: refs/tools/generate_source_catalog.py
+  derived: true
+  tracked_source_files: 4
+  symbols: 17
+  languages:
+    python: 4
+  parsers:
+    python-ast: 17
+  shards:
+  - path: refs/implementation/.sourceCatalogShards/shard-05.yaml
+    files: 2
+    symbols: 11
+  - path: refs/implementation/.sourceCatalogShards/shard-0d.yaml
+    files: 1
+    symbols: 2
+  - path: refs/implementation/.sourceCatalogShards/shard-1a.yaml
+    files: 1
+    symbols: 4
+  query_command: python refs/tools/generate_source_catalog.py --query "<task or symbol>"
+  notes:
+  - Generated from source; never hand-edit this catalog or its shards.
+  - Use catalog query results and symbol line ranges before opening whole source files.
+  - Inputs, outputs, imports, and call dependencies are static-analysis hints; runtime/dynamic behavior still requires source
+    or tests when relevant.

@@ -1,0 +1,84 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: TEMPLATE_TODO_DATE
+purpose: Defines how this blank refs harness may be validated before and after project initialization.
+placeholder_tokens:
+  - TEMPLATE_TODO
+  - TEMPLATE_TODO_DATE
+required_files:
+  - refs/README.md
+  - refs/index.md
+  - refs/project.yaml
+  - refs/agents.yaml
+  - refs/fileGuide.yaml
+  - refs/okfProfile.yaml
+  - refs/templatePolicy.yaml
+  - refs/planning/roadmap.yaml
+  - refs/planning/todos.yaml
+  - refs/architecture/overview.md
+  - refs/implementation/fileMap.yaml
+  - refs/implementation/sourceCatalog/index.yaml
+  - refs/implementation/okfCompatibility.md
+  - refs/handoffs/currentHandoff.md
+  - refs/operations/okfMigration.md
+  - refs/testing/validationCommands.yaml
+  - refs/schemas/schemaRegistry.yaml
+  - refs/tools/generate_agent_context.py
+  - refs/tools/generate_source_catalog.py
+  - refs/tools/generate_okf_indexes.py
+  - refs/tools/validate_refs.py
+bootstrap_files:
+  - refs/project.yaml
+  - refs/agents.yaml
+  - refs/planning/roadmap.yaml
+  - refs/planning/todos.yaml
+  - refs/architecture/overview.md
+  - refs/implementation/fileMap.yaml
+  - refs/handoffs/currentHandoff.md
+  - refs/testing/validationCommands.yaml
+files_may_stay_empty_until_relevant:
+  - refs/UI/accessibility.yaml
+  - refs/UI/components.yaml
+  - refs/UI/designTokens.yaml
+  - refs/UI/interactionRules.yaml
+  - refs/UI/screenPatterns.yaml
+  - refs/UI/uiStyle.yaml
+  - refs/data/assetManifest.schema.yaml
+  - refs/data/auditLog.schema.yaml
+  - refs/data/jobManifest.schema.yaml
+  - refs/data/metadataSchema.yaml
+  - refs/integrations/blender.yaml
+  - refs/integrations/comfyui.yaml
+  - refs/integrations/gltfTransform.yaml
+  - refs/integrations/gltfpack.yaml
+  - refs/integrations/imagemagick.yaml
+  - refs/integrations/ollama.yaml
+integration_statuses:
+  - not_evaluated
+  - planned
+  - active
+  - not_applicable
+record_conventions:
+  required_when_applicable:
+    - id
+    - status
+    - summary
+    - updated
+  optional:
+    - owner
+    - refs
+    - notes
+validation:
+  schema_registry: refs/schemas/schemaRegistry.yaml
+  okf_profile: refs/okfProfile.yaml
+  okf_indexes_must_match_generator: true
+  source_catalog_must_match_generator: true
+  initialized_mode_disallows_placeholders_in_bootstrap_files: true
+  paths_must_be_relative: true
+  disallowed_secret_patterns:
+    - api_key
+    - access_token
+    - secret_key
+    - password
+    - private_key
+    - bearer

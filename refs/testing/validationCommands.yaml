@@ -1,0 +1,31 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: 2026-10-01
+commands:
+  - id: validate-repository-scope
+    command: python scripts/validate_repository.py
+    purpose: Reject tracked paths outside the explicit project allowlist, case collisions, model weights, and media files.
+  - id: compile-project-python
+    command: python -m py_compile build_auto_s2v_workflow.py build_auto_s2v_windowed_workflow.py custom_nodes/comfyui_audio_duration_plan/__init__.py scripts/validate_repository.py
+    purpose: Compile project-owned Python without executing ComfyUI generation.
+  - id: list-wan-model-assets
+    command: powershell -ExecutionPolicy Bypass -File scripts/install-wan-s2v-assets.ps1 -ComfyRoot . -ListOnly
+    purpose: Validate the model manifest and destination mapping without downloading model files.
+  - id: generate-source-catalog
+    command: python refs/tools/generate_source_catalog.py
+    purpose: Regenerate the committed sharded source catalog after source files change.
+  - id: check-source-catalog
+    command: python refs/tools/generate_source_catalog.py --check
+    purpose: Verify the committed source catalog exactly matches tracked and untracked implementation source.
+  - id: generate-okf-indexes
+    command: python refs/tools/generate_okf_indexes.py
+    purpose: Regenerate committed OKF discovery indexes after refs files or concept metadata change.
+  - id: check-okf-indexes
+    command: python refs/tools/generate_okf_indexes.py --check
+    purpose: Verify committed OKF discovery indexes exactly match deterministic generated output.
+  - id: check-agent-context
+    command: python refs/tools/generate_agent_context.py --check
+    purpose: Verify source-catalog freshness plus deterministic bounded coding-agent re-entry context generation.
+  - id: validate-refs-initialized
+    command: python refs/tools/validate_refs.py --mode initialized
+    purpose: Validate required project facts, schemas, indexes, and Agent Academy compatibility.

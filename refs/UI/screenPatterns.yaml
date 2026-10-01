@@ -1,0 +1,6 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: TEMPLATE_TODO_DATE
+screen_patterns:
+  - id: TEMPLATE_TODO-pattern
+    summary: TEMPLATE_TODO

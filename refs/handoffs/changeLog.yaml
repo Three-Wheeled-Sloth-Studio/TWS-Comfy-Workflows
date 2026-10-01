@@ -1,0 +1,7 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: TEMPLATE_TODO_DATE
+changes:
+  - date: TEMPLATE_TODO_DATE
+    summary: TEMPLATE_TODO
+    refs: []

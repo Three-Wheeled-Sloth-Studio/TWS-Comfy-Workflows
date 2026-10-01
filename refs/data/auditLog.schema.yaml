@@ -1,0 +1,7 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: TEMPLATE_TODO_DATE
+definition:
+  status: draft
+  format: jsonl
+  fields: []

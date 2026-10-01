@@ -1,0 +1,24 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: 2026-10-01
+todos:
+  - id: diagnose-loop-gpu-retention
+    status: in_progress
+    area: runtime-memory
+    summary: Instrument or restructure the continuation loop to identify and eliminate the per-iteration GPU pressure that returns after iteration 12.
+  - id: validate-past-iteration-21
+    status: open
+    area: validation
+    summary: Complete an 832x480 song-length run beyond the previous iteration 20/21 OOM point and record timing, VRAM, RAM, and output quality.
+  - id: add-checkpointed-runner
+    status: open
+    area: resilience
+    summary: Design disk-backed chunk checkpoints with deterministic seed and audio offsets plus restart/resume behavior.
+  - id: validate-final-decode-memory
+    status: open
+    area: runtime-memory
+    summary: Measure tiled VAE decode and final assembly memory after the continuation loop successfully completes.
+  - id: evaluate-upscale-path
+    status: open
+    area: post-processing
+    summary: Compare FFmpeg Lanczos and a temporally stable AI video upscaler for 832x480 to YouTube delivery resolutions.

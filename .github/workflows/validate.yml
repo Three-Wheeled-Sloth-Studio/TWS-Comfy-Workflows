@@ -1,0 +1,33 @@
+name: Validate repository
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install validation dependency
+        run: python -m pip install pyyaml
+      - name: Reject files outside the project allowlist
+        run: python scripts/validate_repository.py
+      - name: Compile project and refs tools
+        run: python -m py_compile build_auto_s2v_workflow.py build_auto_s2v_windowed_workflow.py custom_nodes/comfyui_audio_duration_plan/__init__.py scripts/validate_repository.py refs/tools/*.py
+      - name: Check generated source catalog
+        run: python refs/tools/generate_source_catalog.py --check
+      - name: Check generated OKF indexes
+        run: python refs/tools/generate_okf_indexes.py --check
+      - name: Validate initialized project refs
+        run: python refs/tools/validate_refs.py --mode initialized
+      - name: Validate bounded agent re-entry packet
+        run: python refs/tools/generate_agent_context.py --check

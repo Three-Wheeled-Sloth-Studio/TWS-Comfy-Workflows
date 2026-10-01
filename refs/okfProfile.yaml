@@ -1,0 +1,60 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: 2026-09-03
+okf:
+  version: "0.2"
+  canonical_repository: https://github.com/GoogleCloudPlatform/open-knowledge-format
+  baseline_commit: ad30107c31c06aec8a7d5636e0d1058118604e6f
+bundle:
+  root: refs
+  title: Agent Academy Knowledge Bundle
+  reserved_files:
+    - index.md
+    - log.md
+agent_academy:
+  profile: agent-academy-okf-v1
+  authority:
+    operating_instructions: refs/agents.yaml
+    deterministic_state:
+      - refs/project.yaml
+      - refs/planning
+      - refs/architecture
+      - refs/product
+      - refs/implementation
+      - refs/testing
+      - refs/UI
+      - refs/data
+      - refs/integrations
+      - refs/operations
+      - refs/handoffs
+    okf_concepts: Markdown files under refs except reserved index.md and log.md files.
+  compatibility:
+    preserve_yaml_state: true
+    unknown_okf_fields_tolerated: true
+    richer_agent_academy_relationships_remain_authoritative: true
+indexes:
+  generated: true
+  committed: true
+  generator: python refs/tools/generate_okf_indexes.py
+  check: python refs/tools/generate_okf_indexes.py --check
+  manual_edits_allowed: false
+provenance:
+  rules:
+    - Do not infer verified status from generation, Git history, tests, or refs validation.
+    - Add generated only when the producer identity and meaningful content-change time are known.
+    - Add verified only after an actor actually confirms the concept against its source or resource.
+    - Add sources only for materials the concept genuinely derives from.
+    - Use stale_after only for knowledge with a meaningful expiration instant.
+relationships:
+  okf_surface: Standard Markdown links between concepts.
+  agent_academy_surface: Preserve richer typed or directional relationships in structured YAML where already modeled.
+  future_alignment: Adopt a future OKF relationship standard only through an explicit profile update.
+studio_catalog:
+  role: Derived discovery and navigation layer, never a source of project truth.
+  source_authority: Originating project repository and commit.
+  recommended_identity_fields:
+    - repository
+    - commit_sha
+    - bundle_path
+    - concept_path
+  preserve_upstream_trust: true

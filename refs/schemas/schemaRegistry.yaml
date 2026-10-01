@@ -1,0 +1,138 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: TEMPLATE_TODO_DATE
+purpose: Machine-readable schema hints for validating the project-neutral refs harness.
+defaults:
+  yaml_required_top_level_keys:
+    - version
+    - schema
+schemas:
+  refs/project.yaml:
+    required_top_level_keys:
+      - version
+      - schema
+      - updated
+      - identity
+      - thesis
+      - audience
+      - stack
+      - repository_layout
+      - source_of_truth
+      - known_open_questions
+  refs/agents.yaml:
+    required_top_level_keys:
+      - version
+      - schema
+      - instructions
+  refs/okfProfile.yaml:
+    required_top_level_keys:
+      - version
+      - schema
+      - updated
+      - okf
+      - bundle
+      - agent_academy
+      - indexes
+      - provenance
+      - relationships
+      - studio_catalog
+  refs/planning/roadmap.yaml:
+    required_top_level_keys:
+      - version
+      - schema
+      - updated
+      - roadmap
+  refs/planning/todos.yaml:
+    required_top_level_keys:
+      - version
+      - schema
+      - updated
+      - todos
+  refs/planning/decisions.yaml:
+    required_top_level_keys:
+      - version
+      - schema
+      - updated
+      - decisions
+  refs/planning/risks.yaml:
+    required_top_level_keys:
+      - version
+      - schema
+      - updated
+      - risks
+  refs/architecture/modules.yaml:
+    required_top_level_keys:
+      - version
+      - schema
+      - updated
+      - modules
+  refs/architecture/integrationMap.yaml:
+    required_top_level_keys:
+      - version
+      - schema
+      - updated
+      - integrations
+  refs/implementation/sourceCatalog/index.yaml:
+    required_top_level_keys:
+      - version
+      - schema
+      - source_catalog
+  refs/testing/validationCommands.yaml:
+    required_top_level_keys:
+      - version
+      - schema
+      - updated
+      - commands
+  refs/UI/accessibility.yaml:
+    required_top_level_keys:
+      - version
+      - schema
+      - updated
+      - accessibility
+  refs/UI/components.yaml:
+    required_top_level_keys:
+      - version
+      - schema
+      - updated
+      - components
+  refs/UI/designTokens.yaml:
+    required_top_level_keys:
+      - version
+      - schema
+      - updated
+      - tokens
+  refs/UI/interactionRules.yaml:
+    required_top_level_keys:
+      - version
+      - schema
+      - updated
+      - interaction_rules
+  refs/UI/screenPatterns.yaml:
+    required_top_level_keys:
+      - version
+      - schema
+      - updated
+      - screen_patterns
+  refs/UI/uiStyle.yaml:
+    required_top_level_keys:
+      - version
+      - schema
+      - updated
+      - principles
+integration_file_schema:
+  path_glob: refs/integrations/*.yaml
+  required_top_level_keys:
+    - version
+    - schema
+    - updated
+    - integration
+  required_integration_keys:
+    - id
+    - status
+    - mode
+    - config_fields
+  allowed_statuses:
+    - not_evaluated
+    - planned
+    - active
+    - not_applicable

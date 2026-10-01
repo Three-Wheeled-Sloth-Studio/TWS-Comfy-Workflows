@@ -1,0 +1,8 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: TEMPLATE_TODO_DATE
+schemas:
+  TEMPLATE_TODO-config:
+    status: draft
+    purpose: TEMPLATE_TODO
+    fields: []

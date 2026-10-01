@@ -1,0 +1,205 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '05'
+  files:
+  - path: build_auto_s2v_windowed_workflow.py
+    analysis_version: 1
+    language: python
+    content_hash: 98dc99b1f623a6b187d0cbdb55aebd2b40ec6559
+    dependencies:
+    - json
+    - pathlib
+    provides:
+    - add
+    symbols:
+    - name: add
+      kind: function
+      line_start: 124
+      line_end: 127
+      signature: add(origin, origin_slot, target, target_slot, data_type)
+      inputs:
+      - origin
+      - origin_slot
+      - target
+      - target_slot
+      - data_type
+      output: unspecified
+      dependencies:
+      - workflow['links'].append
+      parser: python-ast
+      dependency_targets:
+      - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
+        symbol: WanS2VStateAppend.append
+  - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
+    analysis_version: 1
+    language: python
+    content_hash: 8e2ef781a119032118a511288886a8454c92809e
+    dependencies:
+    - comfy.model_management
+    - comfy_extras.nodes_wan
+    - math
+    - node_helpers
+    - torch
+    provides:
+    - AudioDurationToWanChunks.INPUT_TYPES
+    - AudioDurationToWanChunks.plan
+    - WanS2VStateStart.INPUT_TYPES
+    - WanS2VStateStart.create
+    - WanSoundImageToVideoExtendState.INPUT_TYPES
+    - WanSoundImageToVideoExtendState.extend
+    - WanS2VStateAppend.INPUT_TYPES
+    - WanS2VStateAppend.append
+    - WanS2VStateToLatent.INPUT_TYPES
+    - WanS2VStateToLatent.combine
+    symbols:
+    - name: AudioDurationToWanChunks.INPUT_TYPES
+      kind: method
+      line_start: 8
+      line_end: 21
+      signature: AudioDurationToWanChunks.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: AudioDurationToWanChunks.plan
+      kind: method
+      line_start: 37
+      line_end: 63
+      signature: AudioDurationToWanChunks.plan(self, audio, fps, chunk_length)
+      inputs:
+      - self
+      - audio
+      - fps
+      - chunk_length
+      output: unspecified
+      dependencies:
+      - ValueError
+      - audio.get
+      - float
+      - int
+      - math.ceil
+      - max
+      parser: python-ast
+      dependency_targets: []
+    - name: WanS2VStateStart.INPUT_TYPES
+      kind: method
+      line_start: 77
+      line_end: 83
+      signature: WanS2VStateStart.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: WanS2VStateStart.create
+      kind: method
+      line_start: 90
+      line_end: 105
+      signature: WanS2VStateStart.create(self, initial_latent, initial_positive)
+      inputs:
+      - self
+      - initial_latent
+      - initial_positive
+      output: unspecified
+      dependencies:
+      - initial_latent['samples'].detach
+      - initial_latent['samples'].detach().to
+      - int
+      - metadata.get
+      - reference_latents[-1].detach
+      - reference_latents[-1].detach().to
+      parser: python-ast
+      dependency_targets: []
+    - name: WanSoundImageToVideoExtendState.INPUT_TYPES
+      kind: method
+      line_start: 110
+      line_end: 124
+      signature: WanSoundImageToVideoExtendState.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: WanSoundImageToVideoExtendState.extend
+      kind: method
+      line_start: 131
+      line_end: 174
+      signature: WanSoundImageToVideoExtendState.extend(self, positive, negative, vae, length, state, audio_encoder_output,
+        ref_image, control_video)
+      inputs:
+      - self
+      - positive
+      - negative
+      - vae
+      - length
+      - state
+      - audio_encoder_output
+      - ref_image
+      - control_video
+      output: unspecified
+      dependencies:
+      - int
+      - node_helpers.conditioning_set_values
+      - state.get
+      - wan_sound_to_video
+      parser: python-ast
+      dependency_targets: []
+    - name: WanS2VStateAppend.INPUT_TYPES
+      kind: method
+      line_start: 179
+      line_end: 180
+      signature: WanS2VStateAppend.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: WanS2VStateAppend.append
+      kind: method
+      line_start: 187
+      line_end: 203
+      signature: WanS2VStateAppend.append(self, state, chunk_latent)
+      inputs:
+      - self
+      - state
+      - chunk_latent
+      output: unspecified
+      dependencies:
+      - chunk_latent['samples'].detach
+      - chunk_latent['samples'].detach().to
+      - comfy.model_management.soft_empty_cache
+      - int
+      - state.get
+      parser: python-ast
+      dependency_targets: []
+    - name: WanS2VStateToLatent.INPUT_TYPES
+      kind: method
+      line_start: 208
+      line_end: 209
+      signature: WanS2VStateToLatent.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: WanS2VStateToLatent.combine
+      kind: method
+      line_start: 216
+      line_end: 219
+      signature: WanS2VStateToLatent.combine(self, state)
+      inputs:
+      - self
+      - state
+      output: unspecified
+      dependencies:
+      - torch.cat
+      parser: python-ast
+      dependency_targets: []

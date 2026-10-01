@@ -1,0 +1,8 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: TEMPLATE_TODO_DATE
+integration:
+  id: gltf-transform
+  status: not_evaluated
+  mode: TEMPLATE_TODO
+  config_fields: []

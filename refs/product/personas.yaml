@@ -1,0 +1,7 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: TEMPLATE_TODO_DATE
+personas:
+  - id: TEMPLATE_TODO-persona
+    summary: TEMPLATE_TODO
+    needs: []

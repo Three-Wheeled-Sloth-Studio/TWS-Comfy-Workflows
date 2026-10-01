@@ -1,0 +1,85 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+purpose: Agent-readable guide for initializing a project refs folder.
+rules:
+  - Keep entries factual, current, and concise.
+  - Prefer project-neutral schemas that are easy for code agents to parse.
+  - Use YAML for structured state and Markdown for explanatory prose.
+  - Treat non-reserved Markdown files as OKF concepts with YAML frontmatter.
+  - Do not hand-edit generated index.md files.
+  - Do not hand-edit generated source-catalog files.
+  - Do not store secrets in refs.
+files:
+  index.md: Generated OKF discovery surface for the refs bundle. The root index declares okf_version; directory indexes contain no frontmatter.
+  agents.yaml: Agent operating instructions, progressive context-loading rules, source-discovery rules, delegation policy, and project-specific constraints.
+  okfProfile.yaml: Agent Academy OKF compatibility profile, pinned OKF source version, authority boundaries, index policy, and studio-catalog contract.
+  templatePolicy.yaml: Template placeholder policy, required files, bootstrap files, and validation rules.
+  schemas/schemaRegistry.yaml: Machine-readable schema hints used by the refs validator.
+  MAINTENANCE.md: Framework maintainer guidance for adding files, changing schemas, upgrading the OKF profile, and documenting migrations.
+  README.md: Initialization instructions and overview of the Agent Academy plus OKF memory model.
+  examples/: Generic examples that are not source-of-truth for copied projects.
+  project.yaml: Project identity, purpose, stack, repository layout, source-of-truth links, and open questions.
+  planning/roadmap.yaml: Major work lanes, horizons, statuses, and sequencing.
+  planning/todos.yaml: Durable task list with ids, statuses, areas, and summaries.
+  planning/milestones.yaml: Milestones, exit criteria, and release gates.
+  planning/decisions.yaml: Accepted decisions, rationale, date, and consequences.
+  planning/risks.yaml: Known risks, severity, mitigation, and owner if known.
+  planning/assumptions.yaml: Working assumptions that should be revisited when facts change.
+  planning/openQuestions.yaml: Unresolved questions that affect implementation or product direction.
+  architecture/overview.md: Plain-language architecture summary and OKF architecture concept.
+  architecture/stack.yaml: Languages, frameworks, runtimes, build tools, and package managers.
+  architecture/modules.yaml: Module map with responsibilities, status, dependencies, and source paths.
+  architecture/dataFlow.md: How data enters, moves through, and exits the system.
+  architecture/integrationMap.yaml: Internal/external integration map and boundary notes.
+  architecture/boundaries.yaml: Ownership and safety boundaries between modules, processes, and data stores.
+  architecture/localVsHosted.md: What runs locally, what may be hosted, and what must stay portable.
+  product/vision.md: Product thesis, core promise, audience, and success shape.
+  product/personas.yaml: User/persona list with needs and constraints.
+  product/useCases.yaml: Primary user workflows and job stories.
+  product/featureCatalog.yaml: Feature list with status and short descriptions.
+  product/workflows.yaml: Step-by-step workflows users or agents must support.
+  product/glossary.yaml: Project terms and definitions.
+  implementation/codingStandards.md: Coding style, bounded source modularity, safety, quality, review standards, and mandatory cross-platform path safety.
+  implementation/repoConventions.md: Repo layout, naming, generated-file, contribution, and path portability rules.
+  implementation/fileMap.yaml: Important files, source roots, and where to look for common tasks before broad searches.
+  implementation/sourceCatalog/index.yaml: Generated compact discovery manifest for the sharded source catalog; contains counts, parser coverage, shard paths, and the query command.
+  implementation/.sourceCatalogShards/shard-*.yaml: Generated source records grouped into stable hash buckets and intentionally hidden from the OKF discovery surface. Records include file imports/dependencies plus callable symbols, line ranges, signatures, inputs, outputs, and resolved static call targets when available.
+  implementation/configSchema.yaml: Config files, schema notes, portable versus machine-local fields.
+  implementation/envVars.example: Safe example environment variables with no real secrets.
+  implementation/dependencyPolicy.md: Dependency approval, versioning, and external tool policy.
+  implementation/okfCompatibility.md: Authority boundaries and interoperability rules for the Agent Academy OKF profile.
+  handoffs/handoffTemplate.md: Delta-oriented template for future handoff notes, explicit next-slice required reads, and compact re-entry context.
+  handoffs/currentHandoff.md: Accepted baseline, recent delta, current evidence or gap, next slice, explicit required reads, constraints, and validation.
+  handoffs/implementationLog.yaml: Chronological implementation entries.
+  handoffs/changeLog.yaml: Human-readable changes to refs/project state.
+  testing/testStrategy.md: Testing philosophy and layers.
+  testing/acceptanceCriteria.yaml: Durable acceptance criteria for important workflows.
+  testing/smokeTests.yaml: Fast manual or automated smoke tests.
+  testing/regressionChecklist.md: Checklist for preventing known regressions, including cross-platform path collisions.
+  testing/validationCommands.yaml: Commands agents should run and what they verify.
+  UI/uiStyle.yaml: UI style rules and layout principles.
+  UI/designTokens.yaml: Colors, spacing, typography, and shared UI constants.
+  UI/components.yaml: Reusable component guidance and expected behaviors.
+  UI/screenPatterns.yaml: Common screen layouts and information architecture patterns.
+  UI/interactionRules.yaml: Input, browse, selection, progress, and long-running-job rules.
+  UI/accessibility.yaml: Accessibility standards and project-specific requirements.
+  data/assetManifest.schema.yaml: Asset manifest schema and required metadata.
+  data/jobManifest.schema.yaml: Batch job manifest schema.
+  data/auditLog.schema.yaml: Audit log format and fields.
+  data/metadataSchema.yaml: Shared metadata structures and field definitions.
+  integrations/comfyui.yaml: ComfyUI connection assumptions and config fields, if relevant.
+  integrations/blender.yaml: Blender automation assumptions and config fields, if relevant.
+  integrations/ollama.yaml: Ollama/local LLM assumptions and config fields, if relevant.
+  integrations/imagemagick.yaml: ImageMagick assumptions and config fields, if relevant.
+  integrations/gltfTransform.yaml: glTF Transform assumptions and config fields, if relevant.
+  integrations/gltfpack.yaml: gltfpack assumptions and config fields, if relevant.
+  operations/localSetup.md: How to set up the project locally.
+  operations/machineProfiles.yaml: Machine-local capabilities and tool profiles.
+  operations/troubleshooting.md: Common failures and fixes.
+  operations/releaseChecklist.md: Release/package checklist.
+  operations/backupAndSync.md: Backup, sync, and portability policy.
+  operations/okfMigration.md: Non-destructive OKF adoption and version-upgrade guidance for existing projects.
+  tools/generate_agent_context.py: Refresh source discovery and generate or check a bounded, derived coding-agent re-entry packet from authoritative refs plus local git state.
+  tools/generate_source_catalog.py: Deterministically generate, check, and query the sharded source catalog without requiring an LLM to read source files.
+  tools/generate_okf_indexes.py: Deterministically generate or check committed OKF index.md discovery files.
+  tools/validate_refs.py: Validate Agent Academy schemas, template rules, portability, OKF concepts, profile conformance, and generated indexes.

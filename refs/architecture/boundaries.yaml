@@ -1,0 +1,8 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: TEMPLATE_TODO_DATE
+boundaries:
+  - id: TEMPLATE_TODO-boundary
+    status: proposed
+    owner_area: TEMPLATE_TODO
+    rules: []

@@ -1,0 +1,37 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: 2026-10-01
+identity:
+  name: TWS Comfy Workflows
+  repository_url: https://github.com/Three-Wheeled-Sloth-Studio/TWS-Comfy-Workflows
+  summary: Curated ComfyUI workflows, project-owned custom nodes, setup automation, and durable operational knowledge for Three-Wheeled Sloth Studio.
+  current_phase: Stabilizing automatic full-song Wan 2.2 S2V generation on a 12 GB RTX 4070.
+thesis:
+  core_promise: Make studio ComfyUI workflows reproducible, inspectable, recoverable, and easy for humans or agents to continue safely.
+audience:
+  primary_users:
+    - Three-Wheeled Sloth Studio operators
+    - coding agents maintaining workflow automation
+stack:
+  summary: ComfyUI Desktop on Windows, Python custom nodes and workflow builders, PowerShell setup tooling, Wan 2.2 S2V, and FFmpeg-oriented post-processing.
+repository_layout:
+  source_roots:
+    - custom_nodes/comfyui_audio_duration_plan
+    - user/default/workflows
+    - scripts
+  docs_roots:
+    - refs
+source_of_truth:
+  discovery: refs/index.md
+  okf_profile: refs/okfProfile.yaml
+  planning: refs/planning
+  architecture: refs/architecture
+  product: refs/product
+  implementation: refs/implementation
+  handoffs: refs/handoffs
+  testing: refs/testing
+  ui: refs/UI
+known_open_questions:
+  - Which ComfyUI loop/execution-cache objects retain GPU memory across long Wan continuation runs?
+  - Should production generation checkpoint each latent chunk to disk and run each chunk as a separate prompt?
+  - Which post-processing upscaler provides the best temporal stability for minimally animated music videos?

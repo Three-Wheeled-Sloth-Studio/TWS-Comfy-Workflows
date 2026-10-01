@@ -1,0 +1,9 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: TEMPLATE_TODO_DATE
+integrations:
+  - id: TEMPLATE_TODO-integration
+    mode: TEMPLATE_TODO
+    required_for: []
+    config_source: TEMPLATE_TODO
+    status: planned

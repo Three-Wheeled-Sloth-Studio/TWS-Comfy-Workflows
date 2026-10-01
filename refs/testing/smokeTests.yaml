@@ -1,0 +1,8 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: TEMPLATE_TODO_DATE
+smoke_tests:
+  - id: TEMPLATE_TODO-smoke-test
+    status: draft
+    summary: TEMPLATE_TODO
+    steps: []

@@ -1,0 +1,43 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+instructions:
+  - For routine continuation or after a context reset, start with `python refs/tools/generate_agent_context.py --focus "<short task phrase>"`; treat its output as derived orientation, never as a replacement source of truth.
+  - The re-entry generator refreshes the deterministic source catalog before producing routine context. Use its source-catalog matches and handoff required reads before opening implementation files.
+  - If the packet is insufficient, query `python refs/tools/generate_source_catalog.py --query "<task or symbol>"` before broad repository search.
+  - Load context progressively. Start from the generated packet and its source-catalog/file-map hints, then read deeper roadmap, architecture, history, or source material only when the task crosses those boundaries or the compact evidence is insufficient.
+  - Start with the smallest evidence set capable of resolving the task. Expand context only for a concrete dependency, ambiguity, failing test, system boundary, or authoritative reference.
+  - Prefer symbol-level and targeted line-range reads. Do not open a whole source file when the relevant symbol, test, or range is sufficient.
+  - Do not recursively read or summarize the repository as routine task preparation. Broad repository reads are justified only by genuinely repository-wide work such as architecture migration, dependency audit, or cross-cutting refactor.
+  - On first project bootstrap, or when authoritative identity is required, read refs/project.yaml.
+  - Read only the relevant roadmap, todo, and accepted-decision records before changing implementation work; do not reread full planning history merely because a conversation reset occurred.
+  - Read refs/architecture before changing system boundaries or module ownership.
+  - Read refs/implementation/fileMap.yaml before searching broadly.
+  - Prefer diff-first continuation from the accepted checkpoint over reconstructing unchanged repository state.
+  - Treat accepted decisions as inputs unless new runtime, test, or user evidence contradicts them.
+  - Conserve coding-agent context and tokens deliberately: prefer generated source-catalog results, targeted file ranges, symbol/search results, deterministic diagnostics, and tests over broad whole-file or whole-repository reads.
+  - When the environment supports sub-agents, delegate independent bounded work by default when delegation reduces parent-agent context consumption, enables useful parallel work, or isolates a specialized task.
+  - Use the least expensive capable sub-agent/model for delegated work. Prefer lower-cost agents for bounded search, call-site discovery, test inspection, diagnostics, documentation checks, and other tasks that do not require the primary agent's full reasoning context.
+  - Do not delegate when coordination cost exceeds the task, when the work requires the parent's full context, or when parallel writes create material merge/conflict risk. Prefer read-only sub-agent tasks when agents could touch overlapping files.
+  - The parent agent remains responsible for integrating, verifying, and validating sub-agent results; delegation never transfers final correctness responsibility.
+  - If substantially the same diagnostic, search, comparison, or transformation is performed twice, make it a reusable script/helper/test before doing it a third time unless the operation is genuinely one-off.
+  - Read refs/testing/validationCommands.yaml before finalizing changes.
+  - Regenerate the source catalog after source changes and require `python refs/tools/generate_source_catalog.py --check` to pass before finalizing.
+  - Use refs/index.md as the OKF discovery surface, but do not substitute it for authoritative structured state.
+  - Keep durable decisions, todos, handoffs, and validation notes in refs.
+  - Keep the active handoff delta-oriented: accepted baseline, what landed, current evidence or gap, next slice, required reads for the next slice, relevant files, do-not-reopen constraints, and validation.
+  - In `Required Reads For Next Slice`, name only the files, symbols, or line ranges the next agent actually needs and state why each is required. Do not use the section as a general repository reading list.
+  - Preserve OKF frontmatter on every non-reserved Markdown concept under refs.
+  - Do not hand-edit generated index.md files; regenerate them with refs/tools/generate_okf_indexes.py.
+  - Never hand-edit refs/implementation/sourceCatalog/index.yaml or refs/implementation/.sourceCatalogShards/shard-*.yaml; regenerate them with refs/tools/generate_source_catalog.py.
+  - Never infer OKF verified status from generation, passing tests, Git history, or refs validation.
+  - Do not store secrets in refs.
+  - If a project fact is unknown, record it in refs/planning/openQuestions.yaml instead of guessing.
+  - Record durable implementation decisions in refs/planning/decisions.yaml with rationale and consequences.
+  - Update refs/handoffs/currentHandoff.md when stopping with incomplete or context-heavy work.
+  - Keep machine-local paths only in files that explicitly allow machine-local configuration.
+  - Preserve refs file paths unless a framework migration note explains the change.
+  - Never create, rename, or retain two tracked paths that differ only by letter casing; Windows and default macOS filesystems may collapse them even when Linux CI accepts them.
+  - Treat the Git index, not a filesystem directory scan, as the authority for case-collision checks. Initialized projects must add an automated guard that reads tracked paths from git ls-files, case-folds each complete path, and fails when distinct tracked paths share the same folded form.
+  - Wire the case-collision guard into the normal validation path and, where available, pre-typecheck and pre-build hooks so the failure is caught before compilation or packaging.
+  - Match import and reference casing exactly to the tracked path. Name companion modules with semantic suffixes such as Geometry, Model, State, View, or Utils rather than distinguishing files only by capitalization.
+  - Perform case-only renames through a temporary intermediate filename, then verify the resulting Git diff and run the case-collision guard.

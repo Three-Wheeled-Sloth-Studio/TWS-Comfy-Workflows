@@ -1,0 +1,20 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: 2026-10-01
+roadmap:
+  - id: stabilize-long-wan-s2v
+    horizon: now
+    status: in_progress
+    summary: Eliminate progressive GPU pressure and complete full-song 832x480 Wan 2.2 S2V runs reliably on 12 GB VRAM.
+  - id: durable-chunk-checkpoints
+    horizon: next
+    status: planned
+    summary: Persist completed chunks or latent checkpoints so interrupted overnight runs can resume without losing prior work.
+  - id: streaming-assembly
+    horizon: next
+    status: planned
+    summary: Assemble and encode completed chunks without retaining the full decoded song in memory.
+  - id: youtube-upscale
+    horizon: later
+    status: planned
+    summary: Establish a temporally stable post-processing path from 832x480 generation to 720p or 1080p 16:9 delivery.

@@ -1,0 +1,79 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: 1a
+  files:
+  - path: build_auto_s2v_workflow.py
+    analysis_version: 1
+    language: python
+    content_hash: 0290879a5c0962f5d667fc63c54ad2015ebf4d12
+    dependencies:
+    - copy
+    - json
+    - pathlib
+    provides:
+    - input_slot
+    - output_slot
+    - core_properties
+    - add_link
+    symbols:
+    - name: input_slot
+      kind: function
+      line_start: 11
+      line_end: 17
+      signature: input_slot(name, data_type, link, widget, shape, label)
+      inputs:
+      - name
+      - data_type
+      - link
+      - widget
+      - shape
+      - label
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: output_slot
+      kind: function
+      line_start: 20
+      line_end: 26
+      signature: output_slot(name, data_type, shape, slot_index)
+      inputs:
+      - name
+      - data_type
+      - shape
+      - slot_index
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: core_properties
+      kind: function
+      line_start: 29
+      line_end: 30
+      signature: core_properties(name)
+      inputs:
+      - name
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: add_link
+      kind: function
+      line_start: 333
+      line_end: 336
+      signature: add_link(origin, origin_slot, target, target_slot, data_type)
+      inputs:
+      - origin
+      - origin_slot
+      - target
+      - target_slot
+      - data_type
+      output: unspecified
+      dependencies:
+      - workflow['links'].append
+      parser: python-ast
+      dependency_targets:
+      - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
+        symbol: WanS2VStateAppend.append

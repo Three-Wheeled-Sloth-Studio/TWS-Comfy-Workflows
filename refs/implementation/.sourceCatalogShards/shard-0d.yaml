@@ -1,0 +1,56 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: 0d
+  files:
+  - path: scripts/validate_repository.py
+    analysis_version: 1
+    language: python
+    content_hash: ecd29325329d878a61af308e19137d62fe17a945
+    dependencies:
+    - __future__
+    - pathlib
+    - subprocess
+    - sys
+    provides:
+    - tracked_paths
+    - main
+    symbols:
+    - name: tracked_paths
+      kind: function
+      line_start: 38
+      line_end: 42
+      signature: tracked_paths() -> list[str]
+      inputs: []
+      output: list[str]
+      dependencies:
+      - item.decode
+      - result.stdout.split
+      - subprocess.run
+      parser: python-ast
+      dependency_targets: []
+    - name: main
+      kind: function
+      line_start: 45
+      line_end: 74
+      signature: main() -> int
+      inputs: []
+      output: int
+      dependencies:
+      - PurePosixPath
+      - PurePosixPath(normalized).suffix.casefold
+      - failures.append
+      - folded.setdefault
+      - len
+      - normalized.casefold
+      - normalized.startswith
+      - path.replace
+      - print
+      - tracked_paths
+      parser: python-ast
+      dependency_targets:
+      - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
+        symbol: WanS2VStateAppend.append
+      - path: scripts/validate_repository.py
+        symbol: tracked_paths

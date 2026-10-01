@@ -1,0 +1,12 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: 2099-01-01
+example_only: true
+todos:
+  - id: example-task
+    status: open
+    area: example-area
+    summary: Replace this generic example with project-specific work after copying the harness.
+    updated: 2099-01-01
+    refs: []
+    notes: []

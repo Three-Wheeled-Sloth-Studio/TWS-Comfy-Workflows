@@ -1,0 +1,10 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: TEMPLATE_TODO_DATE
+stack:
+  languages: []
+  frameworks: []
+  runtimes: []
+  package_managers: []
+  databases: []
+  deployment_targets: []

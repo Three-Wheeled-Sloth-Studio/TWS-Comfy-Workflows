@@ -1,0 +1,72 @@
+# Deny by default. This repository lives at the root of a working ComfyUI
+# data directory, so every tracked path must be explicitly allowlisted.
+/*
+
+# Repository infrastructure.
+!/.gitignore
+!/.gitattributes
+!/LICENSE
+!/README.md
+!/AGENTS.md
+!/.github/
+!/.github/**
+!/refs/
+!/refs/**
+!/scripts/
+!/scripts/**
+!/assets/
+!/assets/**
+
+# Project-owned root utilities only.
+!/build_auto_s2v_workflow.py
+!/build_auto_s2v_windowed_workflow.py
+!/diagnose-comfyui-model-paths.bat
+!/diagnose-comfyui-model-paths.ps1
+!/install-models.bat
+!/install-models.ps1
+!/install-music-video-models.bat
+!/install-music-video-models.ps1
+!/setup-music-video-workflow.bat
+!/setup-music-video-workflow.ps1
+
+# Only the custom node authored by this project. All downloaded third-party
+# custom nodes remain ignored.
+!/custom_nodes/
+/custom_nodes/*
+!/custom_nodes/comfyui_audio_duration_plan/
+!/custom_nodes/comfyui_audio_duration_plan/**
+
+# Only explicitly curated workflow files. Everything else under user/ is
+# machine/user-specific ComfyUI state and remains ignored.
+!/user/
+/user/*
+!/user/default/
+/user/default/*
+!/user/default/workflows/
+/user/default/workflows/*
+!/user/default/workflows/video_wan2_2_14B_s2v.json
+!/user/default/workflows/video_wan2_2_14B_s2v_auto_duration.json
+!/user/default/workflows/video_wan2_2_14B_s2v_auto_duration_windowed.json
+
+# Defense in depth inside allowlisted trees.
+**/__pycache__/
+*.py[cod]
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*.bin
+*.mp3
+*.wav
+*.flac
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+.agent-context.md
