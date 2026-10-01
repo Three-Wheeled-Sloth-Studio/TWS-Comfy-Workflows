@@ -5,7 +5,7 @@ identity:
   name: TWS Comfy Workflows
   repository_url: https://github.com/Three-Wheeled-Sloth-Studio/TWS-Comfy-Workflows
   summary: Curated ComfyUI workflows, project-owned custom nodes, setup automation, and durable operational knowledge for Three-Wheeled Sloth Studio.
-  current_phase: Stabilizing automatic full-song Wan 2.2 S2V generation on a 12 GB RTX 4070.
+  current_phase: Prototyping a hybrid motion-poster pipeline for bounded-memory, full-song 16:9 videos.
 thesis:
   core_promise: Make studio ComfyUI workflows reproducible, inspectable, recoverable, and easy for humans or agents to continue safely.
 audience:

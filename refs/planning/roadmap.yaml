@@ -3,9 +3,13 @@ schema: refs/schemas/schemaRegistry.yaml
 updated: 2026-10-01
 roadmap:
   - id: stabilize-long-wan-s2v
+    horizon: later
+    status: deferred
+    summary: Eliminate progressive GPU pressure and complete full-song 832x480 Wan 2.2 S2V runs reliably on 12 GB VRAM.
+  - id: hybrid-motion-poster
     horizon: now
     status: in_progress
-    summary: Eliminate progressive GPU pressure and complete full-song 832x480 Wan 2.2 S2V runs reliably on 12 GB VRAM.
+    summary: Produce exact-duration music videos by combining short Comfy-generated motion assets with deterministic, semantically masked, bounded-memory rendering.
   - id: durable-chunk-checkpoints
     horizon: next
     status: planned
@@ -13,7 +17,7 @@ roadmap:
   - id: streaming-assembly
     horizon: next
     status: planned
-    summary: Assemble and encode completed chunks without retaining the full decoded song in memory.
+    summary: Stream hybrid-rendered frames or segments to disk without retaining the full decoded song in memory.
   - id: youtube-upscale
     horizon: later
     status: planned

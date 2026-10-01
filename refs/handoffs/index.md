@@ -4,7 +4,7 @@ Generated OKF discovery index. Do not edit manually.
 
 ## Concepts
 
-* [Current Handoff](currentHandoff.md) - Current Wan S2V long-song implementation state, runtime evidence, known gap, and next diagnostic slice.
+* [Current Handoff](currentHandoff.md) - Current music-video implementation state and the accepted hybrid motion-poster production direction.
 * [Handoff Template](handoffTemplate.md) - Reusable structure for transferring current implementation context to the next agent or collaborator.
 
 ## Structured Resources
