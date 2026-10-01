@@ -35,8 +35,9 @@ source_catalog:
   - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
     analysis_version: 1
     language: python
-    content_hash: 8e2ef781a119032118a511288886a8454c92809e
+    content_hash: 470da6f568c664d66213d538182a17af62c71f0d
     dependencies:
+    - .motion_poster_nodes
     - comfy.model_management
     - comfy_extras.nodes_wan
     - math

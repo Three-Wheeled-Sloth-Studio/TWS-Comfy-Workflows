@@ -39,6 +39,11 @@ $copies = @(
         Source = Join-Path $resolvedRepoRoot 'user\default\workflows\video_wan2_2_14B_s2v_motion_loop.json'
         Destination = Join-Path $resolvedComfyRoot 'user\default\workflows\video_wan2_2_14B_s2v_motion_loop.json'
         Directory = $false
+    },
+    @{
+        Source = Join-Path $resolvedRepoRoot 'user\default\workflows\video_wan2_2_14B_s2v_motion_poster_guided.json'
+        Destination = Join-Path $resolvedComfyRoot 'user\default\workflows\video_wan2_2_14B_s2v_motion_poster_guided.json'
+        Directory = $false
     }
 )
 

@@ -2,6 +2,15 @@ version: 1
 schema: refs/schemas/schemaRegistry.yaml
 updated: 2026-10-01
 decisions:
+  - id: single-variant-motion-poster-default
+    status: accepted
+    date: 2026-10-01
+    decision: Keep one generated variant as the quality default until multi-variant transitions avoid blended blur and preserve lighting flicker.
+    rationale: A real three-variant run completed within time, GPU, and thermal tolerances but looked like layered variants and smoothed away the useful lighting motion.
+    consequences:
+      - Performance is not the blocker for multi-variant work; transition quality is.
+      - Future experiments should prefer short transitions, low-motion cuts, or section-level alternation over sustained crossfades.
+      - The guided workflow continues to expose up to three variants for experiments but defaults to one.
   - id: embedded-deny-by-default-worktree
     status: accepted
     date: 2026-10-01
@@ -52,3 +61,12 @@ decisions:
       - The assembler rejects loop aspect ratios outside the configured tolerance instead of cropping or stretching them.
       - Background-only motion is the safe default; singing or lip sync must be explicitly requested and validated.
       - Multiple independently seeded loop variants may be crossfaded for variety after identity and composition review.
+  - id: guided-comfyui-workflow-primary-interface
+    status: accepted
+    date: 2026-10-01
+    decision: Make one guided ComfyUI graph the primary motion-poster interface; retain manifests and CLI scripts as reproducibility and diagnostic tools.
+    rationale: Ordinary users should select media, describe motion, choose variant count, and queue once rather than coordinate intermediate files and commands.
+    consequences:
+      - Custom nodes build safe prompts, fan out deterministic seeds, and assemble the full-song output inside the graph.
+      - Updating the project-owned custom node requires one Comfy Desktop restart before the guided workflow can run.
+      - The final GUI assembly remains bounded-memory at the FFmpeg stage, while generated frame batches consume system RAM until assembly begins.

@@ -16,9 +16,13 @@ roadmap:
     summary: Persist completed chunks or latent checkpoints so interrupted overnight runs can resume without losing prior work.
   - id: streaming-assembly
     horizon: next
-    status: planned
+    status: complete
     summary: Stream hybrid-rendered frames or segments to disk without retaining the full decoded song in memory.
   - id: youtube-upscale
     horizon: later
     status: planned
     summary: Establish a temporally stable post-processing path from 832x480 generation to 720p or 1080p 16:9 delivery.
+  - id: beat-aware-effects
+    horizon: later
+    status: planned
+    summary: Add optional beat-derived control for restrained glow and lighting accents without driving lips, faces, or whole-image motion from audio amplitude.

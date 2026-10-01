@@ -31,14 +31,34 @@ todos:
     area: music-video-rendering
     summary: Define a small per-song manifest for source media, loop variants, semantic masks, camera movement, effects, optional beat response, and optional timed lyrics.
   - id: validate-native-motion-loops
-    status: in_progress
+    status: done
     area: music-video-rendering
-    summary: Watch the completed native 832x480 sample at normal speed, then generate additional variants only if repetition or unintended lip motion remains conspicuous.
+    summary: User review accepted the restrained one-variant native 832x480 result with zero default camera drift; the three-variant quality failure is tracked separately.
   - id: automate-loop-generation
-    status: open
+    status: done
     area: workflow-orchestration
-    summary: Optionally queue the requested number of independently seeded loop candidates and collect accepted outputs without manual manifest path edits.
+    summary: Generate one to three independently seeded variants and assemble the full song in one guided ComfyUI queue.
+  - id: validate-guided-gui-runtime
+    status: done
+    area: workflow-orchestration
+    summary: One- and three-variant guided runs completed within performance and thermal tolerances; three variants failed the quality bar due to heavy blend blur and suppressed lighting flicker.
   - id: use-lyrics-as-generation-context
     status: open
     area: music-video-rendering
     summary: Summarize untimed lyrics into safe atmosphere and section guidance; defer time-specific animation until timing marks exist.
+  - id: smooth-camera-drift
+    status: deferred
+    area: post-processing
+    summary: Camera drift now defaults to zero after user validation found that acceptable; later replace or supersample the integer-quantized FFmpeg crop if animated camera motion becomes valuable.
+  - id: preserve-text-overlays
+    status: done
+    area: post-processing
+    summary: Add independent transparent-PNG post-process inputs for a subtle lower-right brand logo and a more prominent upper-left wordmark, each with enable, size, opacity, and margin controls.
+  - id: improve-multi-variant-transitions
+    status: deferred
+    area: music-video-rendering
+    summary: Revisit multi-variant assembly without stacking-looking blur or loss of lighting flicker; explore shorter transitions, cuts at low-motion points, or section-level alternation instead of long crossfades.
+  - id: add-beat-aware-effects
+    status: open
+    area: music-video-rendering
+    summary: Add optional restrained beat awareness, initially limited to glow, light, or similar effects rather than subject or mouth motion.

@@ -6,11 +6,14 @@ commands:
     command: python scripts/validate_repository.py
     purpose: Reject tracked paths outside the explicit project allowlist, case collisions, model weights, and media files.
   - id: compile-project-python
-    command: python -m py_compile build_auto_s2v_workflow.py build_auto_s2v_windowed_workflow.py custom_nodes/comfyui_audio_duration_plan/__init__.py scripts/validate_repository.py scripts/build_motion_loop_workflow.py scripts/motion_poster_manifest.py scripts/render_motion_poster.py
+    command: python -m py_compile build_auto_s2v_workflow.py build_auto_s2v_windowed_workflow.py custom_nodes/comfyui_audio_duration_plan/__init__.py custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py scripts/validate_repository.py scripts/build_motion_loop_workflow.py scripts/build_guided_motion_poster_workflow.py scripts/motion_poster_manifest.py scripts/render_motion_poster.py
     purpose: Compile project-owned Python without executing ComfyUI generation.
   - id: build-motion-loop-workflow
     command: python scripts/build_motion_loop_workflow.py
     purpose: Regenerate the curated native 832x480 motion-loop workflow and validate its serialized links.
+  - id: build-guided-motion-poster-workflow
+    command: python scripts/build_guided_motion_poster_workflow.py
+    purpose: Regenerate the primary one-queue guided GUI workflow and validate its serialized links.
   - id: validate-motion-poster-manifest
     command: python scripts/render_motion_poster.py assets/motion-poster.example.json --check-manifest
     purpose: Validate the example manifest structure without requiring runtime media or rendering.

@@ -106,6 +106,8 @@ source_catalog:
       - parser.parse_args
       parser: python-ast
       dependency_targets:
+      - path: custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py
+        symbol: MotionPosterGuidance.build
       - path: scripts/build_motion_loop_workflow.py
         symbol: build
       - path: scripts/motion_poster_manifest.py

@@ -28,6 +28,7 @@ ALLOWED_WORKFLOWS = {
     "user/default/workflows/video_wan2_2_14B_s2v_auto_duration.json",
     "user/default/workflows/video_wan2_2_14B_s2v_auto_duration_windowed.json",
     "user/default/workflows/video_wan2_2_14B_s2v_motion_loop.json",
+    "user/default/workflows/video_wan2_2_14B_s2v_motion_poster_guided.json",
 }
 FORBIDDEN_SUFFIXES = {
     ".bin", ".ckpt", ".flac", ".gif", ".jpeg", ".jpg", ".mkv", ".mov",
