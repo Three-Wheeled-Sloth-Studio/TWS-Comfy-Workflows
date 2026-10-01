@@ -43,3 +43,12 @@ decisions:
       - Final rendering should stream to disk with bounded memory and exact audio duration.
       - Beat response must be subtle and limited to explicitly appropriate camera or masked effects.
       - Timed lyric files may be composited as an optional final-render feature.
+  - id: native-guided-motion-loop-assets
+    status: accepted
+    date: 2026-10-01
+    decision: Generate short motion assets natively at 832x480 from the primary reference image, song audio, explicit motion guidance, and conservative anti-lip-sync negative prompts.
+    rationale: Reframing a square clip damages composition, while unconstrained S2V can invent conspicuous mouth motion that does not match the song.
+    consequences:
+      - The assembler rejects loop aspect ratios outside the configured tolerance instead of cropping or stretching them.
+      - Background-only motion is the safe default; singing or lip sync must be explicitly requested and validated.
+      - Multiple independently seeded loop variants may be crossfaded for variety after identity and composition review.

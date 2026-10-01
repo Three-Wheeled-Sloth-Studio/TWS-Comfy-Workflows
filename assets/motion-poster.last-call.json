@@ -1,0 +1,44 @@
+{
+  "version": 2,
+  "inputs": {
+    "audio": "../input/Last Call for the Shareholders.mp3",
+    "reference_images": ["../input/Last Call for the Shareholders.jpg"],
+    "lyrics": null
+  },
+  "generation": {
+    "width": 832,
+    "height": 480,
+    "fps": 16,
+    "loop_count": 1,
+    "positive_prompt": "Background motion only. Preserve the woman's identity, face, expression, lips, mouth position, pose, framing, clothing, and the original composition. Her red hair moves gently as if blown by a light wind. Smoke billows slowly in the background. Neon and street lights flicker intermittently. The background musicians remain subtle silhouettes. Restrained physically plausible motion, stable camera, seamless-loop-friendly pacing.",
+    "negative_prompt": "lip sync, lips moving, mouth movement, singing, talking, speech, changing expression, blinking to the beat, face deformation, identity drift, body movement, dancing, camera shake, rapid zoom, scene change, new objects, warping, morphing, whole-image pulsing, exaggerated motion"
+  },
+  "loops": [
+    {
+      "path": "../output/video/motion_loop_16x9_last_call_sample_00001_.mp4",
+      "reversal_crossfade_seconds": 0.5
+    }
+  ],
+  "assembly": {
+    "variant_crossfade_seconds": 1.0,
+    "aspect_ratio_tolerance": 0.01
+  },
+  "camera": {
+    "zoom": 1.04,
+    "x_amplitude_px": 12.0,
+    "y_amplitude_px": 8.0,
+    "x_period_seconds": 19.0,
+    "y_period_seconds": 29.0
+  },
+  "output": {
+    "path": "../output/motion_poster/last_call_for_the_shareholders.mp4",
+    "width": 832,
+    "height": 480,
+    "fps": 16,
+    "video_codec": "libx264",
+    "preset": "medium",
+    "crf": 20,
+    "audio_codec": "aac",
+    "audio_bitrate": "192k"
+  }
+}

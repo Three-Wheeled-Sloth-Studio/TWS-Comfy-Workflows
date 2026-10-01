@@ -1,0 +1,43 @@
+{
+  "version": 2,
+  "inputs": {
+    "audio": "../input/Choir of the Unruled.mp3",
+    "reference_images": ["../input/Last Call for the Shareholders.jpg"],
+    "lyrics": null
+  },
+  "generation": {
+    "width": 832,
+    "height": 480,
+    "fps": 16,
+    "loop_count": 3,
+    "positive_prompt": "Background motion only. Preserve the subject's identity, face, expression, mouth position, pose, framing, clothing, and the original composition. Hair moves gently as if blown by a light wind while smoke billows slowly in the background and street lights flicker intermittently. Subtle restrained motion, stable camera, seamless-loop-friendly pacing.",
+    "negative_prompt": "lip sync, lips moving, mouth movement, singing, talking, speech, changing expression, face deformation, identity drift, body movement, dancing, camera shake, rapid zoom, scene change, new objects, warping, morphing, whole-image pulsing"
+  },
+  "loops": [
+    {"path": "../output/video/motion_loop_16x9_00001_.mp4", "reversal_crossfade_seconds": 0.5},
+    {"path": "../output/video/motion_loop_16x9_00002_.mp4", "reversal_crossfade_seconds": 0.5},
+    {"path": "../output/video/motion_loop_16x9_00003_.mp4", "reversal_crossfade_seconds": 0.5}
+  ],
+  "assembly": {
+    "variant_crossfade_seconds": 1.0,
+    "aspect_ratio_tolerance": 0.01
+  },
+  "camera": {
+    "zoom": 1.04,
+    "x_amplitude_px": 12.0,
+    "y_amplitude_px": 8.0,
+    "x_period_seconds": 19.0,
+    "y_period_seconds": 29.0
+  },
+  "output": {
+    "path": "../output/motion_poster/choir_of_the_unruled.mp4",
+    "width": 832,
+    "height": 480,
+    "fps": 16,
+    "video_codec": "libx264",
+    "preset": "medium",
+    "crf": 20,
+    "audio_codec": "aac",
+    "audio_bitrate": "192k"
+  }
+}

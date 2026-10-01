@@ -23,10 +23,22 @@ todos:
     area: post-processing
     summary: Compare FFmpeg Lanczos and a temporally stable AI video upscaler for 832x480 to YouTube delivery resolutions.
   - id: prototype-hybrid-motion-poster
-    status: in_progress
+    status: done
     area: music-video-rendering
     summary: Build a bounded-memory proof that loops one short Wan clip with smooth transitions, restrained camera drift, exact-duration original audio, and a 16:9 output.
   - id: design-motion-poster-manifest
-    status: open
+    status: done
     area: music-video-rendering
     summary: Define a small per-song manifest for source media, loop variants, semantic masks, camera movement, effects, optional beat response, and optional timed lyrics.
+  - id: validate-native-motion-loops
+    status: in_progress
+    area: music-video-rendering
+    summary: Watch the completed native 832x480 sample at normal speed, then generate additional variants only if repetition or unintended lip motion remains conspicuous.
+  - id: automate-loop-generation
+    status: open
+    area: workflow-orchestration
+    summary: Optionally queue the requested number of independently seeded loop candidates and collect accepted outputs without manual manifest path edits.
+  - id: use-lyrics-as-generation-context
+    status: open
+    area: music-video-rendering
+    summary: Summarize untimed lyrics into safe atmosphere and section guidance; defer time-specific animation until timing marks exist.

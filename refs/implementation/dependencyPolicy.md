@@ -7,4 +7,15 @@ tags: [implementation, dependencies]
 ---
 # Dependency Policy
 
-TEMPLATE_TODO: Define dependency approval, versioning, portability, and external-tool policy.
+Project-owned Python utilities should use the standard library unless a task
+demonstrably requires a third-party package. Record any new package, version
+constraint, installation path, and portability impact before introducing it.
+
+The motion-poster renderer depends on the `ffmpeg` and `ffprobe` executables on
+`PATH`. They are external runtime tools rather than vendored repository assets.
+The renderer must fail with a clear message when either executable is absent,
+must map media streams explicitly, and must stream encoded output rather than
+accumulate full-song frames in Python memory.
+
+Model weights and runtime media remain external dependencies. Never download
+them during ordinary validation or track them in Git.

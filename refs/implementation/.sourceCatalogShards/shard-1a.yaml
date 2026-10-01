@@ -75,5 +75,197 @@ source_catalog:
       - workflow['links'].append
       parser: python-ast
       dependency_targets:
-      - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
+      - &id001
+        path: custom_nodes/comfyui_audio_duration_plan/__init__.py
         symbol: WanS2VStateAppend.append
+  - path: scripts/motion_poster_manifest.py
+    analysis_version: 1
+    language: python
+    content_hash: 5494afa6b0e775bbe80e7fb33ba9ec54857888dd
+    dependencies:
+    - __future__
+    - dataclasses
+    - json
+    - pathlib
+    - typing
+    provides:
+    - _mapping
+    - _string
+    - _number
+    - _integer
+    - _resolve
+    - _path_list
+    - load_manifest
+    - validate_input_paths
+    symbols:
+    - name: _mapping
+      kind: function
+      line_start: 70
+      line_end: 73
+      signature: '_mapping(value: Any, name: str) -> dict[str, Any]'
+      inputs:
+      - 'value: Any'
+      - 'name: str'
+      output: dict[str, Any]
+      dependencies:
+      - ManifestError
+      - isinstance
+      parser: python-ast
+      dependency_targets: []
+    - name: _string
+      kind: function
+      line_start: 76
+      line_end: 80
+      signature: '_string(mapping: dict[str, Any], key: str, context: str) -> str'
+      inputs:
+      - 'mapping: dict[str, Any]'
+      - 'key: str'
+      - 'context: str'
+      output: str
+      dependencies:
+      - ManifestError
+      - isinstance
+      - mapping.get
+      - value.strip
+      parser: python-ast
+      dependency_targets: []
+    - name: _number
+      kind: function
+      line_start: 83
+      line_end: 92
+      signature: '_number(mapping: dict[str, Any], key: str, context: str, minimum: float) -> float'
+      inputs:
+      - 'mapping: dict[str, Any]'
+      - 'key: str'
+      - 'context: str'
+      - 'minimum: float'
+      output: float
+      dependencies:
+      - ManifestError
+      - float
+      - isinstance
+      - mapping.get
+      parser: python-ast
+      dependency_targets: []
+    - name: _integer
+      kind: function
+      line_start: 95
+      line_end: 103
+      signature: '_integer(mapping: dict[str, Any], key: str, context: str, minimum: int) -> int'
+      inputs:
+      - 'mapping: dict[str, Any]'
+      - 'key: str'
+      - 'context: str'
+      - 'minimum: int'
+      output: int
+      dependencies:
+      - ManifestError
+      - isinstance
+      - mapping.get
+      parser: python-ast
+      dependency_targets: []
+    - name: _resolve
+      kind: function
+      line_start: 106
+      line_end: 108
+      signature: '_resolve(base: Path, value: str) -> Path'
+      inputs:
+      - 'base: Path'
+      - 'value: str'
+      output: Path
+      dependencies:
+      - (base / path).resolve
+      - Path
+      - path.is_absolute
+      - path.resolve
+      parser: python-ast
+      dependency_targets: []
+    - name: _path_list
+      kind: function
+      line_start: 111
+      line_end: 119
+      signature: '_path_list(base: Path, value: Any, context: str) -> tuple[Path, ...]'
+      inputs:
+      - 'base: Path'
+      - 'value: Any'
+      - 'context: str'
+      output: tuple[Path, ...]
+      dependencies:
+      - ManifestError
+      - _resolve
+      - enumerate
+      - isinstance
+      - item.strip
+      - paths.append
+      - tuple
+      parser: python-ast
+      dependency_targets:
+      - &id002
+        path: scripts/motion_poster_manifest.py
+        symbol: _resolve
+      - *id001
+    - name: load_manifest
+      kind: function
+      line_start: 122
+      line_end: 244
+      signature: 'load_manifest(path: Path) -> MotionPosterManifest'
+      inputs:
+      - 'path: Path'
+      output: MotionPosterManifest
+      dependencies:
+      - AssemblySettings
+      - CameraSettings
+      - GenerationSettings
+      - LoopSettings
+      - ManifestError
+      - MotionPosterManifest
+      - OutputSettings
+      - _integer
+      - _mapping
+      - _number
+      - _path_list
+      - _resolve
+      - _string
+      - enumerate
+      - inputs.get
+      - isinstance
+      - json.loads
+      - len
+      - loops.append
+      - path.read_text
+      - path.resolve
+      - root.get
+      - tuple
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/motion_poster_manifest.py
+        symbol: _integer
+      - path: scripts/motion_poster_manifest.py
+        symbol: _mapping
+      - path: scripts/motion_poster_manifest.py
+        symbol: _number
+      - path: scripts/motion_poster_manifest.py
+        symbol: _path_list
+      - *id002
+      - path: scripts/motion_poster_manifest.py
+        symbol: _string
+      - *id001
+    - name: validate_input_paths
+      kind: function
+      line_start: 247
+      line_end: 261
+      signature: 'validate_input_paths(manifest: MotionPosterManifest) -> None'
+      inputs:
+      - 'manifest: MotionPosterManifest'
+      output: None
+      dependencies:
+      - ManifestError
+      - enumerate
+      - required.append
+      - required.extend
+      - required_path.is_file
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
+        symbol: WanSoundImageToVideoExtendState.extend
