@@ -229,6 +229,116 @@ def _blend(frame, changed, layer: _Layer, opacity: float = 1.0):
     frame[y0:y1, x0:x1] = np.clip(original * (1.0 - alpha) + changed * alpha, 0, 255).astype(np.uint8)
 
 
+def _translate_pixels(pixels, offset_x: float, offset_y: float):
+    """Translate an RGB crop with subpixel sampling and edge replication."""
+    import numpy as np
+    from PIL import Image
+
+    if abs(float(offset_x)) < 0.01 and abs(float(offset_y)) < 0.01:
+        return pixels
+    height, width = pixels.shape[:2]
+    padding = max(2, int(math.ceil(max(abs(float(offset_x)), abs(float(offset_y))))) + 2)
+    padded = np.pad(
+        np.clip(pixels, 0, 255).astype(np.uint8),
+        ((padding, padding), (padding, padding), (0, 0)),
+        mode="edge",
+    )
+    translated = Image.fromarray(padded, "RGB").transform(
+        (width, height),
+        Image.Transform.AFFINE,
+        (1.0, 0.0, padding - float(offset_x), 0.0, 1.0, padding - float(offset_y)),
+        resample=Image.Resampling.BICUBIC,
+    )
+    return np.asarray(translated, dtype=np.float32)
+
+
+def _deform_pixels(pixels, seconds: float, phase: float, amplitude: float, profile: str):
+    """Apply a smooth non-rigid mesh deformation for billow or anchored sway."""
+    import numpy as np
+    from PIL import Image
+
+    strength = max(0.0, float(amplitude))
+    if strength < 0.01:
+        return pixels
+    height, width = pixels.shape[:2]
+    padding = max(4, int(math.ceil(strength * 2.4)) + 3)
+    padded = np.pad(
+        np.clip(pixels, 0, 255).astype(np.uint8),
+        ((padding, padding), (padding, padding), (0, 0)),
+        mode="edge",
+    )
+    step_x = max(24, min(96, max(1, width // 10)))
+    step_y = max(24, min(96, max(1, height // 8)))
+    xs = list(range(0, width, step_x)) + ([width] if width % step_x else [])
+    ys = list(range(0, height, step_y)) + ([height] if height % step_y else [])
+    if xs[-1] != width:
+        xs.append(width)
+    if ys[-1] != height:
+        ys.append(height)
+
+    def displacement(x, y):
+        normalized_x = float(x) / max(1.0, width)
+        normalized_y = float(y) / max(1.0, height)
+        if profile == "sway":
+            freedom = max(0.0, 1.0 - normalized_y) ** 1.45
+            horizontal = (
+                math.sin(seconds * 1.35 + phase)
+                + 0.34 * math.sin(seconds * 2.75 + phase * 1.9 + normalized_y * 3.2)
+            )
+            vertical = 0.22 * math.cos(seconds * 1.08 + phase * 0.7 + normalized_x * 2.4)
+            return strength * freedom * horizontal, strength * freedom * vertical
+        horizontal = (
+            0.58 * math.sin(normalized_x * 7.1 + normalized_y * 4.3 + seconds * 0.62 + phase)
+            + 0.31 * math.cos(normalized_x * 3.7 - normalized_y * 8.2 - seconds * 0.39 + phase * 1.7)
+            + 0.18 * math.sin(normalized_x * 13.4 + seconds * 0.21 + phase * 0.4)
+        )
+        vertical = (
+            0.52 * math.cos(normalized_x * 5.2 - normalized_y * 5.9 + seconds * 0.48 + phase * 1.3)
+            + 0.29 * math.sin(normalized_x * 9.7 + normalized_y * 3.1 - seconds * 0.33 + phase * 0.6)
+        )
+        return strength * horizontal, strength * vertical
+
+    offsets = {(x, y): displacement(x, y) for y in ys for x in xs}
+    mesh = []
+    for y0, y1 in zip(ys, ys[1:]):
+        for x0, x1 in zip(xs, xs[1:]):
+            dx00, dy00 = offsets[(x0, y0)]
+            dx01, dy01 = offsets[(x1, y0)]
+            dx10, dy10 = offsets[(x0, y1)]
+            dx11, dy11 = offsets[(x1, y1)]
+            mesh.append((
+                (x0, y0, x1, y1),
+                (
+                    padding + x0 + dx00, padding + y0 + dy00,
+                    padding + x0 + dx10, padding + y1 + dy10,
+                    padding + x1 + dx11, padding + y1 + dy11,
+                    padding + x1 + dx01, padding + y0 + dy01,
+                ),
+            ))
+    deformed = Image.fromarray(padded, "RGB").transform(
+        (width, height), Image.Transform.MESH, mesh, resample=Image.Resampling.BICUBIC,
+    )
+    return np.asarray(deformed, dtype=np.float32)
+
+
+def _motion_interior(mask, radius: int):
+    """Contract a mask so non-rigid sampling cannot pull protected boundary pixels inward."""
+    import numpy as np
+    from PIL import Image, ImageFilter
+
+    amount = max(0, int(radius))
+    if amount == 0:
+        return mask
+    size = amount * 2 + 1
+    contracted = np.asarray(
+        Image.fromarray(np.clip(mask * 255.0, 0, 255).astype(np.uint8), "L").filter(ImageFilter.MinFilter(size=size)),
+        dtype=np.float32,
+    ) / 255.0
+    if np.any(contracted > 0.005):
+        return contracted
+    return mask
+
+
 def _expanded_layer(layer: _Layer, radius: float) -> _Layer:
     import numpy as np
     from PIL import Image, ImageFilter
@@ -756,6 +866,10 @@ def _target_effect_modes(object_name: str, animation_prompt: str) -> tuple[str, 
 
 
 class VisualizerObjectDetector:
+    _result_cache = {}
+    _result_cache_order = []
+    _result_cache_limit = 6
+
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -776,19 +890,27 @@ class VisualizerObjectDetector:
     DESCRIPTION = "Find likely instances of an object class and produce an inspectable mask; user verification is required."
 
     def detect(self, image, find, search_area, sensitivity, max_regions, padding_percent):
+        import hashlib
         import numpy as np
         import torch
-        from PIL import Image, ImageFilter
+        from PIL import Image, ImageDraw, ImageFilter
 
         target = str(find).strip()
         if not target:
             raise ValueError("Describe the object class to find.")
         candidate_type = _target_candidate_type(target)
-        regions, candidate_mask, _ = VisualizerCandidateRegions().discover(
-            image, candidate_type, sensitivity, max_regions, padding_percent
-        )
         pixels = _image_pixels(image)
+        cache_key = (
+            hashlib.blake2b(pixels.tobytes(), digest_size=16).digest(),
+            target.casefold(), str(search_area), round(float(sensitivity), 4),
+            int(max_regions), round(float(padding_percent), 4),
+        )
+        cached = self._result_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         rgb = pixels.astype(np.float32) / 255.0
+        height, width = pixels.shape[:2]
         red, green, blue = rgb[..., 0], rgb[..., 1], rgb[..., 2]
         luma = red * 0.2126 + green * 0.7152 + blue * 0.0722
         spread = np.max(rgb, axis=2) - np.min(rgb, axis=2)
@@ -805,10 +927,58 @@ class VisualizerObjectDetector:
             dy = np.abs(np.diff(luma, axis=0, prepend=luma[:1, :]))
             score = np.clip((dx + dy) * 3.0, 0, 1)
         area = _mask_pixels(pixels, search_area, "none", 0.0, 2.0)
-        proposal = np.clip(candidate_mask.detach().to("cpu").numpy() * area, 0.0, 1.0)
+
+        columns, rows = 16, 9
+        grid = np.full((rows, columns), -1.0, dtype=np.float32)
+        for row in range(rows):
+            y0, y1 = row * height // rows, (row + 1) * height // rows
+            for column in range(columns):
+                x0, x1 = column * width // columns, (column + 1) * width // columns
+                tile_area = area[y0:y1, x0:x1] > 0.05
+                if np.any(tile_area):
+                    grid[row, column] = float(np.percentile(score[y0:y1, x0:x1][tile_area], 85))
+        valid_values = grid[grid >= 0.0]
+        if not valid_values.size:
+            raise ValueError("search_area does not cover any image pixels.")
+        grid_cutoff = float(np.quantile(valid_values, min(0.98, 0.50 + float(sensitivity) * 0.48)))
+        active = (grid >= grid_cutoff) & (grid >= 0.0)
+        groups = []
+        visited = np.zeros_like(active, dtype=bool)
+        for row in range(rows):
+            for column in range(columns):
+                if not active[row, column] or visited[row, column]:
+                    continue
+                stack, cells = [(row, column)], []
+                visited[row, column] = True
+                while stack:
+                    current_row, current_column = stack.pop()
+                    cells.append((current_row, current_column))
+                    for next_row, next_column in (
+                        (current_row - 1, current_column), (current_row + 1, current_column),
+                        (current_row, current_column - 1), (current_row, current_column + 1),
+                    ):
+                        if 0 <= next_row < rows and 0 <= next_column < columns and active[next_row, next_column] and not visited[next_row, next_column]:
+                            visited[next_row, next_column] = True
+                            stack.append((next_row, next_column))
+                value = float(np.mean([grid[r, c] for r, c in cells]))
+                if candidate_type in {"bright highlights", "warm lights", "red accents"}:
+                    value /= math.sqrt(len(cells))
+                groups.append((value, cells))
+        groups.sort(key=lambda item: item[0], reverse=True)
+        padding = float(padding_percent) / 100.0
+        lines = [f"# Suggested {target} inside the outlined search area; inspect before verifying."]
+        for _, cells in groups[: int(max_regions)]:
+            row_values, column_values = zip(*cells)
+            x0 = max(0.0, min(column_values) / columns - padding)
+            y0 = max(0.0, min(row_values) / rows - padding)
+            x1 = min(1.0, (max(column_values) + 1) / columns + padding)
+            y1 = min(1.0, (max(row_values) + 1) / rows + padding)
+            lines.append(f"box {x0:.4f} {y0:.4f} {x1:.4f} {y1:.4f}")
+        regions = "\n".join(lines)
+        proposal = np.clip(_mask_pixels(pixels, regions, "none", 0.0, 4.0) * area, 0.0, 1.0)
         eligible = proposal > 0.05
         cutoff = float(np.quantile(score[eligible], min(0.97, 0.58 + float(sensitivity) * 0.37))) if np.any(eligible) else 1.0
-        mask = ((score >= max(0.02, cutoff)) & eligible).astype(np.float32)
+        mask = ((score >= cutoff) & eligible).astype(np.float32)
         mask = np.asarray(
             Image.fromarray((mask * 255).astype(np.uint8), "L").filter(ImageFilter.GaussianBlur(radius=4.0)),
             dtype=np.float32,
@@ -817,6 +987,15 @@ class VisualizerObjectDetector:
         preview = preview * (1.0 - mask[..., None] * 0.42)
         preview[..., 1] += mask * 0.42
         preview_image = Image.fromarray(np.clip(preview * 255.0, 0, 255).astype(np.uint8), "RGB")
+        outline = ImageDraw.Draw(preview_image)
+        outline_width = max(2, round(width / 480))
+        for kind, coordinates in _parse_shapes(search_area, width, height):
+            if kind == "box":
+                outline.rectangle(coordinates, outline=(255, 215, 0), width=outline_width)
+            elif kind == "ellipse":
+                outline.ellipse(coordinates, outline=(255, 215, 0), width=outline_width)
+            else:
+                outline.line(coordinates + [coordinates[0]], fill=(255, 215, 0), width=outline_width, joint="curve")
         if preview_image.width > 640:
             preview_image = preview_image.resize(
                 (640, max(1, round(preview_image.height * 640 / preview_image.width))),
@@ -825,14 +1004,94 @@ class VisualizerObjectDetector:
         selected_fraction = float(np.mean(mask > 0.05))
         report = (
             f"'{target}' used the {candidate_type} detector; selected {selected_fraction:.1%} of the frame. "
-            "Inspect verification_preview, constrain search_area or sensitivity if needed, then explicitly verify the target."
+            "The gold outline is search_area. Inspect verification_preview, adjust if needed, then explicitly verify the target."
         )
-        return (
+        result = (
             torch.from_numpy(mask.astype(np.float32)),
             torch.from_numpy(np.asarray(preview_image, dtype=np.float32) / 255.0)[None, ...],
             regions,
             report,
         )
+        self._result_cache[cache_key] = result
+        self._result_cache_order.append(cache_key)
+        while len(self._result_cache_order) > self._result_cache_limit:
+            expired = self._result_cache_order.pop(0)
+            self._result_cache.pop(expired, None)
+        return result
+
+
+class VisualizerMaskReview:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "verification_preview": ("IMAGE",),
+                "detected_mask": ("MASK",),
+                # The frontend keeps this widget hidden. ComfyUI's Mask Editor
+                # writes its saved clipspace image here, which makes Save feed
+                # the painted mask into the next queue automatically.
+                "image": ("STRING", {"default": ""}),
+            }
+        }
+
+    RETURN_TYPES = ("MASK", "STRING")
+    RETURN_NAMES = ("reviewed_mask", "mask_source")
+    FUNCTION = "review"
+    CATEGORY = "audio/local visualizer/targets"
+    OUTPUT_NODE = True
+    DESCRIPTION = "Inspect a detection and optionally paint a correction in Mask Editor; Save applies it automatically."
+
+    @staticmethod
+    def _saved_mask(image_name, detected_mask):
+        import numpy as np
+        import torch
+        import torch.nn.functional as functional
+        from PIL import Image, ImageOps
+        import folder_paths
+
+        name = str(image_name or "").strip()
+        if not name or not folder_paths.exists_annotated_filepath(name):
+            return None
+        path = folder_paths.get_annotated_filepath(name)
+        with Image.open(path) as opened:
+            loaded = ImageOps.exif_transpose(opened)
+            if "A" not in loaded.getbands():
+                return None
+            # Match LoadImage semantics: transparent pixels are selected mask.
+            pixels = 1.0 - np.asarray(loaded.getchannel("A"), dtype=np.float32) / 255.0
+        value = torch.from_numpy(np.array(pixels, copy=True))[None, ...]
+        base = detected_mask.detach().to("cpu", dtype=torch.float32)
+        if base.ndim == 2:
+            base = base[None, ...]
+        if value.shape[-2:] != base.shape[-2:]:
+            value = functional.interpolate(
+                value[:, None, ...], size=base.shape[-2:], mode="bilinear", align_corners=False,
+            )[:, 0, ...]
+        return value.clamp(0.0, 1.0)
+
+    @staticmethod
+    def _saved_image_reference(image_name):
+        name = str(image_name or "").strip()
+        match = re.match(r"^(.*?)(?:\s+\[(input|output|temp)\])?$", name)
+        relative = (match.group(1) if match else name).replace("\\", "/").lstrip("/")
+        image_type = match.group(2) if match and match.group(2) else "input"
+        path = Path(relative)
+        subfolder = path.parent.as_posix()
+        return {"filename": path.name, "subfolder": "" if subfolder == "." else subfolder, "type": image_type}
+
+    def review(self, verification_preview, detected_mask, image=""):
+        import nodes
+
+        painted = self._saved_mask(image, detected_mask)
+        selected = painted if painted is not None else detected_mask
+        source = "painted Mask Editor correction" if painted is not None else "detector proposal (no correction saved)"
+        if painted is not None:
+            ui = {"images": [self._saved_image_reference(image)]}
+        else:
+            ui = nodes.PreviewImage().save_images(
+                verification_preview, filename_prefix="local_visualizer_mask_review"
+            ).get("ui", {})
+        return {"ui": ui, "result": (selected, source)}
 
 
 class VisualizerAnimationTarget:
@@ -844,33 +1103,90 @@ class VisualizerAnimationTarget:
                 "object_name": ("STRING", {"default": "clouds"}),
                 "animation_prompt": ("STRING", {"multiline": True, "default": "clouds drifting slowly"}),
                 "mask_verified": ("BOOLEAN", {"default": False}),
-                "on_beat_strength": ("FLOAT", {"default": 0.75, "min": 0.0, "max": 2.0, "step": 0.05}),
-                "off_beat_strength": ("FLOAT", {"default": 0.65, "min": 0.0, "max": 2.0, "step": 0.05}),
-            }
+                "approved_mask_mode": (["add", "subtract", "replace"], {"default": "add"}),
+                "motion_type": (["auto", "billow", "sway", "drift", "still"], {"default": "auto"}),
+                "on_beat_flicker": ("FLOAT", {"default": 0.75, "min": 0.0, "max": 2.0, "step": 0.05}),
+                "off_beat_flicker": ("FLOAT", {"default": 0.65, "min": 0.0, "max": 2.0, "step": 0.05}),
+                "on_beat_motion": ("FLOAT", {"default": 0.20, "min": 0.0, "max": 2.0, "step": 0.05}),
+                "off_beat_motion": ("FLOAT", {"default": 0.35, "min": 0.0, "max": 2.0, "step": 0.05}),
+            },
+            "optional": {
+                "approved_mask": ("MASK",),
+            },
         }
 
     RETURN_TYPES = ("LOCAL_VISUALIZER_TARGET", "STRING")
     RETURN_NAMES = ("animation_target", "resolved_effects")
     FUNCTION = "configure"
     CATEGORY = "audio/local visualizer/targets"
-    DESCRIPTION = "Describe one verified animation target and independently mix beat-driven and autonomous motion."
+    DESCRIPTION = "Describe one verified target and independently mix beat/off-beat flicker and masked motion."
 
-    def configure(self, mask, object_name, animation_prompt, mask_verified, on_beat_strength, off_beat_strength):
+    def configure(
+        self, mask, object_name, animation_prompt, mask_verified,
+        approved_mask_mode, motion_type,
+        on_beat_flicker, off_beat_flicker, on_beat_motion, off_beat_motion,
+        approved_mask=None,
+    ):
         name = str(object_name).strip()
         prompt = str(animation_prompt).strip()
         if not name or not prompt:
             raise ValueError("Each animation target needs an object name and animation description.")
         modes = _target_effect_modes(name, prompt)
+        requested_motion = str(motion_type).casefold()
+        if requested_motion == "auto":
+            combined = f"{name} {prompt}".casefold()
+            if any(word in combined for word in ("cloud", "smoke", "fog", "mist", "steam", "billow")):
+                resolved_motion = "billow"
+            elif any(word in combined for word in ("candle", "flame", "fire", "sway", "breeze")):
+                resolved_motion = "sway"
+            else:
+                resolved_motion = "drift"
+        elif requested_motion in {"billow", "sway", "drift", "still"}:
+            resolved_motion = requested_motion
+        else:
+            raise ValueError(f"Unsupported motion type: {motion_type}")
+        approved_active = False
+        if approved_mask is not None:
+            value = approved_mask.detach().to("cpu")
+            approved_active = bool(value.numel() and float(value.max().item()) > (1.0 / 255.0))
+        selected_mask = mask
+        mode = str(approved_mask_mode).casefold()
+        if approved_active:
+            if mode in {"add", "subtract"}:
+                import torch.nn.functional as functional
+
+                base = mask.detach().to("cpu", dtype=__import__("torch").float32)
+                adjustment = approved_mask.detach().to("cpu", dtype=base.dtype)
+                if base.ndim == 2:
+                    base = base[None, ...]
+                if adjustment.ndim == 2:
+                    adjustment = adjustment[None, ...]
+                if adjustment.shape[-2:] != base.shape[-2:]:
+                    adjustment = functional.interpolate(
+                        adjustment[:, None, ...], size=base.shape[-2:], mode="bilinear", align_corners=False,
+                    )[:, 0, ...]
+                selected_mask = (base + adjustment if mode == "add" else base - adjustment).clamp(0.0, 1.0)
+            elif mode == "replace":
+                selected_mask = approved_mask
+            else:
+                raise ValueError(f"Unsupported approved mask mode: {approved_mask_mode}")
         target = {
-            "mask": mask,
+            "mask": selected_mask,
             "object_name": name,
             "animation_prompt": prompt,
             "mask_verified": bool(mask_verified),
-            "on_beat_strength": float(on_beat_strength),
-            "off_beat_strength": float(off_beat_strength),
+            "motion_type": resolved_motion,
+            "on_beat_flicker": float(on_beat_flicker),
+            "off_beat_flicker": float(off_beat_flicker),
+            "on_beat_motion": float(on_beat_motion),
+            "off_beat_motion": float(off_beat_motion),
             "effect_modes": modes,
         }
-        summary = f"{name}: {', '.join(modes)}; beat {float(on_beat_strength):.2f}, off-beat {float(off_beat_strength):.2f}"
+        source = f"approved mask ({mode})" if approved_active else "detector mask (approved input blank)" if approved_mask is not None else "detector mask"
+        summary = (
+            f"{name}: {', '.join(modes)}; {resolved_motion} motion; flicker {float(on_beat_flicker):.2f}/{float(off_beat_flicker):.2f}, "
+            f"motion {float(on_beat_motion):.2f}/{float(off_beat_motion):.2f} (beat/off-beat); {source}"
+        )
         return target, summary
 
 
@@ -943,9 +1259,12 @@ class GenericBeatAwareLocalVisualizer:
         targets = tuple(targets or ())
         if not targets:
             raise ValueError("Add at least one animation target to the target stack.")
-        unverified = [target["object_name"] for target in targets if not target.get("mask_verified")]
-        if unverified:
-            raise ValueError("Inspect each detection preview, then enable mask_verified for: " + ", ".join(unverified))
+        skipped = [target["object_name"] for target in targets if not target.get("mask_verified")]
+        targets = tuple(target for target in targets if target.get("mask_verified"))
+        if skipped:
+            print("[Local Visualizer] Skipping unverified targets: " + ", ".join(skipped))
+        if not targets:
+            raise ValueError("Verify at least one animation target before rendering.")
 
         source = Image.fromarray(_image_pixels(image), "RGB")
         source_width, source_height = source.size
@@ -958,17 +1277,27 @@ class GenericBeatAwareLocalVisualizer:
         base = np.asarray(source, dtype=np.uint8)
 
         plans = []
+        empty = []
         for index, target in enumerate(targets):
             layer = _prepare_layer(target["mask"], width, height)
             if layer.bounds is None:
-                raise ValueError(f"Verified target '{target['object_name']}' has an empty mask.")
+                empty.append(target["object_name"])
+                continue
             x0, y0, x1, y1 = layer.bounds
             plans.append({
                 **target, "layer": layer,
+                "motion_mask": _motion_interior(
+                    layer.mask,
+                    round(8.0 * max(0.75, height / 720.0)) if target.get("motion_type") == "billow" else 0,
+                ),
                 "rows": np.arange(y1 - y0, dtype=np.float32)[:, None, None],
                 "columns": np.arange(x1 - x0, dtype=np.float32)[None, :, None],
                 "phase": (int(pattern_key) * 0.0001 + index * 1.913) % (math.pi * 2.0),
             })
+        if empty:
+            print("[Local Visualizer] Skipping verified targets with empty masks: " + ", ".join(empty))
+        if not plans:
+            raise ValueError("No verified animation target produced a non-empty mask.")
 
         overlays = []
         margin = round(float(overlay_margin_px) * width / 1920)
@@ -1014,27 +1343,47 @@ class GenericBeatAwareLocalVisualizer:
                         layer = plan["layer"]
                         x0, y0, x1, y1 = layer.bounds
                         changed = frame[y0:y1, x0:x1].astype(np.float32)
+                        unmoved = changed
                         phase = plan["phase"]
-                        beat = float(plan["on_beat_strength"]) * (0.72 * features["beat"][frame_index] + 0.28 * features["onset"][frame_index])
-                        autonomous = float(plan["off_beat_strength"]) * (0.55 + 0.25 * math.sin(seconds * 0.83 + phase) + 0.20 * math.sin(seconds * 1.91 + phase * 1.7))
+                        beat_signal = 0.72 * features["beat"][frame_index] + 0.28 * features["onset"][frame_index]
+                        beat = float(plan.get("on_beat_flicker", plan.get("on_beat_strength", 0.0))) * beat_signal
+                        off_beat_flicker = float(plan.get("off_beat_flicker", plan.get("off_beat_strength", 0.0)))
+                        autonomous = off_beat_flicker * (0.55 + 0.25 * math.sin(seconds * 0.83 + phase) + 0.20 * math.sin(seconds * 1.91 + phase * 1.7))
                         flow = 0.5 * (
                             np.sin(plan["columns"] * 0.008 + plan["rows"] * 0.005 - seconds * 0.55 + phase)
                             + np.cos(plan["columns"] * 0.004 - plan["rows"] * 0.009 + seconds * 0.37 + phase)
                         )
                         text = f"{plan['object_name']} {plan['animation_prompt']}".casefold()
+                        modes = set(plan["effect_modes"])
+                        motion_type = str(plan.get("motion_type", "drift"))
+                        motion_pixels = {"billow": 11.0, "sway": 5.0, "drift": 6.0, "still": 0.0}.get(motion_type, 4.0)
+                        motion_pixels *= max(0.75, height / 720.0)
+                        on_beat_motion = float(plan.get("on_beat_motion", 0.0)) * beat_signal
+                        off_beat_motion = float(plan.get("off_beat_motion", 0.0))
+                        motion_amplitude = motion_pixels * (off_beat_motion + on_beat_motion)
+                        if motion_type in {"billow", "sway"}:
+                            warped = _deform_pixels(changed, seconds, phase, motion_amplitude, motion_type)
+                            motion_alpha = plan["motion_mask"][y0:y1, x0:x1, None]
+                            changed = unmoved * (1.0 - motion_alpha) + warped * motion_alpha
+                        elif motion_type == "drift":
+                            offset_x = motion_amplitude * math.sin(seconds * 0.72 + phase)
+                            offset_y = motion_amplitude * 0.45 * math.cos(seconds * 0.51 + phase * 1.7)
+                            warped = _translate_pixels(changed, offset_x, offset_y)
+                            motion_alpha = plan["motion_mask"][y0:y1, x0:x1, None]
+                            changed = unmoved * (1.0 - motion_alpha) + warped * motion_alpha
                         for mode in plan["effect_modes"]:
                             if mode == "drift":
                                 changed *= 1.0 + 0.045 * beat + autonomous * (0.035 + 0.10 * flow)
                             elif mode == "flicker":
                                 irregular = max(0.0, 0.55 + 0.30 * math.sin(seconds * 17.3 + phase) + 0.15 * math.sin(seconds * 7.1 + phase * 2.0))
-                                drive = beat + float(plan["off_beat_strength"]) * irregular
+                                drive = beat + off_beat_flicker * irregular
                                 changed *= 1.0 + 0.22 * drive
                                 if any(word in text for word in ("candle", "flame", "fire", "warm")):
                                     changed[..., 0] += 36.0 * drive
                                     changed[..., 1] += 14.0 * drive
                             elif mode == "flash":
                                 sporadic = max(0.0, math.sin(seconds * 0.47 + phase)) ** 14
-                                drive = beat + float(plan["off_beat_strength"]) * sporadic
+                                drive = beat + off_beat_flicker * sporadic
                                 changed += (45.0 if "lightning" in text else 28.0) * drive
                             elif mode == "scan":
                                 scan = (np.sin(plan["rows"] * 0.22 + seconds * 8.0 + phase) + 1.0) * 0.5
@@ -1078,6 +1427,7 @@ NODE_CLASS_MAPPINGS = {
     "BeatAwareLocalVisualizerV2": BeatAwareLocalVisualizer,
     "BeatAwareLocalVisualizerV3": BeatAwareLocalVisualizer,
     "VisualizerObjectDetector": VisualizerObjectDetector,
+    "VisualizerMaskReview": VisualizerMaskReview,
     "VisualizerAnimationTarget": VisualizerAnimationTarget,
     "VisualizerTargetStack": VisualizerTargetStack,
     "GenericBeatAwareLocalVisualizer": GenericBeatAwareLocalVisualizer,
@@ -1090,6 +1440,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "BeatAwareLocalVisualizerV2": "Render Beat-Aware Local Visualizer",
     "BeatAwareLocalVisualizerV3": "Render Beat-Aware Local Visualizer + Badging",
     "VisualizerObjectDetector": "Detect Animation Target",
+    "VisualizerMaskReview": "Verify / Edit Detection Mask",
     "VisualizerAnimationTarget": "Configure Animation Target",
     "VisualizerTargetStack": "Add Animation Target",
     "GenericBeatAwareLocalVisualizer": "Render Generic Target Visualizer",

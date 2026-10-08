@@ -105,14 +105,38 @@ renderer. Progress is reported during audio analysis and frame rendering.
 
 For arbitrary target stacks, open
 `user/default/workflows/music_visualizer_target_builder.json`. Each starter
-lane follows **Detect Animation Target → Preview Image → Configure Animation
-Target → Add Animation Target**. Enter an object class, inspect the green
-preview, refine `search_area`/sensitivity or replace the mask if necessary,
-then enable `mask_verified`. Describe the desired motion in the prompt and mix
-beat-driven versus autonomous motion with `on_beat_strength` and
-`off_beat_strength`. To add a target, duplicate those four nodes, connect the
+lane includes **Detect Animation Target → Verify / Edit Detection Mask →
+Configure Animation Target → Add Animation Target**. Enter an object class,
+inspect the green review, and refine `search_area`/sensitivity. The detector
+mask is usable immediately. For a persistent correction, open the review node
+itself in Mask Editor, use the first tool (Mask Pen), and press Save; the next
+queue automatically uses that lane's painted mask. Then enable `mask_verified`. Describe the
+desired lighting/appearance behavior in the text field and select spatial
+behavior with `motion_type`. Use
+`on_beat_flicker` and `off_beat_flicker` for brightness/color modulation, and
+`on_beat_motion` and `off_beat_motion` for actual masked-pixel displacement.
+All four are linear `0..2` controls: `0` disables that component, `1` is the
+designed amplitude, and `2` doubles it. To add a target, duplicate the complete lane, connect the
 new stack node to the previous stack output, and route the final stack to the
-renderer. The renderer refuses to run with an unverified or empty mask.
+renderer. Unverified targets remain connected but are skipped, so targets can
+be reviewed and enabled incrementally without rewiring the stack. The renderer
+also skips verified targets whose detector produced an empty mask, and only
+stops when no usable verified target remains.
+
+`motion_type` is the actual motion-shape control. `billow` applies evolving
+multi-scale non-rigid deformation and protects a contracted mask boundary;
+`sway` anchors the bottom of the mask so flame tips move more than their bases;
+`drift` translates coherently; and `still` disables spatial motion while
+leaving flicker/pulse active. `auto` chooses among these from simple keywords,
+not image understanding. The starter clouds and candles deliberately use
+`on_beat_motion=0`: their autonomous motion continues independently while
+lighting remains beat responsive.
+
+Detection is constrained by `search_area` before candidates are ranked, and
+the verification preview draws that area with a gold outline. Identical source
+RGB and detector settings reuse a small in-process result cache; changing the
+source, object query, search area, sensitivity, region count, or padding
+intentionally runs detection again. The cache resets when ComfyUI restarts.
 
 ### Reading and correcting masks
 
@@ -136,18 +160,27 @@ measured upward from the lower-left corner. On a 1435×831 image it corresponds
 approximately to `x=0..474`, `y=316..665`.
 
 Preview colors are diagnostic overlays and do not recolor the source artwork.
-`Detect Animation Target` uses green for selected pixels; `Local Visualizer
-Region Mask` and the interactive mask editor normally use red. Both colors mean
-“included in the mask and eligible for animation.” A faint colored edge is the
-feathered transition. Depending on the editor's preview mode, unselected areas
-may be darkened to make the mask easier to see. Painting in add mode includes
-pixels; erasing or subtract mode removes them. Saving the editor updates the
-mask, not the underlying image.
+`Detect Animation Target` uses green for automatically selected pixels. In the
+current Mask Editor, the first toolbar tool is **Mask Pen**; with black mask
+blending it appears to darken the image, but it is writing the mask. The second
+tool is **Paint Pen**; its default red strokes modify the RGB paint layer and
+are not mask pixels. Use Mask Pen for selection and use Eraser while the Mask
+Layer is active to remove selection. Saving commits those mask pixels to the
+review node's hidden persistent state.
+
+The detector's gold outline shows `search_area`; it is not part of the mask.
+The review node passes the recomputed detector mask through until an edit is
+saved. A saved edit then replaces that lane's proposal on later queues without
+requiring a separate file selection. For advanced composition, connect an
+external mask to `Configure Animation Target.approved_mask`; its
+`approved_mask_mode` can `add`, `subtract`, or `replace` the review result.
 
 Use a broad `search_area` only to limit detection. For precise corrections,
-paint or define small mask islands around the missed object parts—for example,
-tight ellipses around candle flames—and connect that `MASK` output to a
-`Configure Animation Target`. A separate target for missed objects is often
+paint the full desired target mask on the review node—for example, tight regions
+around candle flames. To perform additive or subtractive adjustments, connect
+an external mask to the optional `approved_mask` socket and choose the matching
+mode. A separate
+target for missed objects is often
 safer than lowering sensitivity until unrelated papers, reflections, or walls
 also become animated. Avoid overlapping the original mask unless the doubled
 effect is intentional.

@@ -68,30 +68,53 @@ target lane:
 
 1. `Detect Animation Target` maps an object-class phrase to a lightweight
    visual profile, proposes regions, refines the proposal to matching pixels,
-   and emits a green verification preview. `search_area` is an editable
-   normalized region that can exclude unrelated parts of the frame.
-2. `Configure Animation Target` records the verified mask, object name,
-   natural-language motion description, and two independent linear `0..2`
-   controls. `on_beat_strength` mixes onset/beat response;
-   `off_beat_strength` mixes deterministic autonomous motion.
-3. `Add Animation Target` appends the target to a typed stack. Duplicating the
-   detector, preview, configuration, and stack nodes adds another target; the
-   final stack feeds one generic streaming renderer.
+   and emits a green verification preview with the active `search_area`
+   outlined in gold. The normalized search area constrains candidate ranking,
+   rather than merely clipping a whole-image result afterward.
+2. `Verify / Edit Detection Mask` displays the detector proposal and passes it
+   through unchanged by default. Opening that same node in Mask Editor and
+   pressing Save persists a per-target correction and automatically uses it on
+   the next queue; no separate image or mask upload is required.
+3. `Configure Animation Target` records the verified mask, object name,
+   appearance description, explicit motion type, and four independent linear `0..2`
+   controls. `on_beat_flicker` and `off_beat_flicker` mix beat-responsive and
+   autonomous brightness/color treatments; `on_beat_motion` and
+   `off_beat_motion` independently mix beat-responsive and autonomous masked
+   subpixel displacement.
+4. `Add Animation Target` appends the target to a typed stack. Duplicating the
+   detector, editable review, configuration, and stack nodes adds
+   another target; the final stack feeds one generic streaming renderer.
 
 The prompt resolver currently recognizes and combines drift/billow, flicker,
 flash/lightning/pulse, scan/display, rain/streak, and shimmer/reflection
-treatments. All are procedural and geometry-preserving. For example, “clouds
-drifting and flashing heat lightning on strong beats” resolves to slow moving
-exposure plus beat-weighted flashes, while “candles flickering” resolves to a
-warm irregular flicker. An unrecognized prompt falls back to atmospheric
-exposure flow rather than moving source pixels.
+treatments. All are procedural and confined to the verified mask. For example,
+“clouds drifting and flashing heat lightning on strong beats” resolves to slow
+masked drift plus beat-weighted flashes, while “candles flickering” resolves to
+warm irregular flicker plus a tighter, faster masked sway. An unrecognized
+prompt falls back to atmospheric exposure. Prompts do not semantically parse
+the contents of a mask. Spatial behavior comes from `motion_type`: `billow`
+uses evolving multi-scale non-rigid deformation, `sway` uses a bottom-anchored
+deformation, `drift` translates coherently, and `still` applies no spatial
+motion. Billow uses a contracted motion interior so deformation fades before
+the mask edge; lighting continues to use the full mask.
 
-Verification is enforced at render time. Every target must have
-`mask_verified` enabled and a non-empty mask. The built-in detector is not an
-open-vocabulary vision model: it maps known visual concepts to color, luma,
-neutrality, and texture statistics. Its proposal is a starting point and may
-be replaced by any ComfyUI `MASK`, including a future text-grounded detector
-or painted mask, without changing the target or renderer nodes.
+Verification is enforced as an inclusion toggle at render time. Unverified
+targets are ignored even when they remain in the connected stack; at least one
+usable target must be verified. Verified targets with empty masks are logged
+and skipped when another verified mask is usable. Identical detector inputs
+reuse a bounded in-process cache, avoiding repeated analysis until source RGB
+or a detector control changes; restarting ComfyUI clears that cache.
+Each starter lane routes detection through `Verify / Edit Detection Mask`.
+Without an edit it immediately emits the detector proposal. Saving in the
+built-in Mask Editor stores that lane's painted mask and makes it the emitted
+mask on later queues, so correction is optional and requires no second upload.
+`Configure Animation Target.approved_mask` remains an optional advanced socket
+for external masks and add/subtract/replace composition.
+The built-in detector is not an open-vocabulary vision model: it maps known
+visual concepts to color, luma, neutrality, and texture statistics. Its
+proposal is a starting point and may be replaced by any ComfyUI `MASK`,
+including a future text-grounded detector or painted mask, without changing
+the target or renderer nodes.
 
 ## Controls and correction
 
@@ -159,9 +182,11 @@ review remains required.
 - Geometric masks are intentionally simple. They are inspectable and reliable,
   but irregular targets can require several shapes or an externally painted
   mask.
-- Procedural cloud motion uses moving low-frequency exposure variation, not
-  semantic fluid simulation. It deliberately leaves source geometry fixed so
-  a loose mask cannot shift skyline or building edges.
+- Procedural cloud motion is a bounded evolving mesh deformation plus moving
+  low-frequency exposure variation, not semantic fluid simulation. Motion is
+  contracted away from mask boundaries, but a loose cloud mask can still
+  deform admitted skyline pixels in its interior; correct the mask before
+  increasing strength.
 - Rain is a stylized glass-streak layer, not physics-based condensation.
 - H.264 compression means decoded pixels outside masks are not mathematically
   byte-identical, though the pre-encode frame compositor copies them unchanged.

@@ -87,11 +87,11 @@ The generalization fork is now
 `user/default/workflows/music_visualizer_target_builder.json`; the accepted V3
 graph remains unchanged. The new graph contains repeatable object detector,
 verification preview, prompt/beat-mix configuration, and target-stack nodes.
-Every target has separate linear `0..2` on-beat and off-beat controls, and the
-renderer accepts an arbitrary-length stack. Prompts can combine drift/billow,
-flicker, flash/lightning/pulse, scan, rain, and shimmer treatments without
-translating source geometry. Unverified or empty masks stop rendering with an
-actionable error. A 12-second three-target integration render completed with
+Every target has four linear `0..2` controls separating beat/off-beat flicker
+from beat/off-beat masked motion, and the renderer accepts an arbitrary-length
+stack. Prompts can combine drift/billow, flicker, flash/lightning/pulse, scan,
+rain, and shimmer treatments. Unverified or empty masks are skipped while at
+least one usable verified target remains. A 12-second three-target integration render completed with
 192 1280×720 frames, AAC audio, and exact 12.000-second duration.
 
 The installed environment has no text-grounded detector or SAM node. The new
@@ -102,6 +102,69 @@ detector now refines boxes to matching pixels, but users must inspect previews,
 constrain `search_area`, or replace the detector output with a painted or future
 semantic mask. Optional text-grounded segmentation is the next quality lever;
 it is not misrepresented as solved by the current heuristic.
+
+First-target testing exposed an onboarding problem: the starter graph chains
+all three example lanes, so the renderer previously rejected the stack while
+clouds and monitor remained unverified. `mask_verified` is now an inclusion
+toggle. The renderer logs and skips unverified targets, renders any verified
+targets without reconnection, and errors only when no usable verified mask
+remains.
+
+Follow-up testing found that narrow search areas could yield empty masks because
+candidate regions were ranked globally and intersected with `search_area` only
+afterward. Detection now ranks candidates inside the search area, draws the
+area as a gold preview outline, and memoizes six unchanged results in process.
+The renderer skips an empty verified target if another usable verified target
+exists, so one weak proposal cannot abort the complete stack. Manual painting
+on `Load Image` remains a separate mask unless explicitly connected or combined;
+it does not mutate the detector's generated mask.
+
+The attached failing graph confirmed that Mask Editor changes were not in the
+render path: each target consumed only `detected_mask`, and the editable source
+`MASK` output had no links. `Configure Animation Target` now has an optional
+`approved_mask` input. A connected painted mask takes precedence over detector
+output on every queue, while unchanged detector inputs remain memoized.
+
+Subsequent QA showed that adding a prewired `EDIT/SAVE APPROVED MASK` `Load
+Image` node made correction persist but introduced a mandatory-looking second
+upload step. That regression has been removed. Each lane now routes its proposal
+through `Verify / Edit Detection Mask`: with no edit it immediately uses the
+detector mask; opening that same review node in Mask Editor and pressing Save
+persists and selects the painted mask on the next queue. The hidden saved-image
+widget is workflow state rather than user-facing input. The optional
+`Configure Animation Target.approved_mask` socket remains available for advanced
+external add/subtract/replace composition.
+
+Focused validation confirmed that a blank review state returns the detector
+proposal, while a saved RGBA clipspace image is decoded with native `LoadImage`
+alpha semantics into the expected mask tensor. The regenerated starter graph
+contains three review nodes, zero approved-mask loaders, and complete
+detector → review → configuration links.
+
+Motion QA then confirmed that the generic renderer's so-called motion modes
+only changed exposure or color; target pixels never moved. Target configuration
+now exposes four linear `0..2` controls: `on_beat_flicker`,
+`off_beat_flicker`, `on_beat_motion`, and `off_beat_motion`. The first pair
+drives the existing appearance treatments, while the second pair drives
+bounded, edge-replicated subpixel displacement inside the verified mask.
+Prompt modes select conservative motion scale and cadence; clouds default to
+low motion because a loose cloud mask can otherwise move admitted buildings.
+A one-second motion-only integration render (`on/off` flicker both zero,
+`off_beat_motion=1`) produced eight distinct 1280×720 H.264 frames, AAC audio,
+and exact 1.000-second duration, confirming spatial animation survives encode.
+
+The next QA clarification established that prompt keywords cannot provide the
+semantic motion needed for flowing clouds or wind-swept flames. The generic
+target now exposes explicit `auto`, `billow`, `sway`, `drift`, and `still`
+motion types. `billow` uses evolving multi-scale mesh deformation with a
+contracted motion interior; `sway` anchors the mask base and moves its upper
+pixels more strongly. Starter clouds and candles use zero beat-motion and
+autonomous billow/sway, while their lighting remains beat responsive. A
+two-second cloud integration completed with 16 1280×720 frames, AAC audio, and
+exact 2.000-second duration. A matching flame-sway integration also completed
+with 16 1280×720 frames, AAC audio, and exact 2.000-second duration. Both retain
+native per-frame progress reporting. Pitch-to-color remains a separate
+next-stage audio feature after motion quality review.
 
 ## Closeout Status
 

@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/build_generic_music_visualizer_workflow.py
     analysis_version: 1
     language: python
-    content_hash: 692f376c9bfe72cc5f3f17e9134a18fc639b9da7
+    content_hash: 0d386994bbceeee4c2d7368a9e1f102dba5df67d
     dependencies:
     - __future__
     - json
@@ -17,7 +17,7 @@ source_catalog:
     - output_slot
     - loader
     - detector
-    - preview
+    - review
     - target
     - stack
     - renderer
@@ -117,30 +117,38 @@ source_catalog:
       - *id002
       - *id003
       - *id004
-    - name: preview
+    - name: review
       kind: function
       line_start: 73
-      line_end: 79
-      signature: preview(node_id, position, image_link, title)
+      line_end: 84
+      signature: review(node_id, position, image_link, detected_mask_link, mask_link, title)
       inputs:
       - node_id
       - position
       - image_link
+      - detected_mask_link
+      - mask_link
       - title
       output: unspecified
       dependencies:
       - input_slot
+      - output_slot
       parser: python-ast
       dependency_targets:
       - *id005
       - *id006
       - *id007
       - *id008
+      - *id001
+      - *id002
+      - *id003
+      - *id004
     - name: target
       kind: function
-      line_start: 82
-      line_end: 93
-      signature: target(node_id, position, mask_link, output_link, name, prompt, on_beat, off_beat)
+      line_start: 87
+      line_end: 101
+      signature: target(node_id, position, mask_link, output_link, name, prompt, motion_type, beat_flicker, ambient_flicker,
+        beat_motion, ambient_motion)
       inputs:
       - node_id
       - position
@@ -148,8 +156,11 @@ source_catalog:
       - output_link
       - name
       - prompt
-      - on_beat
-      - off_beat
+      - motion_type
+      - beat_flicker
+      - ambient_flicker
+      - beat_motion
+      - ambient_motion
       output: unspecified
       dependencies:
       - dict
@@ -168,8 +179,8 @@ source_catalog:
       - *id004
     - name: stack
       kind: function
-      line_start: 96
-      line_end: 105
+      line_start: 104
+      line_end: 113
       signature: stack(node_id, position, target_link, output_link, previous_link)
       inputs:
       - node_id
@@ -198,8 +209,8 @@ source_catalog:
       - *id004
     - name: renderer
       kind: function
-      line_start: 108
-      line_end: 127
+      line_start: 116
+      line_end: 135
       signature: renderer()
       inputs: []
       output: unspecified
@@ -220,8 +231,8 @@ source_catalog:
       - *id004
     - name: main
       kind: function
-      line_start: 130
-      line_end: 188
+      line_start: 138
+      line_end: 200
       signature: main() -> int
       inputs: []
       output: int
@@ -236,9 +247,9 @@ source_catalog:
       - len
       - loader
       - next
-      - preview
       - print
       - renderer
+      - review
       - stack
       - target
       parser: python-ast
@@ -248,11 +259,13 @@ source_catalog:
       - path: scripts/build_generic_music_visualizer_workflow.py
         symbol: loader
       - path: scripts/build_generic_music_visualizer_workflow.py
-        symbol: preview
-      - path: scripts/build_generic_music_visualizer_workflow.py
         symbol: renderer
       - path: scripts/build_local_music_visualizer_workflow.py
         symbol: renderer
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: VisualizerMaskReview.review
+      - path: scripts/build_generic_music_visualizer_workflow.py
+        symbol: review
       - path: scripts/build_generic_music_visualizer_workflow.py
         symbol: stack
       - path: scripts/build_generic_music_visualizer_workflow.py

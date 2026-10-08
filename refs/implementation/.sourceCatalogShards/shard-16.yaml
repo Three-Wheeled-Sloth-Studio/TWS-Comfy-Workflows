@@ -1,0 +1,30 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '16'
+  files:
+  - path: custom_nodes/comfyui_audio_duration_plan/web/visualizer_mask_review.js
+    analysis_version: 1
+    language: javascript
+    content_hash: 2c7aa564b115a2b80de4aecfb0592bcbed593bc1
+    dependencies:
+    - ../../scripts/app.js
+    provides:
+    - beforeRegisterNodeDef
+    symbols:
+    - name: beforeRegisterNodeDef
+      kind: method
+      line_start: 5
+      line_end: 19
+      signature: beforeRegisterNodeDef(nodeType, nodeData)
+      inputs:
+      - nodeType
+      - nodeData
+      output: unspecified
+      dependencies:
+      - apply
+      - find
+      - function
+      parser: javascript-pattern
+      dependency_targets: []

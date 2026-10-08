@@ -65,11 +65,21 @@ experiments are documented in
 fork. Instead of six fixed effect sockets, it chains any number of animation
 targets. Each target lane asks what to find, produces a green mask preview for
 review, requires `mask_verified`, accepts a plain-language animation
-description, and exposes separate `on_beat_strength` and `off_beat_strength`
-mixes. Duplicate a detector, preview, configure, and stack node to add another
-target. The included detector is a lightweight color/texture proposal system,
+description, and exposes separate `on_beat_flicker`, `off_beat_flicker`,
+`on_beat_motion`, and `off_beat_motion` mixes. Connected targets without
+`mask_verified` are skipped automatically.
+Motion is explicit rather than semantic prompting: choose `billow` for
+non-rigid cloud/smoke flow, `sway` for anchored flame movement, `drift` for
+coherent travel, or `still` for lighting-only targets.
+Each starter lane includes a `Verify / Edit Detection Mask` review node. It
+uses detection immediately with no upload step; opening that same node in Mask
+Editor and pressing Save automatically makes the painted mask the lane's
+persistent correction. Duplicate the complete lane to add a target.
+The included detector is a lightweight color/texture proposal system,
 not semantic AI segmentation; constrain its normalized `search_area`, adjust
 sensitivity, or replace its mask with a painted/segmentation mask when needed.
+The advanced `approved_mask` socket remains optional for externally supplied
+add, subtract, or replace masks.
 
 ## Render a motion poster
 
