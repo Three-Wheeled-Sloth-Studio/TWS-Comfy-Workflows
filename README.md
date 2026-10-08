@@ -74,7 +74,9 @@ coherent travel, or `still` for lighting-only targets.
 Each starter lane includes a `Verify / Edit Detection Mask` review node. It
 uses detection immediately with no upload step; opening that same node in Mask
 Editor and pressing Save automatically makes the painted mask the lane's
-persistent correction. Duplicate the complete lane to add a target.
+persistent correction for that source artwork. Selecting a different source
+automatically clears the stale correction and returns the lane to its new
+detector proposal. Duplicate the complete lane to add a target.
 The included detector is a lightweight color/texture proposal system,
 not semantic AI segmentation; constrain its normalized `search_area`, adjust
 sensitivity, or replace its mask with a painted/segmentation mask when needed.

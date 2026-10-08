@@ -135,11 +135,24 @@ widget is workflow state rather than user-facing input. The optional
 `Configure Animation Target.approved_mask` socket remains available for advanced
 external add/subtract/replace composition.
 
+Source-switch QA found that the hidden saved-image reference outlived its source:
+selecting new artwork caused the review node to redisplay and reuse the previous
+picture and mask. Each review node now also consumes the unmodified source image
+and persists its fingerprint in hidden workflow state. A changed fingerprint
+immediately falls back to the new detector proposal, displays its fresh preview,
+and asks the frontend to clear the stale clipspace reference. Legacy workflows
+retain a saved correction only when its saved preview RGB matches the current
+preview; otherwise they migrate to clean detector state.
+
 Focused validation confirmed that a blank review state returns the detector
 proposal, while a saved RGBA clipspace image is decoded with native `LoadImage`
 alpha semantics into the expected mask tensor. The regenerated starter graph
 contains three review nodes, zero approved-mask loaders, and complete
 detector → review → configuration links.
+Additional focused tests confirmed that a bound correction remains active for
+the same source, a legacy matching correction is retained, a different source
+returns the detector mask and emits the clear-state signal, and the existing
+Managed Decline correction is rejected against the Bella Ciao source.
 
 Motion QA then confirmed that the generic renderer's so-called motion modes
 only changed exposure or color; target pixels never moved. Target configuration

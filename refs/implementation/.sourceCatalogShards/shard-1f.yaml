@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/build_generic_music_visualizer_workflow.py
     analysis_version: 1
     language: python
-    content_hash: 0d386994bbceeee4c2d7368a9e1f102dba5df67d
+    content_hash: f0eb2baccc124f15b5605b7edd2fd0e34de42c31
     dependencies:
     - __future__
     - json
@@ -120,13 +120,14 @@ source_catalog:
     - name: review
       kind: function
       line_start: 73
-      line_end: 84
-      signature: review(node_id, position, image_link, detected_mask_link, mask_link, title)
+      line_end: 86
+      signature: review(node_id, position, image_link, detected_mask_link, source_image_link, mask_link, title)
       inputs:
       - node_id
       - position
       - image_link
       - detected_mask_link
+      - source_image_link
       - mask_link
       - title
       output: unspecified
@@ -145,8 +146,8 @@ source_catalog:
       - *id004
     - name: target
       kind: function
-      line_start: 87
-      line_end: 101
+      line_start: 89
+      line_end: 103
       signature: target(node_id, position, mask_link, output_link, name, prompt, motion_type, beat_flicker, ambient_flicker,
         beat_motion, ambient_motion)
       inputs:
@@ -179,8 +180,8 @@ source_catalog:
       - *id004
     - name: stack
       kind: function
-      line_start: 104
-      line_end: 113
+      line_start: 106
+      line_end: 115
       signature: stack(node_id, position, target_link, output_link, previous_link)
       inputs:
       - node_id
@@ -209,8 +210,8 @@ source_catalog:
       - *id004
     - name: renderer
       kind: function
-      line_start: 116
-      line_end: 135
+      line_start: 118
+      line_end: 137
       signature: renderer()
       inputs: []
       output: unspecified
@@ -231,8 +232,8 @@ source_catalog:
       - *id004
     - name: main
       kind: function
-      line_start: 138
-      line_end: 200
+      line_start: 140
+      line_end: 203
       signature: main() -> int
       inputs: []
       output: int

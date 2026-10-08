@@ -74,7 +74,9 @@ target lane:
 2. `Verify / Edit Detection Mask` displays the detector proposal and passes it
    through unchanged by default. Opening that same node in Mask Editor and
    pressing Save persists a per-target correction and automatically uses it on
-   the next queue; no separate image or mask upload is required.
+   the next queue; no separate image or mask upload is required. The correction
+   is fingerprint-bound to the source artwork. A new source invalidates and
+   clears it rather than displaying or applying pixels from the previous image.
 3. `Configure Animation Target` records the verified mask, object name,
    appearance description, explicit motion type, and four independent linear `0..2`
    controls. `on_beat_flicker` and `off_beat_flicker` mix beat-responsive and
@@ -108,6 +110,9 @@ Each starter lane routes detection through `Verify / Edit Detection Mask`.
 Without an edit it immediately emits the detector proposal. Saving in the
 built-in Mask Editor stores that lane's painted mask and makes it the emitted
 mask on later queues, so correction is optional and requires no second upload.
+The review node also receives the unmodified source image and records its
+fingerprint in hidden workflow state. When that fingerprint changes, the saved
+mask reference is cleared and the new detector proposal is shown and emitted.
 `Configure Animation Target.approved_mask` remains an optional advanced socket
 for external masks and add/subtract/replace composition.
 The built-in detector is not an open-vocabulary vision model: it maps known

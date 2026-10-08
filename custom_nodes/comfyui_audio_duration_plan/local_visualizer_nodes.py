@@ -1027,10 +1027,14 @@ class VisualizerMaskReview:
             "required": {
                 "verification_preview": ("IMAGE",),
                 "detected_mask": ("MASK",),
+                "source_image": ("IMAGE",),
                 # The frontend keeps this widget hidden. ComfyUI's Mask Editor
                 # writes its saved clipspace image here, which makes Save feed
                 # the painted mask into the next queue automatically.
                 "image": ("STRING", {"default": ""}),
+                # Bound to the source artwork by the frontend after execution.
+                # This prevents a correction from leaking into a new image.
+                "source_fingerprint": ("STRING", {"default": ""}),
             }
         }
 
@@ -1042,7 +1046,7 @@ class VisualizerMaskReview:
     DESCRIPTION = "Inspect a detection and optionally paint a correction in Mask Editor; Save applies it automatically."
 
     @staticmethod
-    def _saved_mask(image_name, detected_mask):
+    def _saved_correction(image_name, detected_mask):
         import numpy as np
         import torch
         import torch.nn.functional as functional
@@ -1057,6 +1061,7 @@ class VisualizerMaskReview:
             loaded = ImageOps.exif_transpose(opened)
             if "A" not in loaded.getbands():
                 return None
+            saved_rgb = np.asarray(loaded.convert("RGB"), dtype=np.uint8)
             # Match LoadImage semantics: transparent pixels are selected mask.
             pixels = 1.0 - np.asarray(loaded.getchannel("A"), dtype=np.float32) / 255.0
         value = torch.from_numpy(np.array(pixels, copy=True))[None, ...]
@@ -1067,7 +1072,27 @@ class VisualizerMaskReview:
             value = functional.interpolate(
                 value[:, None, ...], size=base.shape[-2:], mode="bilinear", align_corners=False,
             )[:, 0, ...]
-        return value.clamp(0.0, 1.0)
+        return value.clamp(0.0, 1.0), saved_rgb
+
+    @staticmethod
+    def _source_fingerprint(source_image):
+        import hashlib
+
+        pixels = _image_pixels(source_image)
+        digest = hashlib.blake2b(digest_size=16)
+        digest.update(str(pixels.shape).encode("ascii"))
+        digest.update(pixels.tobytes())
+        return digest.hexdigest()
+
+    @staticmethod
+    def _saved_preview_matches(saved_rgb, verification_preview):
+        import numpy as np
+
+        current = _image_pixels(verification_preview)
+        if saved_rgb.shape != current.shape:
+            return False
+        difference = np.abs(saved_rgb.astype(np.int16) - current.astype(np.int16))
+        return float(np.mean(difference)) <= 3.0 and float(np.mean(np.max(difference, axis=2) > 24)) <= 0.02
 
     @staticmethod
     def _saved_image_reference(image_name):
@@ -1079,18 +1104,37 @@ class VisualizerMaskReview:
         subfolder = path.parent.as_posix()
         return {"filename": path.name, "subfolder": "" if subfolder == "." else subfolder, "type": image_type}
 
-    def review(self, verification_preview, detected_mask, image=""):
+    def review(self, verification_preview, detected_mask, source_image, image="", source_fingerprint=""):
         import nodes
 
-        painted = self._saved_mask(image, detected_mask)
-        selected = painted if painted is not None else detected_mask
-        source = "painted Mask Editor correction" if painted is not None else "detector proposal (no correction saved)"
-        if painted is not None:
+        current_fingerprint = self._source_fingerprint(source_image)
+        correction = self._saved_correction(image, detected_mask)
+        painted, saved_rgb = correction if correction is not None else (None, None)
+        bound = painted is not None and str(source_fingerprint or "") == current_fingerprint
+        legacy_match = (
+            painted is not None
+            and not str(source_fingerprint or "")
+            and self._saved_preview_matches(saved_rgb, verification_preview)
+        )
+        painted_active = bound or legacy_match
+        stale = bool(str(image or "").strip()) and not painted_active
+        selected = painted if painted_active else detected_mask
+        if painted_active:
+            source = "painted Mask Editor correction"
+        elif stale:
+            source = "detector proposal (stale correction cleared after source change)"
+        else:
+            source = "detector proposal (no correction saved)"
+        if painted_active:
             ui = {"images": [self._saved_image_reference(image)]}
         else:
             ui = nodes.PreviewImage().save_images(
                 verification_preview, filename_prefix="local_visualizer_mask_review"
             ).get("ui", {})
+        ui["mask_review_state"] = [{
+            "source_fingerprint": current_fingerprint,
+            "clear_saved_mask": stale,
+        }]
         return {"ui": ui, "result": (selected, source)}
 
 

@@ -110,7 +110,9 @@ Configure Animation Target → Add Animation Target**. Enter an object class,
 inspect the green review, and refine `search_area`/sensitivity. The detector
 mask is usable immediately. For a persistent correction, open the review node
 itself in Mask Editor, use the first tool (Mask Pen), and press Save; the next
-queue automatically uses that lane's painted mask. Then enable `mask_verified`. Describe the
+queue automatically uses that lane's painted mask. A correction belongs only
+to the source artwork on which it was painted; changing the source clears stale
+review state on the next queue. Then enable `mask_verified`. Describe the
 desired lighting/appearance behavior in the text field and select spatial
 behavior with `motion_type`. Use
 `on_beat_flicker` and `off_beat_flicker` for brightness/color modulation, and
@@ -171,7 +173,9 @@ review node's hidden persistent state.
 The detector's gold outline shows `search_area`; it is not part of the mask.
 The review node passes the recomputed detector mask through until an edit is
 saved. A saved edit then replaces that lane's proposal on later queues without
-requiring a separate file selection. For advanced composition, connect an
+requiring a separate file selection. If the source artwork changes, the review
+node discards the old saved edit, displays the new preview, and falls back to
+the new detector mask. For advanced composition, connect an
 external mask to `Configure Animation Target.approved_mask`; its
 `approved_mask_mode` can `add`, `subtract`, or `replace` the review result.
 

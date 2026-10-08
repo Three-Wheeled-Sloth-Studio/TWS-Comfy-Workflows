@@ -11,7 +11,7 @@ decisions:
       - The accepted V3 workflow remains intact as a tuned reference while the generic workflow is validated independently.
       - Any number of target lanes can be chained without changing the renderer schema.
       - The model-free detector is a proposal generator, not semantic segmentation; unverified masks cannot render and ordinary ComfyUI masks can replace it.
-      - Each review node passes detection through by default; Mask Editor Save persists and selects a lane-specific correction without a separate loader or upload step.
+      - Each review node passes detection through by default; Mask Editor Save persists and selects a lane-specific, source-fingerprint-bound correction without a separate loader or upload step, and source changes clear stale corrections.
       - Appearance keywords and explicit billow, sway, drift, or still motion profiles preserve pixels outside verified masks and independently combine beat/non-beat flicker with bounded masked deformation.
   - id: standalone-local-composite-visualizer
     status: accepted

@@ -7,7 +7,7 @@ source_catalog:
   - path: custom_nodes/comfyui_audio_duration_plan/web/visualizer_mask_review.js
     analysis_version: 1
     language: javascript
-    content_hash: 2c7aa564b115a2b80de4aecfb0592bcbed593bc1
+    content_hash: 431dbd2edfba244e960b0830498f8e78574eb376
     dependencies:
     - ../../scripts/app.js
     provides:
@@ -16,7 +16,7 @@ source_catalog:
     - name: beforeRegisterNodeDef
       kind: method
       line_start: 5
-      line_end: 19
+      line_end: 48
       signature: beforeRegisterNodeDef(nodeType, nodeData)
       inputs:
       - nodeType
@@ -26,5 +26,6 @@ source_catalog:
       - apply
       - find
       - function
+      - setDirtyCanvas
       parser: javascript-pattern
       dependency_targets: []

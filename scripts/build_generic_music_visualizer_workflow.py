@@ -70,17 +70,19 @@ def detector(node_id, position, image_link, mask_link, preview_link, find, sensi
     }
 
 
-def review(node_id, position, image_link, detected_mask_link, mask_link, title):
+def review(node_id, position, image_link, detected_mask_link, source_image_link, mask_link, title):
     return {
         "id": node_id, "type": "VisualizerMaskReview", "pos": position, "size": [360, 360], "flags": {}, "order": node_id - 1, "mode": 0,
         "inputs": [
             input_slot("verification_preview", "IMAGE", image_link),
             input_slot("detected_mask", "MASK", detected_mask_link),
+            input_slot("source_image", "IMAGE", source_image_link),
             input_slot("image", "STRING", widget=True),
+            input_slot("source_fingerprint", "STRING", widget=True),
         ],
         "outputs": [output_slot("reviewed_mask", "MASK", [mask_link]), output_slot("mask_source", "STRING", None, 1)],
         "properties": {"Node name for S&R": "VisualizerMaskReview"},
-        "widgets_values": [""], "widgets_values_named": {"image": ""}, "title": title,
+        "widgets_values": ["", ""], "widgets_values_named": {"image": "", "source_fingerprint": ""}, "title": title,
     }
 
 
@@ -137,20 +139,20 @@ def renderer():
 
 def main() -> int:
     nodes = [
-        loader(1, "LoadImage", "1. Source artwork (static base)", [-1280, -100], "select_reference_image.png", ([1, 2, 3, 4], None)),
+        loader(1, "LoadImage", "1. Source artwork (static base)", [-1280, -100], "select_reference_image.png", ([1, 2, 3, 4, 25, 26, 27], None)),
         loader(2, "LoadAudio", "2. Finalized audio", [-1280, 260], "select_audio.mp3", [5]),
         loader(3, "LoadImage", "Track wordmark", [1600, 760], "Managed Decline wordmark.png", ([6], [7])),
         loader(4, "LoadImage", "Studio badge", [1990, 760], "TWS Studio Logo nt - underlay.png", ([8], [9])),
         detector(10, [-820, -620], 1, 10, 11, "candles", 0.72),
-        review(11, [-350, -620], 11, 10, 22, "VERIFY / EDIT DETECTION: candles"),
+        review(11, [-350, -620], 11, 10, 25, 22, "VERIFY / EDIT DETECTION: candles"),
         target(12, [50, -620], 22, 12, "candles", "candles flickering naturally", "sway", 0.55, 0.90, 0.0, 0.55),
         stack(13, [560, -500], 12, 13),
         detector(20, [-820, -170], 2, 14, 15, "clouds", 0.62),
-        review(21, [-350, -170], 15, 14, 23, "VERIFY / EDIT DETECTION: clouds"),
+        review(21, [-350, -170], 15, 14, 26, 23, "VERIFY / EDIT DETECTION: clouds"),
         target(22, [50, -170], 23, 16, "clouds", "clouds flowing slowly and flashing heat lightning on strong beats", "billow", 0.90, 0.45, 0.0, 0.65),
         stack(23, [920, -320], 16, 17, 13),
         detector(30, [-820, 280], 3, 18, 19, "monitor", 0.72),
-        review(31, [-350, 280], 19, 18, 24, "VERIFY / EDIT DETECTION: monitor"),
+        review(31, [-350, 280], 19, 18, 27, 24, "VERIFY / EDIT DETECTION: monitor"),
         target(32, [50, 280], 24, 20, "monitor", "monitor scan and glow with occasional beat pulses", "still", 0.70, 0.35, 0.0, 0.0),
         stack(33, [1280, -140], 20, 21, 17),
         renderer(),
@@ -166,10 +168,11 @@ def main() -> int:
         [18, 30, 0, 31, 1, "MASK"], [19, 30, 1, 31, 0, "IMAGE"], [20, 32, 0, 33, 0, "LOCAL_VISUALIZER_TARGET"],
         [21, 33, 0, 40, 2, "LOCAL_VISUALIZER_TARGETS"],
         [22, 11, 0, 12, 0, "MASK"], [23, 21, 0, 22, 0, "MASK"], [24, 31, 0, 32, 0, "MASK"],
+        [25, 1, 0, 11, 2, "IMAGE"], [26, 1, 0, 21, 2, "IMAGE"], [27, 1, 0, 31, 2, "IMAGE"],
     ]
     workflow = {
         "id": "e6a21a19-acde-4fcb-b9e0-10ca1a150002", "revision": 0,
-        "last_node_id": 40, "last_link_id": 24, "nodes": nodes, "links": links,
+        "last_node_id": 40, "last_link_id": 27, "nodes": nodes, "links": links,
         "groups": [
             {"id": 1, "title": "Inputs", "bounding": [-1310, -150, 430, 820], "color": "#3f789e", "font_size": 24, "flags": {}},
             {"id": 2, "title": "Animation target lanes — detection is usable immediately; edit only when needed", "bounding": [-850, -670, 1490, 1370], "color": "#8a6d3b", "font_size": 24, "flags": {}},
@@ -179,7 +182,7 @@ def main() -> int:
         ],
         "definitions": {"subgraphs": []}, "config": {},
         "extra": {"ds": {"scale": 0.62, "offset": [920, 560]}, "frontendVersion": "1.24.4"},
-        "version": 0.4, "state": {"lastNodeId": 40, "lastLinkId": 24, "lastGroupId": 5},
+        "version": 0.4, "state": {"lastNodeId": 40, "lastLinkId": 27, "lastGroupId": 5},
     }
     node_ids = {node["id"] for node in nodes}
     if any(link[1] not in node_ids or link[3] not in node_ids for link in links):
@@ -192,7 +195,7 @@ def main() -> int:
     if len([node for node in nodes if node["type"] == "VisualizerObjectDetector"]) != 3:
         raise RuntimeError("Starter workflow must contain three example target lanes.")
     reviewers = [node for node in nodes if node["type"] == "VisualizerMaskReview"]
-    if len(reviewers) != 3 or any(not node["outputs"][0]["links"] for node in reviewers):
+    if len(reviewers) != 3 or any(node["inputs"][2]["name"] != "source_image" or node["inputs"][2]["link"] is None for node in reviewers):
         raise RuntimeError("Every starter target lane must route its optional Mask Editor correction into configuration.")
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(json.dumps(workflow, indent=2) + "\n", encoding="utf-8")
