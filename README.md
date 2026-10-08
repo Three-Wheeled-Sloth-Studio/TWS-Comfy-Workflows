@@ -77,11 +77,40 @@ Editor and pressing Save automatically makes the painted mask the lane's
 persistent correction for that source artwork. Selecting a different source
 automatically clears the stale correction and returns the lane to its new
 detector proposal. Duplicate the complete lane to add a target.
-The included detector is a lightweight color/texture proposal system,
-not semantic AI segmentation; constrain its normalized `search_area`, adjust
-sensitivity, or replace its mask with a painted/segmentation mask when needed.
+
+That workflow is the fixed model-free version: its `Detect Animation Target`
+nodes retain the lightweight color/texture detector and have no semantic-model
+dependency. New semantic-detection work lives in the separate next-pass copy:
+
+`user/default/workflows/music_visualizer_target_builder_semantic.json`
+
+Only that copy uses `Detect Animation Target (Semantic)`. Each semantic
+detector defaults to `semantic_or_heuristic`. When the optional local
+CLIPSeg model is installed, the `find` text produces a semantic heatmap before
+the ordinary search-area, sensitivity, and region-count controls are applied.
+Semantic inference runs on the bounding crop of `search_area`, preserving more
+detail for small regions in large artwork. An unqualified `smoke` query inside
+a constrained crop also compares white, gray, and black smoke prompts; this is
+important for pale illustrated plumes that generic `smoke` misses at full-frame
+scale.
+Without that model it reports the fallback and uses the original lightweight
+color/texture proposal system, so the workflow remains usable. Select
+`semantic_only` to make missing model assets an error, or `heuristic` to avoid
+loading the semantic model. In every mode, constrain `search_area` and inspect
+or paint the review mask before verification.
 The advanced `approved_mask` socket remains optional for externally supplied
 add, subtract, or replace masks.
+
+Preview the optional semantic-model installation without downloading anything:
+
+```powershell
+.venv\Scripts\python.exe scripts/install_visualizer_semantic_assets.py --comfy-root . --list-only
+```
+
+To install its approximately 577 MiB pinned CLIPSeg snapshot, run the same
+script without `--list-only` using ComfyUI's Python environment, then restart
+ComfyUI. Model files stay under `models/detection/clipseg-rd64-refined` and are
+excluded from version control.
 
 ## Render a motion poster
 

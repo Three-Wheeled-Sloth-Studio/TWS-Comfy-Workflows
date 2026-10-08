@@ -57,8 +57,9 @@ The renderer reports native ComfyUI progress for audio analysis and every
 rendered frame. This makes percentage completion visible while preserving the
 streaming, bounded-memory architecture.
 
-No effect is model-based in the MVP. SAM/SAM2 and optional regional Wan or LTX
-motion remain future mask/effect providers, not runtime prerequisites.
+No effect is model-based in the MVP. Optional CLIPSeg target discovery does not
+alter pixels and is not a runtime prerequisite; SAM/SAM2 and optional regional
+Wan or LTX motion remain future mask/effect providers.
 
 ## Generic target-stack fork
 
@@ -66,11 +67,10 @@ motion remain future mask/effect providers, not runtime prerequisites.
 bounded-memory renderer but replaces the six named inputs with a repeatable
 target lane:
 
-1. `Detect Animation Target` maps an object-class phrase to a lightweight
-   visual profile, proposes regions, refines the proposal to matching pixels,
-   and emits a green verification preview with the active `search_area`
-   outlined in gold. The normalized search area constrains candidate ranking,
-   rather than merely clipping a whole-image result afterward.
+1. `Detect Animation Target` maps an object phrase to a lightweight
+   color/texture profile, ranks candidates inside `search_area`, and emits a
+   green verification preview with the active area outlined in gold. This node
+   remains model-free in the fixed workflow.
 2. `Verify / Edit Detection Mask` displays the detector proposal and passes it
    through unchanged by default. Opening that same node in Mask Editor and
    pressing Save persists a per-target correction and automatically uses it on
@@ -86,6 +86,24 @@ target lane:
 4. `Add Animation Target` appends the target to a typed stack. Duplicating the
    detector, editable review, configuration, and stack nodes adds
    another target; the final stack feeds one generic streaming renderer.
+
+`music_visualizer_target_builder_semantic.json` is the separate next-pass copy.
+It substitutes `Detect Animation Target (Semantic)` without changing the fixed
+workflow or the downstream review/configuration/renderer contract. The semantic
+node defaults to `semantic_or_heuristic`; `semantic_only` exposes missing or
+runtime failures and `heuristic` explicitly selects the model-free path.
+
+A locally installed CLIPSeg model maps arbitrary text, including object parts,
+materials, and atmospheric regions, to a semantic heatmap. Inference uses the
+bounding crop of `search_area`, then maps the heatmap back into full-image
+coordinates before ranking and masking. This keeps small atmospheric structure
+from being erased when a 4K composition is reduced to CLIPSeg's input scale.
+Within a constrained crop, an unqualified `smoke` query is evaluated together
+with white, gray, and black smoke variants and the maximum response is used.
+Explicitly color-qualified smoke queries remain unchanged. Full-frame smoke is
+not expanded because clouds and sky otherwise dominate the response; users must
+identify the plausible plume area with the gold search box and still review the
+resulting mask.
 
 The prompt resolver currently recognizes and combines drift/billow, flicker,
 flash/lightning/pulse, scan/display, rain/streak, and shimmer/reflection
@@ -105,7 +123,11 @@ targets are ignored even when they remain in the connected stack; at least one
 usable target must be verified. Verified targets with empty masks are logged
 and skipped when another verified mask is usable. Identical detector inputs
 reuse a bounded in-process cache, avoiding repeated analysis until source RGB
-or a detector control changes; restarting ComfyUI clears that cache.
+or a detector control changes; the provider and local semantic-asset
+availability are part of the cache key. Restarting ComfyUI clears that cache.
+CLIPSeg is loaded from `models/detection/clipseg-rd64-refined` with
+local-files-only enforcement and runs on CPU so target discovery does not
+retain visualizer VRAM.
 Each starter lane routes detection through `Verify / Edit Detection Mask`.
 Without an edit it immediately emits the detector proposal. Saving in the
 built-in Mask Editor stores that lane's painted mask and makes it the emitted
@@ -200,9 +222,11 @@ review remains required.
 - Candidate-region suggestions use lightweight image statistics and coarse
   grid grouping. They can over-select broad similarly colored areas and always
   require preview/correction.
-- Generic object-class detection is heuristic, not semantic segmentation.
-  Dense scenes, sketch treatments, clouds, and similarly colored distractors
-  commonly need a constrained search area or an externally supplied mask.
+- The optional CLIPSeg provider supplies coarse text-semantic segmentation, not
+  guaranteed object identity or production mattes. Dense scenes, sketch
+  treatments, ambiguous atmosphere, and similarly described distractors still
+  need a constrained search area and review or painted correction. The
+  heuristic fallback has the earlier, stricter color/texture limitations.
 - Rendering is CPU-bound. `source` mode on a 3840×2160 input is substantially
   more expensive than the default 1080p delivery.
 

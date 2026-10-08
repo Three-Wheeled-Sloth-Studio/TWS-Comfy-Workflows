@@ -11,6 +11,7 @@ decisions:
       - The accepted V3 workflow remains intact as a tuned reference while the generic workflow is validated independently.
       - Any number of target lanes can be chained without changing the renderer schema.
       - The model-free detector is a proposal generator, not semantic segmentation; unverified masks cannot render and ordinary ComfyUI masks can replace it.
+      - Optional pinned local CLIPSeg work lives in `music_visualizer_target_builder_semantic.json` with its own semantic detector node type; it never downloads during workflow execution, while the original workflow and detector remain fixed and model-free.
       - Each review node passes detection through by default; Mask Editor Save persists and selects a lane-specific, source-fingerprint-bound correction without a separate loader or upload step, and source changes clear stale corrections.
       - Appearance keywords and explicit billow, sway, drift, or still motion profiles preserve pixels outside verified masks and independently combine beat/non-beat flicker with bounded masked deformation.
   - id: standalone-local-composite-visualizer

@@ -4,14 +4,14 @@ source_catalog:
   format_version: 1
   generated_by: refs/tools/generate_source_catalog.py
   derived: true
-  tracked_source_files: 14
-  symbols: 129
+  tracked_source_files: 15
+  symbols: 138
   languages:
     javascript: 1
-    python: 13
+    python: 14
   parsers:
     javascript-pattern: 1
-    python-ast: 128
+    python-ast: 137
   shards:
   - path: refs/implementation/.sourceCatalogShards/shard-01.yaml
     files: 1
@@ -20,6 +20,9 @@ source_catalog:
     files: 2
     symbols: 11
   - path: refs/implementation/.sourceCatalogShards/shard-0d.yaml
+    files: 1
+    symbols: 2
+  - path: refs/implementation/.sourceCatalogShards/shard-10.yaml
     files: 1
     symbols: 2
   - path: refs/implementation/.sourceCatalogShards/shard-12.yaml
@@ -42,7 +45,7 @@ source_catalog:
     symbols: 4
   - path: refs/implementation/.sourceCatalogShards/shard-1d.yaml
     files: 1
-    symbols: 40
+    symbols: 47
   - path: refs/implementation/.sourceCatalogShards/shard-1f.yaml
     files: 1
     symbols: 9

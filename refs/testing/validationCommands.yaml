@@ -6,7 +6,7 @@ commands:
     command: python scripts/validate_repository.py
     purpose: Reject tracked paths outside the explicit project allowlist, case collisions, model weights, and media files.
   - id: compile-project-python
-    command: python -m py_compile build_auto_s2v_workflow.py build_auto_s2v_windowed_workflow.py custom_nodes/comfyui_audio_duration_plan/__init__.py custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py scripts/validate_repository.py scripts/build_motion_loop_workflow.py scripts/build_guided_motion_poster_workflow.py scripts/build_guided_motion_poster_visualizer_workflow.py scripts/build_local_music_visualizer_workflow.py scripts/build_generic_music_visualizer_workflow.py scripts/motion_poster_manifest.py scripts/render_motion_poster.py
+    command: python -m py_compile build_auto_s2v_workflow.py build_auto_s2v_windowed_workflow.py custom_nodes/comfyui_audio_duration_plan/__init__.py custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py scripts/validate_repository.py scripts/build_motion_loop_workflow.py scripts/build_guided_motion_poster_workflow.py scripts/build_guided_motion_poster_visualizer_workflow.py scripts/build_local_music_visualizer_workflow.py scripts/build_generic_music_visualizer_workflow.py scripts/install_visualizer_semantic_assets.py scripts/motion_poster_manifest.py scripts/render_motion_poster.py
     purpose: Compile project-owned Python without executing ComfyUI generation.
   - id: build-motion-loop-workflow
     command: python scripts/build_motion_loop_workflow.py
@@ -22,13 +22,16 @@ commands:
     purpose: Regenerate and structurally validate the standalone procedural regional-compositing workflow.
   - id: build-generic-music-visualizer-workflow
     command: python scripts/build_generic_music_visualizer_workflow.py
-    purpose: Regenerate and structurally validate the arbitrary target-stack visualizer workflow.
+    purpose: Regenerate and structurally validate the semantic next-pass copy without altering the fixed model-free target-stack workflow.
   - id: validate-motion-poster-manifest
     command: python scripts/render_motion_poster.py assets/motion-poster.example.json --check-manifest
     purpose: Validate the example manifest structure without requiring runtime media or rendering.
   - id: list-wan-model-assets
     command: powershell -ExecutionPolicy Bypass -File scripts/install-wan-s2v-assets.ps1 -ComfyRoot . -ListOnly
     purpose: Validate the model manifest and destination mapping without downloading model files.
+  - id: list-visualizer-semantic-assets
+    command: python scripts/install_visualizer_semantic_assets.py --comfy-root . --list-only
+    purpose: Validate the optional pinned CLIPSeg destination and file set without downloading model files.
   - id: generate-source-catalog
     command: python refs/tools/generate_source_catalog.py
     purpose: Regenerate the committed sharded source catalog after source files change.

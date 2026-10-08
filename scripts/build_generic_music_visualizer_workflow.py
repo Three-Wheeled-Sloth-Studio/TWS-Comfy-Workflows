@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "user/default/workflows/music_visualizer_target_builder.json"
+OUTPUT = ROOT / "user/default/workflows/music_visualizer_target_builder_semantic.json"
 
 
 def input_slot(name, data_type, link=None, *, widget=False):
@@ -51,11 +51,11 @@ def loader(node_id, kind, title, position, filename, output_links):
 
 
 def detector(node_id, position, image_link, mask_link, preview_link, find, sensitivity=0.65):
-    widgets = [find, "box 0 0 1 1", sensitivity, 6, 2.0]
-    names = ["find", "search_area", "sensitivity", "max_regions", "padding_percent"]
-    kinds = ["STRING", "STRING", "FLOAT", "INT", "FLOAT"]
+    widgets = [find, "box 0 0 1 1", sensitivity, 6, 2.0, "semantic_or_heuristic"]
+    names = ["find", "search_area", "sensitivity", "max_regions", "padding_percent", "detection_provider"]
+    kinds = ["STRING", "STRING", "FLOAT", "INT", "FLOAT", "COMBO"]
     return {
-        "id": node_id, "type": "VisualizerObjectDetector", "pos": position, "size": [430, 330], "flags": {}, "order": node_id - 1, "mode": 0,
+        "id": node_id, "type": "VisualizerSemanticObjectDetector", "pos": position, "size": [430, 360], "flags": {}, "order": node_id - 1, "mode": 0,
         "inputs": [input_slot("image", "IMAGE", image_link)] + [input_slot(name, kind, widget=True) for name, kind in zip(names, kinds)],
         "outputs": [
             output_slot("detected_mask", "MASK", [mask_link]),
@@ -63,7 +63,7 @@ def detector(node_id, position, image_link, mask_link, preview_link, find, sensi
             output_slot("suggested_regions", "STRING", None, 2),
             output_slot("detector_report", "STRING", None, 3),
         ],
-        "properties": {"Node name for S&R": "VisualizerObjectDetector"},
+        "properties": {"Node name for S&R": "VisualizerSemanticObjectDetector"},
         "widgets_values": widgets,
         "widgets_values_named": dict(zip(names, widgets)),
         "title": f"Detect: {find}", "color": "#55431d", "bgcolor": "#6d5728",
@@ -171,11 +171,11 @@ def main() -> int:
         [25, 1, 0, 11, 2, "IMAGE"], [26, 1, 0, 21, 2, "IMAGE"], [27, 1, 0, 31, 2, "IMAGE"],
     ]
     workflow = {
-        "id": "e6a21a19-acde-4fcb-b9e0-10ca1a150002", "revision": 0,
+        "id": "e6a21a19-acde-4fcb-b9e0-10ca1a150003", "revision": 0,
         "last_node_id": 40, "last_link_id": 27, "nodes": nodes, "links": links,
         "groups": [
             {"id": 1, "title": "Inputs", "bounding": [-1310, -150, 430, 820], "color": "#3f789e", "font_size": 24, "flags": {}},
-            {"id": 2, "title": "Animation target lanes — detection is usable immediately; edit only when needed", "bounding": [-850, -670, 1490, 1370], "color": "#8a6d3b", "font_size": 24, "flags": {}},
+            {"id": 2, "title": "Semantic animation target lanes — detection is usable immediately; edit only when needed", "bounding": [-850, -670, 1490, 1370], "color": "#8a6d3b", "font_size": 24, "flags": {}},
             {"id": 3, "title": "Chain target stack in order", "bounding": [530, -550, 1080, 560], "color": "#486d8a", "font_size": 24, "flags": {}},
             {"id": 4, "title": "Streaming renderer — masked flicker + motion", "bounding": [1570, -100, 630, 850], "color": "#487a52", "font_size": 24, "flags": {}},
             {"id": 5, "title": "Optional post-process badging", "bounding": [1570, 710, 820, 420], "color": "#725a8f", "font_size": 24, "flags": {}},
@@ -192,7 +192,8 @@ def main() -> int:
     render_node = next(node for node in nodes if node["type"] == "GenericBeatAwareLocalVisualizer")
     if render_node["inputs"][2]["name"] != "targets" or render_node["widgets_values"][-1] != "generic_visualizer/render":
         raise RuntimeError("Generic renderer inputs or widgets are positionally misaligned.")
-    if len([node for node in nodes if node["type"] == "VisualizerObjectDetector"]) != 3:
+    detectors = [node for node in nodes if node["type"] == "VisualizerSemanticObjectDetector"]
+    if len(detectors) != 3 or any(node["widgets_values_named"].get("detection_provider") != "semantic_or_heuristic" for node in detectors):
         raise RuntimeError("Starter workflow must contain three example target lanes.")
     reviewers = [node for node in nodes if node["type"] == "VisualizerMaskReview"]
     if len(reviewers) != 3 or any(node["inputs"][2]["name"] != "source_image" or node["inputs"][2]["link"] is None for node in reviewers):

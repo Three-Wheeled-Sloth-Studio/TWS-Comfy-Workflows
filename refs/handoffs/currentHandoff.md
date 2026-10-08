@@ -154,6 +154,54 @@ the same source, a legacy matching correction is retained, a different source
 returns the detector mask and emits the clear-state signal, and the existing
 Managed Decline correction is rejected against the Bella Ciao source.
 
+Bella Ciao review then confirmed the model-free detector's semantic ceiling:
+hair, sun, red fabric, and flags were not understood, while smoke shared the
+same neutral-atmosphere heuristic as clouds. The current mainline work now adds
+an optional local CLIPSeg provider ahead of the unchanged search-area,
+sensitivity, region-ranking, preview, and edit flow. `semantic_or_heuristic` is
+the default, `semantic_only` exposes missing/runtime failures, and `heuristic`
+retains the model-free path. Loading is local-only from
+`models/detection/clipseg-rd64-refined`; workflow execution never downloads
+weights. A pinned installer lists or downloads the approximately 577 MiB
+snapshot. Missing-model fallback, strict-mode diagnostics, and a mocked
+semantic heatmap pass focused tests. The authorized pinned snapshot was then
+installed locally and evaluated on the 3840×2160 Bella Ciao artwork at default
+semantic sensitivity. Hair now isolates the central woman's hair (0.5% of the
+frame), red fabric finds the main scarf and large left flag (4.1%), and flag
+finds the large flag but also admits scarf fabric (2.5%). Sun selects the broad
+sunset glow rather than the disk (3.6%), while smoke remains empty with only
+0.142 peak confidence. A lower-threshold phrase comparison found `smoke haze`
+but did not establish a trustworthy smoke-only mask. CLIPSeg is therefore a
+useful partial improvement, not accepted semantic detection. Its absolute
+floor was retuned so valid part-level responses survive the default sensitivity,
+and its original slow image processor is explicit for reproducible inference.
+
+Because billowing smoke is an established visual language requirement, a
+second exploration compared twelve smoke phrases on a cropped background
+region. Full-frame and cropped bare `smoke` remained blind, but `white smoke`
+cleanly selected the pale plumes behind the central figures. The provider now
+runs semantic inference on the bounding `search_area` crop and, only when that
+crop covers at most 85% of the frame, expands an unqualified smoke query across
+white, gray, and black variants. On Bella Ciao, `box .40 .18 .72 .62` with the
+ordinary query `smoke` and default `0.65` sensitivity selects 0.6% of the frame,
+covering the intended plumes without selecting the large sky clouds. The node
+reports both crop use and query expansion. This is a useful smoke path pending
+cross-artwork validation; review remains required before marking the target
+verified, while editing stays optional.
+
+Workflow-fork semantics were clarified after this pass: “fork off for the next
+pass” means preserve the accepted workflow file in place and perform new work
+in a separately named workflow copy, not merely on a Git branch. The fixed UI
+version remains `music_visualizer_target_builder.json` and retains the original
+model-free `VisualizerObjectDetector`. All CLIPSeg work now lives in
+`music_visualizer_target_builder_semantic.json` and uses the distinct
+`VisualizerSemanticObjectDetector`, preventing a backend restart from silently
+changing the fixed workflow's detection behavior.
+
+Repository history is intentionally maintained on the single `main` branch;
+workflow experimentation is represented by separately named workflow files,
+not long-lived Git branches.
+
 Motion QA then confirmed that the generic renderer's so-called motion modes
 only changed exposure or color; target pixels never moved. Target configuration
 now exposes four linear `0..2` controls: `on_beat_flicker`,

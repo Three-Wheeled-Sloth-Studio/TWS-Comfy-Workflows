@@ -106,9 +106,17 @@ renderer. Progress is reported during audio analysis and frame rendering.
 For arbitrary target stacks, open
 `user/default/workflows/music_visualizer_target_builder.json`. Each starter
 lane includes **Detect Animation Target → Verify / Edit Detection Mask →
-Configure Animation Target → Add Animation Target**. Enter an object class,
-inspect the green review, and refine `search_area`/sensitivity. The detector
-mask is usable immediately. For a persistent correction, open the review node
+Configure Animation Target → Add Animation Target**. This is the fixed
+model-free workflow and always uses the lightweight color/texture detector.
+
+For the next semantic-detection pass, open the separate
+`user/default/workflows/music_visualizer_target_builder_semantic.json`. Its
+starter lanes use **Detect Animation Target (Semantic)**. Enter an object
+class, choose `semantic_or_heuristic`, `semantic_only`, or `heuristic`, inspect
+the green review, and refine `search_area`/sensitivity. The default uses local
+CLIPSeg when installed and reports when it falls back to color/texture
+heuristics. In either workflow, the detector mask is usable immediately. For a
+persistent correction, open the review node
 itself in Mask Editor, use the first tool (Mask Pen), and press Save; the next
 queue automatically uses that lane's painted mask. A correction belongs only
 to the source artwork on which it was painted; changing the source clears stale
@@ -139,6 +147,27 @@ the verification preview draws that area with a gold outline. Identical source
 RGB and detector settings reuse a small in-process result cache; changing the
 source, object query, search area, sensitivity, region count, or padding
 intentionally runs detection again. The cache resets when ComfyUI restarts.
+
+For small semantic targets, `search_area` is also the inference crop, not only
+a final mask boundary. Keep it tight enough that the target remains legible at
+the model's input scale. Smoke receives special assistance only in a constrained
+crop: plain `smoke` compares white, gray, and black smoke responses. On the
+Bella Ciao artwork, `box .40 .18 .72 .62` isolates the pale background plumes
+behind the central figures at the default `0.65` sensitivity. Full-frame smoke
+still confuses atmosphere with sky and should not be treated as verified.
+
+The optional semantic provider expects its pinned model snapshot at
+`models/detection/clipseg-rd64-refined`. Preview the files and destination
+without downloading:
+
+```powershell
+.venv\Scripts\python.exe scripts/install_visualizer_semantic_assets.py --comfy-root . --list-only
+```
+
+For installation, use the repository `.venv`/ComfyUI Python and omit
+`--list-only`. The download is approximately 577 MiB. Restart ComfyUI after
+installation; the loader is deliberately local-only and never downloads model
+files while a workflow is running.
 
 ### Reading and correcting masks
 
@@ -194,6 +223,7 @@ effect is intentional.
 | Workflow | Role |
 | --- | --- |
 | `music_visualizer_target_builder.json` | Generic repeatable detect/verify/prompt/beat-mix target workflow; model-free detector proposals. |
+| `music_visualizer_target_builder_semantic.json` | Separate next-pass copy using optional local CLIPSeg detection with heuristic fallback. |
 | `music_visualizer_local_composite.json` | Standalone lightweight regional compositor; no model or camera motion. |
 | `video_wan2_2_14B_s2v_motion_poster_guided.json` | Recommended production workflow. |
 | `video_wan2_2_14B_s2v_motion_poster_visualizer.json` | Deferred logo-spectrum experiment; coherent, but currently too visually dominant for the lower-right brand position. |

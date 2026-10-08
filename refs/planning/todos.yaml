@@ -13,7 +13,7 @@ todos:
   - id: validate-generic-target-workflow
     status: in_progress
     area: lightweight-visualizer
-    summary: Review detection proposals and prompt-resolved effects across multiple compositions; prioritize a stronger optional text-grounded mask provider because heuristic clouds remain the weakest target.
+    summary: Validate crop-first neutral-smoke expansion across more artwork, and evaluate a box-plus-mask or stronger referring-segmentation provider for the unresolved sun-disk and flag-versus-scarf cases before accepting semantic detection quality.
   - id: evaluate-assisted-irregular-masks
     status: deferred
     area: lightweight-visualizer

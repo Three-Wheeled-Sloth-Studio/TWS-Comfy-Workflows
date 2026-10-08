@@ -1,0 +1,57 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '10'
+  files:
+  - path: scripts/install_visualizer_semantic_assets.py
+    analysis_version: 1
+    language: python
+    content_hash: 629f19997ac8b635b93618e60b498cc308fead57
+    dependencies:
+    - __future__
+    - argparse
+    - huggingface_hub
+    - pathlib
+    provides:
+    - _arguments
+    - main
+    symbols:
+    - name: _arguments
+      kind: function
+      line_start: 21
+      line_end: 27
+      signature: _arguments() -> argparse.Namespace
+      inputs: []
+      output: argparse.Namespace
+      dependencies:
+      - Path.cwd
+      - argparse.ArgumentParser
+      - parser.add_argument
+      - parser.parse_args
+      parser: python-ast
+      dependency_targets: []
+    - name: main
+      kind: function
+      line_start: 30
+      line_end: 64
+      signature: main() -> int
+      inputs: []
+      output: int
+      dependencies:
+      - ''', ''.join'
+      - (comfy_root / 'models' / 'detection' / 'clipseg-rd64-refined').resolve
+      - (comfy_root / 'models').resolve
+      - (destination / filename).is_file
+      - RuntimeError
+      - _arguments
+      - arguments.comfy_root.resolve
+      - destination.is_relative_to
+      - destination.mkdir
+      - list
+      - print
+      - snapshot_download
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/install_visualizer_semantic_assets.py
+        symbol: _arguments

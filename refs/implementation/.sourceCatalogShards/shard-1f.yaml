@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/build_generic_music_visualizer_workflow.py
     analysis_version: 1
     language: python
-    content_hash: f0eb2baccc124f15b5605b7edd2fd0e34de42c31
+    content_hash: fc01b3e6b869342d3a234f7edabd3e996bab548f
     dependencies:
     - __future__
     - json
@@ -233,7 +233,7 @@ source_catalog:
     - name: main
       kind: function
       line_start: 140
-      line_end: 203
+      line_end: 204
       signature: main() -> int
       inputs: []
       output: int
@@ -248,6 +248,7 @@ source_catalog:
       - len
       - loader
       - next
+      - node['widgets_values_named'].get
       - print
       - renderer
       - review

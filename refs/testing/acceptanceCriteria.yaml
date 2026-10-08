@@ -5,6 +5,9 @@ criteria:
   - id: generic-verified-target-flow
     status: accepted
     summary: A target lane accepts an object-class query, exposes a search-area-outlined detection review that passes the proposal through without requiring an upload, automatically uses a painted mask after Mask Editor Save, and clears that correction when the source-artwork fingerprint changes; it uses verification as an inclusion toggle, retains optional external-mask add/subtract/replace modes, accepts an appearance description and explicit billow/sway/drift/still motion type, and independently controls on/off-beat flicker and on/off-beat masked motion before joining an arbitrary-length target stack; connected unverified or empty lanes are skipped without rewiring when another usable target exists.
+  - id: optional-semantic-target-provider
+    status: provisional
+    summary: Detect Animation Target can use a pinned, local-only CLIPSeg snapshot for crop-first text-semantic heatmaps, constrain results by search area and sensitivity, expand unqualified smoke across neutral smoke colors inside a bounded crop, report confidence and the active provider, fall back deterministically when optional assets are absent, or fail explicitly in semantic-only mode; Bella Ciao evaluation improved hair and red-fabric proposals and found the intended pale smoke after crop-first refinement, but broad sun/flag selection keeps overall semantic quality provisional.
   - id: generic-masked-motion
     status: accepted
     summary: Explicit procedural motion profiles can visibly deform source pixels inside verified masks while every frame begins from the static source and pixels outside those masks remain protected; billow contracts its moving interior to protect mask boundaries and sway anchors mask bases.

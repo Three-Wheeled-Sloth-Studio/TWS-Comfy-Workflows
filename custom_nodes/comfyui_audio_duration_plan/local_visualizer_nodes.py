@@ -865,10 +865,14 @@ def _target_effect_modes(object_name: str, animation_prompt: str) -> tuple[str, 
     return tuple(modes or ("drift",))
 
 
-class VisualizerObjectDetector:
+class VisualizerSemanticObjectDetector:
     _result_cache = {}
     _result_cache_order = []
     _result_cache_limit = 6
+    _semantic_model_id = "CIDAS/clipseg-rd64-refined"
+    _semantic_model = None
+    _semantic_processor = None
+    _semantic_model_location = None
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -880,6 +884,7 @@ class VisualizerObjectDetector:
                 "sensitivity": ("FLOAT", {"default": 0.65, "min": 0.1, "max": 0.95, "step": 0.05}),
                 "max_regions": ("INT", {"default": 6, "min": 1, "max": 16}),
                 "padding_percent": ("FLOAT", {"default": 2.0, "min": 0.0, "max": 15.0, "step": 0.5}),
+                "detection_provider": (["semantic_or_heuristic", "semantic_only", "heuristic"],),
             }
         }
 
@@ -887,9 +892,132 @@ class VisualizerObjectDetector:
     RETURN_NAMES = ("detected_mask", "verification_preview", "suggested_regions", "detector_report")
     FUNCTION = "detect"
     CATEGORY = "audio/local visualizer/targets"
-    DESCRIPTION = "Find likely instances of an object class and produce an inspectable mask; user verification is required."
+    DESCRIPTION = "Find a text-described target with optional local CLIPSeg semantics and produce an inspectable mask."
 
-    def detect(self, image, find, search_area, sensitivity, max_regions, padding_percent):
+    @classmethod
+    def _semantic_model_dir(cls) -> Path:
+        try:
+            import folder_paths
+
+            models_dir = Path(folder_paths.models_dir)
+        except (ImportError, AttributeError):
+            models_dir = Path(__file__).resolve().parents[2] / "models"
+        return models_dir / "detection" / "clipseg-rd64-refined"
+
+    @classmethod
+    def _semantic_assets_available(cls) -> bool:
+        model_dir = cls._semantic_model_dir()
+        return (
+            (model_dir / "config.json").is_file()
+            and (model_dir / "preprocessor_config.json").is_file()
+            and ((model_dir / "model.safetensors").is_file() or (model_dir / "pytorch_model.bin").is_file())
+        )
+
+    @classmethod
+    def _load_semantic_model(cls):
+        model_dir = cls._semantic_model_dir()
+        if not cls._semantic_assets_available():
+            raise FileNotFoundError(
+                f"CLIPSeg model assets are not installed at {model_dir}. "
+                "Run scripts/install_visualizer_semantic_assets.py with the ComfyUI Python environment."
+            )
+        location = str(model_dir.resolve())
+        if cls._semantic_model is not None and cls._semantic_model_location == location:
+            return cls._semantic_processor, cls._semantic_model
+        try:
+            from transformers import CLIPSegForImageSegmentation, CLIPSegProcessor
+        except ImportError as exc:
+            raise RuntimeError(
+                "The ComfyUI Python environment needs Transformers with CLIPSeg support."
+            ) from exc
+        processor = CLIPSegProcessor.from_pretrained(location, local_files_only=True, use_fast=False)
+        model = CLIPSegForImageSegmentation.from_pretrained(location, local_files_only=True)
+        model.eval().to("cpu")
+        cls._semantic_processor = processor
+        cls._semantic_model = model
+        cls._semantic_model_location = location
+        return processor, model
+
+    @classmethod
+    def _semantic_score(cls, pixels, target, area):
+        import numpy as np
+        import torch
+        from PIL import Image
+
+        processor, model = cls._load_semantic_model()
+        eligible = np.argwhere(area > 0.05)
+        if not eligible.size:
+            raise ValueError("search_area does not cover any image pixels.")
+        y0, x0 = eligible.min(axis=0)
+        y1, x1 = eligible.max(axis=0) + 1
+        cropped_pixels = pixels[y0:y1, x0:x1]
+        crop_fraction = float(cropped_pixels.shape[0] * cropped_pixels.shape[1]) / float(
+            pixels.shape[0] * pixels.shape[1]
+        )
+        queries = [target]
+        target_words = set(re.findall(r"[a-z]+", target.casefold()))
+        smoke_is_unqualified = "smoke" in target_words and not target_words.intersection(
+            {"white", "gray", "grey", "black", "dark", "brown", "pale"}
+        )
+        if smoke_is_unqualified and crop_fraction <= 0.85:
+            queries.extend(("white smoke", "gray smoke", "black smoke"))
+        semantic_image = Image.fromarray(cropped_pixels, "RGB")
+        inputs = processor(
+            text=queries,
+            images=[semantic_image] * len(queries),
+            padding=True,
+            return_tensors="pt",
+        )
+        with torch.inference_mode():
+            logits = model(**inputs).logits
+        probabilities = torch.sigmoid(logits)
+        if probabilities.ndim == 2:
+            probabilities = probabilities[None, ...]
+        resized = torch.nn.functional.interpolate(
+            probabilities[:, None, ...],
+            size=cropped_pixels.shape[:2],
+            mode="bilinear",
+            align_corners=False,
+        )[:, 0]
+        crop_score = torch.amax(resized, dim=0).to("cpu").numpy()
+        score = np.zeros(pixels.shape[:2], dtype=np.float32)
+        score[y0:y1, x0:x1] = np.clip(crop_score, 0.0, 1.0).astype(np.float32)
+        details = []
+        if crop_fraction < 0.98:
+            details.append(f"semantic inference used the {crop_fraction:.1%} search-area crop")
+        if len(queries) > 1:
+            details.append("unqualified smoke was expanded across white, gray, and black smoke")
+        return score, "; ".join(details)
+
+    @staticmethod
+    def _heuristic_score(rgb, candidate_type):
+        import numpy as np
+
+        red, green, blue = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+        luma = red * 0.2126 + green * 0.7152 + blue * 0.0722
+        spread = np.max(rgb, axis=2) - np.min(rgb, axis=2)
+        if candidate_type == "bright highlights":
+            return luma * luma
+        if candidate_type == "warm lights":
+            return np.clip(red - blue * 0.65, 0, 1) * np.clip(luma * 1.4, 0, 1)
+        if candidate_type == "red accents":
+            return np.clip(red - np.maximum(green, blue) * 0.85, 0, 1) * red
+        if candidate_type == "neutral atmosphere":
+            return np.clip(luma * 1.5, 0, 1) * np.clip(1.0 - spread * 3.0, 0, 1)
+        dx = np.abs(np.diff(luma, axis=1, prepend=luma[:, :1]))
+        dy = np.abs(np.diff(luma, axis=0, prepend=luma[:1, :]))
+        return np.clip((dx + dy) * 3.0, 0, 1)
+
+    def detect(
+        self,
+        image,
+        find,
+        search_area,
+        sensitivity,
+        max_regions,
+        padding_percent,
+        detection_provider="semantic_or_heuristic",
+    ):
         import hashlib
         import numpy as np
         import torch
@@ -900,10 +1028,14 @@ class VisualizerObjectDetector:
             raise ValueError("Describe the object class to find.")
         candidate_type = _target_candidate_type(target)
         pixels = _image_pixels(image)
+        provider = str(detection_provider).strip().casefold()
+        if provider not in {"semantic_or_heuristic", "semantic_only", "heuristic"}:
+            raise ValueError(f"Unsupported detection provider: {detection_provider}")
         cache_key = (
             hashlib.blake2b(pixels.tobytes(), digest_size=16).digest(),
             target.casefold(), str(search_area), round(float(sensitivity), 4),
-            int(max_regions), round(float(padding_percent), 4),
+            int(max_regions), round(float(padding_percent), 4), provider,
+            self._semantic_assets_available() if provider != "heuristic" else False,
         )
         cached = self._result_cache.get(cache_key)
         if cached is not None:
@@ -911,22 +1043,26 @@ class VisualizerObjectDetector:
 
         rgb = pixels.astype(np.float32) / 255.0
         height, width = pixels.shape[:2]
-        red, green, blue = rgb[..., 0], rgb[..., 1], rgb[..., 2]
-        luma = red * 0.2126 + green * 0.7152 + blue * 0.0722
-        spread = np.max(rgb, axis=2) - np.min(rgb, axis=2)
-        if candidate_type == "bright highlights":
-            score = luma * luma
-        elif candidate_type == "warm lights":
-            score = np.clip(red - blue * 0.65, 0, 1) * np.clip(luma * 1.4, 0, 1)
-        elif candidate_type == "red accents":
-            score = np.clip(red - np.maximum(green, blue) * 0.85, 0, 1) * red
-        elif candidate_type == "neutral atmosphere":
-            score = np.clip(luma * 1.5, 0, 1) * np.clip(1.0 - spread * 3.0, 0, 1)
-        else:
-            dx = np.abs(np.diff(luma, axis=1, prepend=luma[:, :1]))
-            dy = np.abs(np.diff(luma, axis=0, prepend=luma[:1, :]))
-            score = np.clip((dx + dy) * 3.0, 0, 1)
         area = _mask_pixels(pixels, search_area, "none", 0.0, 2.0)
+        provider_note = ""
+        semantic_note = ""
+        used_provider = "heuristic"
+        if provider == "heuristic":
+            score = self._heuristic_score(rgb, candidate_type)
+        else:
+            try:
+                score, semantic_note = self._semantic_score(pixels, target, area)
+                used_provider = "semantic CLIPSeg"
+            except Exception as exc:
+                if provider == "semantic_only":
+                    raise RuntimeError(f"Semantic detection failed: {exc}") from exc
+                score = self._heuristic_score(rgb, candidate_type)
+                provider_note = f" Semantic detection was unavailable, so this run used the heuristic fallback ({exc})."
+
+        # CLIPSeg's useful part-level responses can peak below 0.5. Keep the
+        # absolute floor conservative while letting the quantile controls below
+        # make higher sensitivity progressively more selective.
+        semantic_floor = 0.24 + float(sensitivity) * 0.30 if used_provider == "semantic CLIPSeg" else 0.0
 
         columns, rows = 16, 9
         grid = np.full((rows, columns), -1.0, dtype=np.float32)
@@ -940,7 +1076,10 @@ class VisualizerObjectDetector:
         valid_values = grid[grid >= 0.0]
         if not valid_values.size:
             raise ValueError("search_area does not cover any image pixels.")
-        grid_cutoff = float(np.quantile(valid_values, min(0.98, 0.50 + float(sensitivity) * 0.48)))
+        grid_cutoff = max(
+            semantic_floor,
+            float(np.quantile(valid_values, min(0.98, 0.50 + float(sensitivity) * 0.48))),
+        )
         active = (grid >= grid_cutoff) & (grid >= 0.0)
         groups = []
         visited = np.zeros_like(active, dtype=bool)
@@ -975,9 +1114,16 @@ class VisualizerObjectDetector:
             y1 = min(1.0, (max(row_values) + 1) / rows + padding)
             lines.append(f"box {x0:.4f} {y0:.4f} {x1:.4f} {y1:.4f}")
         regions = "\n".join(lines)
-        proposal = np.clip(_mask_pixels(pixels, regions, "none", 0.0, 4.0) * area, 0.0, 1.0)
+        proposal = (
+            np.clip(_mask_pixels(pixels, regions, "none", 0.0, 4.0) * area, 0.0, 1.0)
+            if len(lines) > 1
+            else np.zeros((height, width), dtype=np.float32)
+        )
         eligible = proposal > 0.05
-        cutoff = float(np.quantile(score[eligible], min(0.97, 0.58 + float(sensitivity) * 0.37))) if np.any(eligible) else 1.0
+        cutoff = max(
+            semantic_floor,
+            float(np.quantile(score[eligible], min(0.97, 0.58 + float(sensitivity) * 0.37))) if np.any(eligible) else 1.0,
+        )
         mask = ((score >= cutoff) & eligible).astype(np.float32)
         mask = np.asarray(
             Image.fromarray((mask * 255).astype(np.uint8), "L").filter(ImageFilter.GaussianBlur(radius=4.0)),
@@ -1002,9 +1148,18 @@ class VisualizerObjectDetector:
                 Image.Resampling.LANCZOS,
             )
         selected_fraction = float(np.mean(mask > 0.05))
+        confidence = (
+            f" Peak semantic confidence inside search_area was {float(np.max(score[area > 0.05])):.3f}."
+            if used_provider == "semantic CLIPSeg" and np.any(area > 0.05)
+            else ""
+        )
+        semantic_details = f" {semantic_note.capitalize()}." if semantic_note else ""
+        provider_label = used_provider if used_provider == "semantic CLIPSeg" else f"heuristic {candidate_type}"
         report = (
-            f"'{target}' used the {candidate_type} detector; selected {selected_fraction:.1%} of the frame. "
-            "The gold outline is search_area. Inspect verification_preview, adjust if needed, then explicitly verify the target."
+            f"'{target}' used {provider_label}; selected {selected_fraction:.1%} of the frame."
+            f"{confidence}{semantic_details}{provider_note} The gold outline is search_area. "
+            "Inspect verification_preview, adjust if needed, "
+            "then explicitly verify the target."
         )
         result = (
             torch.from_numpy(mask.astype(np.float32)),
@@ -1018,6 +1173,30 @@ class VisualizerObjectDetector:
             expired = self._result_cache_order.pop(0)
             self._result_cache.pop(expired, None)
         return result
+
+
+class VisualizerObjectDetector(VisualizerSemanticObjectDetector):
+    """Stable model-free detector retained for the original target workflow."""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        input_types = super().INPUT_TYPES()
+        required = dict(input_types["required"])
+        required.pop("detection_provider")
+        return {"required": required}
+
+    DESCRIPTION = "Find likely target pixels with lightweight color and texture heuristics."
+
+    def detect(self, image, find, search_area, sensitivity, max_regions, padding_percent):
+        return super().detect(
+            image,
+            find,
+            search_area,
+            sensitivity,
+            max_regions,
+            padding_percent,
+            detection_provider="heuristic",
+        )
 
 
 class VisualizerMaskReview:
@@ -1471,6 +1650,7 @@ NODE_CLASS_MAPPINGS = {
     "BeatAwareLocalVisualizerV2": BeatAwareLocalVisualizer,
     "BeatAwareLocalVisualizerV3": BeatAwareLocalVisualizer,
     "VisualizerObjectDetector": VisualizerObjectDetector,
+    "VisualizerSemanticObjectDetector": VisualizerSemanticObjectDetector,
     "VisualizerMaskReview": VisualizerMaskReview,
     "VisualizerAnimationTarget": VisualizerAnimationTarget,
     "VisualizerTargetStack": VisualizerTargetStack,
@@ -1484,6 +1664,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "BeatAwareLocalVisualizerV2": "Render Beat-Aware Local Visualizer",
     "BeatAwareLocalVisualizerV3": "Render Beat-Aware Local Visualizer + Badging",
     "VisualizerObjectDetector": "Detect Animation Target",
+    "VisualizerSemanticObjectDetector": "Detect Animation Target (Semantic)",
     "VisualizerMaskReview": "Verify / Edit Detection Mask",
     "VisualizerAnimationTarget": "Configure Animation Target",
     "VisualizerTargetStack": "Add Animation Target",

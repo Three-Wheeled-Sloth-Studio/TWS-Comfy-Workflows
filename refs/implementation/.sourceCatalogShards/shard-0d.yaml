@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/validate_repository.py
     analysis_version: 1
     language: python
-    content_hash: 9557d51b3ae720f4ff792f66a9d7e0c635224f91
+    content_hash: 42c418ca0269cf84ec0c7996a5710a6129d8f4e0
     dependencies:
     - __future__
     - pathlib
@@ -19,8 +19,8 @@ source_catalog:
     symbols:
     - name: tracked_paths
       kind: function
-      line_start: 43
-      line_end: 47
+      line_start: 44
+      line_end: 48
       signature: tracked_paths() -> list[str]
       inputs: []
       output: list[str]
@@ -32,8 +32,8 @@ source_catalog:
       dependency_targets: []
     - name: main
       kind: function
-      line_start: 50
-      line_end: 79
+      line_start: 51
+      line_end: 80
       signature: main() -> int
       inputs: []
       output: int
