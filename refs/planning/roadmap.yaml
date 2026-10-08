@@ -1,15 +1,19 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: 2026-10-01
+updated: 2026-10-07
 roadmap:
+  - id: lightweight-local-visualizer
+    horizon: now
+    status: in_progress
+    summary: Validate the generic detect/verify/prompt/beat-mix target-stack fork across multiple images while retaining the accepted fixed six-slot prototype as a reference baseline.
   - id: stabilize-long-wan-s2v
     horizon: later
     status: deferred
     summary: Eliminate progressive GPU pressure and complete full-song 832x480 Wan 2.2 S2V runs reliably on 12 GB VRAM.
   - id: hybrid-motion-poster
     horizon: now
-    status: in_progress
-    summary: Produce exact-duration music videos by combining short Comfy-generated motion assets with deterministic, semantically masked, bounded-memory rendering.
+    status: complete
+    summary: Accepted production baseline combines a 1024x576 exact-16:9 guided Wan motion asset with bounded-memory exact-duration assembly, optional branding, and deterministic 1080p delivery.
   - id: durable-chunk-checkpoints
     horizon: next
     status: planned
@@ -19,10 +23,10 @@ roadmap:
     status: complete
     summary: Stream hybrid-rendered frames or segments to disk without retaining the full decoded song in memory.
   - id: youtube-upscale
-    horizon: later
-    status: planned
-    summary: Establish a temporally stable post-processing path from 832x480 generation to 720p or 1080p 16:9 delivery.
+    horizon: now
+    status: complete
+    summary: The guided GUI provides deterministic aspect-preserving 1920x1080 Lanczos delivery; optional AI enhancement is deferred and is not part of the accepted baseline.
   - id: beat-aware-effects
     horizon: later
-    status: planned
-    summary: Add optional beat-derived control for restrained glow and lighting accents without driving lips, faces, or whole-image motion from audio amplitude.
+    status: deferred
+    summary: The separate stereo radial-spectrum logo workflow is coherent but visually overweights the lower-right corner; keep the static logo in production and revisit a substantially softer treatment later.

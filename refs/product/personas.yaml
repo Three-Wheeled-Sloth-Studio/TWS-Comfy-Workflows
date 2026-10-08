@@ -1,7 +1,17 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: TEMPLATE_TODO_DATE
+updated: 2026-10-01
 personas:
-  - id: TEMPLATE_TODO-persona
-    summary: TEMPLATE_TODO
-    needs: []
+  - id: studio-operator
+    summary: Creates engaging full-song YouTube visuals from existing music and artwork without wanting to manage scripts or intermediate files.
+    needs:
+      - One guided ComfyUI graph and one queue operation.
+      - Editable plain-language motion and exclusion guidance.
+      - Reliable naming, branding, exact audio duration, and 1080p output.
+      - Clear warnings about unsuitable small-face compositions and experimental settings.
+  - id: workflow-maintainer
+    summary: Maintains reproducible ComfyUI graphs, custom nodes, model dependencies, and diagnostic paths inside a live data directory.
+    needs:
+      - Deterministic builders and validation commands.
+      - Strict repository boundaries around models, media, outputs, and third-party nodes.
+      - Durable decisions, limitations, deferred work, and runtime evidence.

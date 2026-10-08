@@ -1,7 +1,31 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: 2026-10-01
+updated: 2026-10-07
 todos:
+  - id: validate-local-composite-user-review
+    status: in_progress
+    area: lightweight-visualizer
+    summary: Review the complete Managed Decline V3 render with strengthened regional effects, progress reporting, track wordmark, and studio badge; tune masks or strengths from subjective feedback.
+  - id: generalize-local-visualizer-layers
+    status: done
+    area: lightweight-visualizer
+    summary: Added a generic target-stack workflow with repeatable detector/preview/verified prompt configuration lanes, independent beat and autonomous motion mixes, and an arbitrary-length streaming renderer.
+  - id: validate-generic-target-workflow
+    status: in_progress
+    area: lightweight-visualizer
+    summary: Review detection proposals and prompt-resolved effects across multiple compositions; prioritize a stronger optional text-grounded mask provider because heuristic clouds remain the weakest target.
+  - id: evaluate-assisted-irregular-masks
+    status: deferred
+    area: lightweight-visualizer
+    summary: Compare painted masks and optional SAM-assisted masks for clouds and reflections without making a segmentation model an MVP dependency.
+  - id: add-structured-motion-targets
+    status: done
+    area: generation-fidelity
+    summary: Add a per-image motion-targets field plus explicit anti-extra-face and keep-existing-people-fixed defaults so smoke, local lights, and background appendages can be named directly.
+  - id: add-generated-wordmark-halo
+    status: done
+    area: post-processing
+    summary: Derive an optional dark or light blurred underlay from the wordmark alpha channel during FFmpeg assembly, with opacity and blur controls.
   - id: diagnose-loop-gpu-retention
     status: deferred
     area: runtime-memory
@@ -11,7 +35,7 @@ todos:
     area: validation
     summary: Complete an 832x480 song-length run beyond the previous iteration 20/21 OOM point and record timing, VRAM, RAM, and output quality.
   - id: add-checkpointed-runner
-    status: open
+    status: deferred
     area: resilience
     summary: Design disk-backed chunk checkpoints with deterministic seed and audio offsets plus restart/resume behavior.
   - id: validate-final-decode-memory
@@ -19,9 +43,13 @@ todos:
     area: runtime-memory
     summary: Measure tiled VAE decode and final assembly memory after the continuation loop successfully completes.
   - id: evaluate-upscale-path
-    status: open
+    status: done
     area: post-processing
-    summary: Compare FFmpeg Lanczos and a temporally stable AI video upscaler for 832x480 to YouTube delivery resolutions.
+    summary: FFmpeg Lanczos 1920x1080 delivery is accepted as the production default; Real-ESRGAN remains an optional future comparison rather than an incomplete baseline requirement.
+  - id: protect-small-faces
+    status: deferred
+    area: generation-fidelity
+    summary: Evaluate a protected static-foreground or regional-animation mask for references whose important faces are small or off-center; do not rely on delivery upscaling or generative face enhancement to repair base Wan distortion.
   - id: prototype-hybrid-motion-poster
     status: done
     area: music-video-rendering
@@ -33,7 +61,7 @@ todos:
   - id: validate-native-motion-loops
     status: done
     area: music-video-rendering
-    summary: User review accepted the restrained one-variant native 832x480 result with zero default camera drift; the three-variant quality failure is tracked separately.
+    summary: User review accepted the restrained one-variant result with zero default camera drift, then accepted 1024x576 exact-16:9 generation as the production baseline after a successful run; the three-variant quality failure is tracked separately.
   - id: automate-loop-generation
     status: done
     area: workflow-orchestration
@@ -43,7 +71,7 @@ todos:
     area: workflow-orchestration
     summary: One- and three-variant guided runs completed within performance and thermal tolerances; three variants failed the quality bar due to heavy blend blur and suppressed lighting flicker.
   - id: use-lyrics-as-generation-context
-    status: open
+    status: deferred
     area: music-video-rendering
     summary: Summarize untimed lyrics into safe atmosphere and section guidance; defer time-specific animation until timing marks exist.
   - id: smooth-camera-drift
@@ -59,6 +87,10 @@ todos:
     area: music-video-rendering
     summary: Revisit multi-variant assembly without stacking-looking blur or loss of lighting flicker; explore shorter transitions, cuts at low-motion points, or section-level alternation instead of long crossfades.
   - id: add-beat-aware-effects
-    status: open
-    area: music-video-rendering
-    summary: Add optional restrained beat awareness, initially limited to glow, light, or similar effects rather than subject or mouth motion.
+    status: done
+    area: post-processing
+    summary: "Implemented an experimental copied workflow and assembler with a 24-bar stereo radial spectrum around the logo: distinct chromatic band colors, low-to-high bottom-to-top placement, energy-driven length and brightness, static fallback, and no effect on generated scene motion."
+  - id: validate-logo-visualizer
+    status: deferred
+    area: validation
+    summary: Coherence testing passed, but the radial spectrum was visually too strong and pulled attention toward the lower-right corner; preserve the experiment and revisit its footprint, contrast, and opacity in a later design pass.

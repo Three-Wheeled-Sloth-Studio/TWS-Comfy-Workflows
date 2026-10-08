@@ -32,11 +32,14 @@ source_catalog:
       dependency_targets:
       - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
         symbol: WanS2VStateAppend.append
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: VisualizerTargetStack.append
   - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
     analysis_version: 1
     language: python
-    content_hash: 470da6f568c664d66213d538182a17af62c71f0d
+    content_hash: 089fe053327f9526409c78407615be3687549973
     dependencies:
+    - .local_visualizer_nodes
     - .motion_poster_nodes
     - comfy.model_management
     - comfy_extras.nodes_wan

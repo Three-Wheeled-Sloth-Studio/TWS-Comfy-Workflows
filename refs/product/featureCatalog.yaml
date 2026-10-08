@@ -1,7 +1,28 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: TEMPLATE_TODO_DATE
+updated: 2026-10-02
 features:
-  - id: TEMPLATE_TODO-feature
-    status: planned
-    summary: TEMPLATE_TODO
+  - id: guided-one-queue-generation
+    status: accepted
+    summary: Select media, edit safe motion guidance, choose seeds, and generate the full-song output in one ComfyUI queue operation.
+  - id: exact-duration-streaming-assembly
+    status: accepted
+    summary: Close and repeat the short motion asset to the exact song duration with bounded-memory FFmpeg encoding.
+  - id: dual-post-generation-branding
+    status: accepted
+    summary: Independently apply a lower-right brand logo and upper-left wordmark after generation and delivery scaling.
+  - id: deterministic-1080p-delivery
+    status: accepted
+    summary: Produce exact 1920x1080 output from the 1024x576 production canvas with Lanczos scaling and no foreground padding, crop, or stretch.
+  - id: protected-small-faces
+    status: deferred
+    summary: Preserve vulnerable small or off-center faces with static-foreground or regional-motion masking.
+  - id: improved-multi-variant-transitions
+    status: deferred
+    summary: Add variety without the blur and lighting suppression observed in the current multi-variant crossfade.
+  - id: beat-and-lyric-awareness
+    status: deferred
+    summary: A separate workflow provides a coherent chromatic 24-bar stereo radial spectrum, but its current lower-right treatment is too visually dominant for production; timed-lyric guidance also remains future work.
+  - id: optional-ai-upscale
+    status: deferred
+    summary: Evaluate whether AI enhancement adds worthwhile detail without temporal shimmer or artwork drift.

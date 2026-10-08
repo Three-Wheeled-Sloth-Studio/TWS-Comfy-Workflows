@@ -4,12 +4,12 @@ source_catalog:
   format_version: 1
   generated_by: refs/tools/generate_source_catalog.py
   derived: true
-  tracked_source_files: 9
-  symbols: 64
+  tracked_source_files: 13
+  symbols: 118
   languages:
-    python: 9
+    python: 13
   parsers:
-    python-ast: 64
+    python-ast: 118
   shards:
   - path: refs/implementation/.sourceCatalogShards/shard-01.yaml
     files: 1
@@ -20,15 +20,27 @@ source_catalog:
   - path: refs/implementation/.sourceCatalogShards/shard-0d.yaml
     files: 1
     symbols: 2
+  - path: refs/implementation/.sourceCatalogShards/shard-12.yaml
+    files: 1
+    symbols: 9
+  - path: refs/implementation/.sourceCatalogShards/shard-17.yaml
+    files: 1
+    symbols: 2
   - path: refs/implementation/.sourceCatalogShards/shard-18.yaml
     files: 2
-    symbols: 22
+    symbols: 26
   - path: refs/implementation/.sourceCatalogShards/shard-1a.yaml
     files: 2
     symbols: 12
   - path: refs/implementation/.sourceCatalogShards/shard-1c.yaml
     files: 1
     symbols: 4
+  - path: refs/implementation/.sourceCatalogShards/shard-1d.yaml
+    files: 1
+    symbols: 30
+  - path: refs/implementation/.sourceCatalogShards/shard-1f.yaml
+    files: 1
+    symbols: 9
   query_command: python refs/tools/generate_source_catalog.py --query "<task or symbol>"
   notes:
   - Generated from source; never hand-edit this catalog or its shards.

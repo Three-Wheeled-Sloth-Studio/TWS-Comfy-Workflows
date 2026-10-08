@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/validate_repository.py
     analysis_version: 1
     language: python
-    content_hash: 78d76d7dc614619831353453bff8aa46add7ea99
+    content_hash: 9557d51b3ae720f4ff792f66a9d7e0c635224f91
     dependencies:
     - __future__
     - pathlib
@@ -19,8 +19,8 @@ source_catalog:
     symbols:
     - name: tracked_paths
       kind: function
-      line_start: 40
-      line_end: 44
+      line_start: 43
+      line_end: 47
       signature: tracked_paths() -> list[str]
       inputs: []
       output: list[str]
@@ -32,8 +32,8 @@ source_catalog:
       dependency_targets: []
     - name: main
       kind: function
-      line_start: 47
-      line_end: 76
+      line_start: 50
+      line_end: 79
       signature: main() -> int
       inputs: []
       output: int
@@ -52,5 +52,7 @@ source_catalog:
       dependency_targets:
       - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
         symbol: WanS2VStateAppend.append
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: VisualizerTargetStack.append
       - path: scripts/validate_repository.py
         symbol: tracked_paths

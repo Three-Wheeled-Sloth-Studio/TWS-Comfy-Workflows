@@ -44,6 +44,21 @@ $copies = @(
         Source = Join-Path $resolvedRepoRoot 'user\default\workflows\video_wan2_2_14B_s2v_motion_poster_guided.json'
         Destination = Join-Path $resolvedComfyRoot 'user\default\workflows\video_wan2_2_14B_s2v_motion_poster_guided.json'
         Directory = $false
+    },
+    @{
+        Source = Join-Path $resolvedRepoRoot 'user\default\workflows\video_wan2_2_14B_s2v_motion_poster_visualizer.json'
+        Destination = Join-Path $resolvedComfyRoot 'user\default\workflows\video_wan2_2_14B_s2v_motion_poster_visualizer.json'
+        Directory = $false
+    },
+    @{
+        Source = Join-Path $resolvedRepoRoot 'user\default\workflows\music_visualizer_local_composite.json'
+        Destination = Join-Path $resolvedComfyRoot 'user\default\workflows\music_visualizer_local_composite.json'
+        Directory = $false
+    },
+    @{
+        Source = Join-Path $resolvedRepoRoot 'user\default\workflows\music_visualizer_target_builder.json'
+        Destination = Join-Path $resolvedComfyRoot 'user\default\workflows\music_visualizer_target_builder.json'
+        Directory = $false
     }
 )
 

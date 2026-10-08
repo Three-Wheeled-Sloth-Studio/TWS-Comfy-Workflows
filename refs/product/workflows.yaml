@@ -1,6 +1,18 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: TEMPLATE_TODO_DATE
+updated: 2026-10-01
 workflows:
-  - id: TEMPLATE_TODO-workflow
-    steps: []
+  - id: generate-guided-motion-poster
+    steps:
+      - Open the guided motion-poster workflow after Comfy Desktop has loaded the project-owned custom nodes.
+      - Select one landscape reference image and one song.
+      - Review or edit the positive prompt, negative prompt, lip-motion toggle, and optional lyrics or theme context.
+      - Keep one variant for the accepted quality baseline and choose a fixed or randomized base seed.
+      - Optionally select and enable independent lower-right logo and upper-left wordmark overlays.
+      - Keep neutral camera defaults and choose 1080p delivery or source resolution for diagnostics.
+      - Queue once and review the saved exact-duration MP4.
+  - id: diagnose-or-reproduce-output
+    steps:
+      - Switch the seed to fixed and save a per-song workflow when exact reproduction is required.
+      - Use source-resolution delivery to distinguish Wan generation defects from delivery scaling.
+      - Use the manifest and command-line renderer only for reproducible diagnostics or intermediate-loop inspection.

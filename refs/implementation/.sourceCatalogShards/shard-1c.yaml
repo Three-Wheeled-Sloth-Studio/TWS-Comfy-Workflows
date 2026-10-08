@@ -42,6 +42,9 @@ source_catalog:
       - &id001
         path: custom_nodes/comfyui_audio_duration_plan/__init__.py
         symbol: WanS2VStateAppend.append
+      - &id002
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: VisualizerTargetStack.append
     - name: _input_name
       kind: function
       line_start: 55
@@ -90,6 +93,7 @@ source_catalog:
       - path: scripts/build_motion_loop_workflow.py
         symbol: rebuild_serialized_links
       - *id001
+      - *id002
     - name: main
       kind: function
       line_start: 167
@@ -106,6 +110,8 @@ source_catalog:
       - parser.parse_args
       parser: python-ast
       dependency_targets:
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: VisualizerRegionMask.build
       - path: custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py
         symbol: MotionPosterGuidance.build
       - path: scripts/build_motion_loop_workflow.py

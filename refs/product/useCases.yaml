@@ -1,8 +1,20 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: TEMPLATE_TODO_DATE
+updated: 2026-10-01
 use_cases:
-  - id: TEMPLATE_TODO-use-case
-    summary: TEMPLATE_TODO
-    actors: []
-    outcome: TEMPLATE_TODO
+  - id: publish-song-motion-poster
+    summary: Turn cover artwork and a song into a restrained branded 1080p music video without manual intermediate scripting.
+    actors:
+      - studio operator
+    outcome: One exact-duration H.264/AAC MP4 with conservative motion and optional post-generation branding.
+  - id: preserve-artwork-fidelity
+    summary: Animate atmosphere while suppressing accidental lip sync, identity drift, camera motion, and composition changes.
+    actors:
+      - studio operator
+      - workflow maintainer
+    outcome: A reviewed single-variant result that remains acceptably true to suitable source artwork.
+  - id: reproduce-and-diagnose
+    summary: Recreate a run with a fixed seed or isolate generation, assembly, branding, and delivery-scale behavior.
+    actors:
+      - workflow maintainer
+    outcome: Deterministic evidence using the saved workflow, source-resolution mode, builders, or manifest renderer.

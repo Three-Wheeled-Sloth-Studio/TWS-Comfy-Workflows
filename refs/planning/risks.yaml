@@ -1,21 +1,36 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: 2026-10-01
+updated: 2026-10-07
 risks:
-  - id: native-loop-gpu-retention
-    status: open
-    severity: high
-    summary: Dynamically expanded loop iterations still cause progressive GPU pressure and slower sampling after roughly 12 extensions.
-    mitigation: Instrument memory per iteration and replace the native loop with separately executed, disk-checkpointed chunks if cache ownership cannot be controlled.
-  - id: no-resume-checkpoints
-    status: open
-    severity: high
-    summary: A late OOM or restart loses every completed chunk because the current run writes only the final video.
-    mitigation: Add atomic per-chunk latent or video checkpoints plus a resumable manifest.
-  - id: final-decode-not-validated
+  - id: local-mask-spill
     status: open
     severity: medium
-    summary: Full-song CPU latent concatenation and tiled VAE decode have not completed in the current workflow.
+    summary: Simple geometric masks can include nearby static structure, especially where clouds overlap skyline silhouettes or reflections cross papers and furniture.
+    mitigation: Inspect mask previews, combine shapes with color filters, keep strengths restrained, and replace a generated mask with a painted or optionally segmented mask for irregular boundaries.
+  - id: invented-face-content
+    status: open
+    severity: high
+    summary: Dense or ambiguous reference art can cause Wan to invent a new face or person even when the requested motion is limited to background effects.
+    mitigation: Use the structured motion-targets field, retain the explicit anti-extra-face negative terms, keep important people fixed in the positive prompt, and reject affected seeds; evaluate regional/static-foreground masking as the robust control.
+  - id: small-off-center-face-fidelity
+    status: open
+    severity: high
+    summary: Wan can blur or distort faces that are small or off-center in the reference composition, even with preservation prompting and before delivery upscaling.
+    mitigation: Review the source-resolution generation before attributing defects to the scaler; prefer references with important faces larger in frame, and evaluate protected static-foreground or regional-animation masking rather than face enhancement.
+  - id: native-loop-gpu-retention
+    status: deferred
+    severity: high
+    summary: The separate native full-song Wan experiment still shows progressive GPU pressure and slower sampling after roughly 12 extensions; the accepted motion-poster path does not depend on it.
+    mitigation: Instrument memory per iteration and replace the native loop with separately executed, disk-checkpointed chunks if cache ownership cannot be controlled.
+  - id: no-resume-checkpoints
+    status: deferred
+    severity: high
+    summary: A late OOM or restart loses completed chunks in the separate native full-song Wan experiment; the accepted short-asset motion-poster path does not require that run mode.
+    mitigation: Add atomic per-chunk latent or video checkpoints plus a resumable manifest.
+  - id: final-decode-not-validated
+    status: deferred
+    severity: medium
+    summary: Full-song CPU latent concatenation and tiled VAE decode remain unvalidated in the separate native Wan continuation experiment, not the accepted motion-poster workflow.
     mitigation: Measure a successful full run before declaring the workflow production-ready; move to streaming decode/assembly if necessary.
   - id: public-repo-data-leak
     status: mitigated

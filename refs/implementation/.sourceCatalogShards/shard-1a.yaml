@@ -78,6 +78,9 @@ source_catalog:
       - &id001
         path: custom_nodes/comfyui_audio_duration_plan/__init__.py
         symbol: WanS2VStateAppend.append
+      - &id002
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: VisualizerTargetStack.append
   - path: scripts/motion_poster_manifest.py
     analysis_version: 1
     language: python
@@ -200,10 +203,11 @@ source_catalog:
       - tuple
       parser: python-ast
       dependency_targets:
-      - &id002
+      - &id003
         path: scripts/motion_poster_manifest.py
         symbol: _resolve
       - *id001
+      - *id002
     - name: load_manifest
       kind: function
       line_start: 122
@@ -246,10 +250,11 @@ source_catalog:
         symbol: _number
       - path: scripts/motion_poster_manifest.py
         symbol: _path_list
-      - *id002
+      - *id003
       - path: scripts/motion_poster_manifest.py
         symbol: _string
       - *id001
+      - *id002
     - name: validate_input_paths
       kind: function
       line_start: 247
@@ -267,5 +272,6 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id001
+      - *id002
       - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
         symbol: WanSoundImageToVideoExtendState.extend

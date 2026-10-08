@@ -7,12 +7,15 @@ source_catalog:
   - path: custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py
     analysis_version: 1
     language: python
-    content_hash: d10d87ce0e9addae20b947e5e730cc297ea70fee
+    content_hash: c340ba5639e35b7618cc225fbee71865341b9795
     dependencies:
     - PIL
     - __future__
+    - colorsys
+    - copy
     - folder_paths
     - math
+    - numpy
     - pathlib
     - re
     - shutil
@@ -25,7 +28,10 @@ source_catalog:
     - _run
     - _scalar
     - _safe_filename_component
+    - _overlay_rgba_pixels
     - _write_overlay_png
+    - _logo_spectrum_features
+    - _write_visualizer_logo_video
     - _write_audio_wav
     - _write_frames_video
     - _build_closed_cycle
@@ -36,11 +42,12 @@ source_catalog:
     - MotionPosterSeedPlan.plan
     - MotionPosterAssemble.INPUT_TYPES
     - MotionPosterAssemble.assemble
+    - MotionPosterVisualizerAssemble.INPUT_TYPES
     symbols:
     - name: _run
       kind: function
-      line_start: 32
-      line_end: 36
+      line_start: 38
+      line_end: 42
       signature: '_run(command: list[str]) -> None'
       inputs:
       - 'command: list[str]'
@@ -54,8 +61,8 @@ source_catalog:
       dependency_targets: []
     - name: _scalar
       kind: function
-      line_start: 39
-      line_end: 44
+      line_start: 45
+      line_end: 50
       signature: _scalar(value)
       inputs:
       - value
@@ -67,8 +74,8 @@ source_catalog:
       dependency_targets: []
     - name: _safe_filename_component
       kind: function
-      line_start: 47
-      line_end: 49
+      line_start: 53
+      line_end: 55
       signature: '_safe_filename_component(value: str) -> str'
       inputs:
       - 'value: str'
@@ -78,19 +85,16 @@ source_catalog:
       - re.sub('[<>:"/\\\\|?*\\x00-\\x1f]', '_', value).strip
       parser: python-ast
       dependency_targets: []
-    - name: _write_overlay_png
+    - name: _overlay_rgba_pixels
       kind: function
-      line_start: 52
-      line_end: 77
-      signature: '_write_overlay_png(image, mask, destination: Path) -> None'
+      line_start: 58
+      line_end: 81
+      signature: _overlay_rgba_pixels(image, mask)
       inputs:
       - image
       - mask
-      - 'destination: Path'
-      output: None
+      output: unspecified
       dependencies:
-      - Image.fromarray
-      - Image.fromarray(pixels, mode='RGBA').save
       - ValueError
       - alpha_mask.clamp
       - functional.interpolate
@@ -108,10 +112,126 @@ source_catalog:
       - tuple
       parser: python-ast
       dependency_targets: []
+    - name: _write_overlay_png
+      kind: function
+      line_start: 84
+      line_end: 88
+      signature: '_write_overlay_png(image, mask, destination: Path) -> None'
+      inputs:
+      - image
+      - mask
+      - 'destination: Path'
+      output: None
+      dependencies:
+      - Image.fromarray
+      - Image.fromarray(pixels, mode='RGBA').save
+      - _overlay_rgba_pixels
+      parser: python-ast
+      dependency_targets:
+      - &id001
+        path: custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py
+        symbol: _overlay_rgba_pixels
+    - name: _logo_spectrum_features
+      kind: function
+      line_start: 91
+      line_end: 173
+      signature: '_logo_spectrum_features(audio: dict, fps: int, duration: float, response_seconds: float, band_count: int)
+        -> tuple[list[tuple[tuple[float, ...], tuple[float, ...]]] | None, tuple[int, ...]]'
+      inputs:
+      - 'audio: dict'
+      - 'fps: int'
+      - 'duration: float'
+      - 'response_seconds: float'
+      - 'band_count: int'
+      output: tuple[list[tuple[tuple[float, ...], tuple[float, ...]]] | None, tuple[int, ...]]
+      dependencies:
+      - ((compressed - floor) / (ceiling - floor).clamp_min(1e-07)).clamp
+      - (ceiling - floor).clamp_min
+      - (ceiling / ceiling.max().clamp_min(1e-07)).pow
+      - ValueError
+      - audio.get
+      - band_energy.append
+      - ceiling.max
+      - ceiling.max().clamp_min
+      - energy.max
+      - energy.numel
+      - features.append
+      - float
+      - functional.pad
+      - int
+      - math.ceil
+      - math.exp
+      - math.log10
+      - max
+      - min
+      - normalized[:, :, 0].clone
+      - range
+      - round
+      - samples.clamp
+      - samples.repeat
+      parser: python-ast
+      dependency_targets:
+      - &id004
+        path: custom_nodes/comfyui_audio_duration_plan/__init__.py
+        symbol: WanS2VStateAppend.append
+      - &id005
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: VisualizerTargetStack.append
+    - name: _write_visualizer_logo_video
+      kind: function
+      line_start: 176
+      line_end: 270
+      signature: '_write_visualizer_logo_video(image, mask, audio: dict, fps: int, duration: float, color_strength: float,
+        minimum_brightness: float, maximum_brightness: float, response_seconds: float, target_width: int, halo_extent_percent:
+        float, destination: Path) -> int | None'
+      inputs:
+      - image
+      - mask
+      - 'audio: dict'
+      - 'fps: int'
+      - 'duration: float'
+      - 'color_strength: float'
+      - 'minimum_brightness: float'
+      - 'maximum_brightness: float'
+      - 'response_seconds: float'
+      - 'target_width: int'
+      - 'halo_extent_percent: float'
+      - 'destination: Path'
+      output: int | None
+      dependencies:
+      - Image.fromarray
+      - Image.new
+      - ImageDraw.Draw
+      - RuntimeError
+      - _logo_spectrum_features
+      - _overlay_rgba_pixels
+      - colorsys.hsv_to_rgb
+      - draw.line
+      - enumerate
+      - frame_image.alpha_composite
+      - len
+      - math.cos
+      - math.sin
+      - max
+      - min
+      - numpy.asarray
+      - numpy.asarray(frame_image).tobytes
+      - process.kill
+      - process.stderr.read
+      - process.stderr.read().decode
+      - process.stdin.close
+      - process.stdin.write
+      - process.wait
+      - round
+      parser: python-ast
+      dependency_targets:
+      - path: custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py
+        symbol: _logo_spectrum_features
+      - *id001
     - name: _write_audio_wav
       kind: function
-      line_start: 80
-      line_end: 97
+      line_start: 273
+      line_end: 290
       signature: '_write_audio_wav(audio: dict, destination: Path) -> float'
       inputs:
       - 'audio: dict'
@@ -143,8 +263,8 @@ source_catalog:
       dependency_targets: []
     - name: _write_frames_video
       kind: function
-      line_start: 100
-      line_end: 128
+      line_start: 293
+      line_end: 321
       signature: '_write_frames_video(images, fps: int, destination: Path) -> tuple[int, int, float]'
       inputs:
       - images
@@ -175,8 +295,8 @@ source_catalog:
       dependency_targets: []
     - name: _build_closed_cycle
       kind: function
-      line_start: 131
-      line_end: 158
+      line_start: 324
+      line_end: 351
       signature: '_build_closed_cycle(source: Path, duration: float, fps: int, crossfade: float, destination: Path) -> float'
       inputs:
       - 'source: Path'
@@ -191,16 +311,16 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - &id001
+      - &id002
         path: custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py
         symbol: _run
-      - &id002
+      - &id003
         path: scripts/render_motion_poster.py
         symbol: _run
     - name: _build_reel
       kind: function
-      line_start: 161
-      line_end: 211
+      line_start: 354
+      line_end: 404
       signature: '_build_reel(cycles: list[tuple[Path, float]], fps: int, crossfade: float, destination: Path) -> tuple[Path,
         float]'
       inputs:
@@ -223,18 +343,17 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id001
       - *id002
-      - &id003
+      - *id003
+      - &id006
         path: custom_nodes/comfyui_audio_duration_plan/__init__.py
         symbol: WanSoundImageToVideoExtendState.extend
-      - &id004
-        path: custom_nodes/comfyui_audio_duration_plan/__init__.py
-        symbol: WanS2VStateAppend.append
+      - *id004
+      - *id005
     - name: MotionPosterGuidance.INPUT_TYPES
       kind: method
-      line_start: 216
-      line_end: 238
+      line_start: 409
+      line_end: 434
       signature: MotionPosterGuidance.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -244,18 +363,20 @@ source_catalog:
       dependency_targets: []
     - name: MotionPosterGuidance.build
       kind: method
-      line_start: 245
-      line_end: 265
-      signature: MotionPosterGuidance.build(self, positive_prompt, negative_prompt, allow_lip_motion, lyrics_or_theme_context)
+      line_start: 441
+      line_end: 470
+      signature: MotionPosterGuidance.build(self, positive_prompt, negative_prompt, allow_lip_motion, motion_targets, lyrics_or_theme_context)
       inputs:
       - self
       - positive_prompt
       - negative_prompt
       - allow_lip_motion
+      - motion_targets
       - lyrics_or_theme_context
       output: unspecified
       dependencies:
       - lyrics_or_theme_context.strip
+      - motion_targets.strip
       - negative.replace
       - negative_prompt.strip
       - positive_prompt.strip
@@ -263,8 +384,8 @@ source_catalog:
       dependency_targets: []
     - name: MotionPosterSeedPlan.INPUT_TYPES
       kind: method
-      line_start: 270
-      line_end: 284
+      line_start: 475
+      line_end: 489
       signature: MotionPosterSeedPlan.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -274,8 +395,8 @@ source_catalog:
       dependency_targets: []
     - name: MotionPosterSeedPlan.plan
       kind: method
-      line_start: 292
-      line_end: 295
+      line_start: 497
+      line_end: 500
       signature: MotionPosterSeedPlan.plan(self, variant_count, base_seed)
       inputs:
       - self
@@ -289,8 +410,8 @@ source_catalog:
       dependency_targets: []
     - name: MotionPosterAssemble.INPUT_TYPES
       kind: method
-      line_start: 300
-      line_end: 350
+      line_start: 505
+      line_end: 567
       signature: MotionPosterAssemble.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -300,12 +421,14 @@ source_catalog:
       dependency_targets: []
     - name: MotionPosterAssemble.assemble
       kind: method
-      line_start: 359
-      line_end: 516
+      line_start: 576
+      line_end: 857
       signature: MotionPosterAssemble.assemble(self, loop_images, audio, brand_logo, brand_logo_mask, wordmark, wordmark_mask,
         apply_brand_logo, brand_logo_width_percent, brand_logo_opacity, brand_logo_margin_px, apply_wordmark, wordmark_width_percent,
-        wordmark_opacity, wordmark_margin_px, song_name, fps, reversal_crossfade_seconds, variant_crossfade_seconds, camera_zoom,
-        horizontal_drift_px, vertical_drift_px, output_prefix)
+        wordmark_opacity, wordmark_margin_px, wordmark_halo_style, wordmark_halo_opacity, wordmark_halo_blur_px, song_name,
+        fps, reversal_crossfade_seconds, variant_crossfade_seconds, camera_zoom, horizontal_drift_px, vertical_drift_px, delivery_resolution,
+        output_prefix, animate_brand_logo, visualizer_color_strength, visualizer_min_brightness, visualizer_max_brightness,
+        visualizer_response_seconds, visualizer_halo_extent_percent)
       inputs:
       - self
       - loop_images
@@ -322,6 +445,9 @@ source_catalog:
       - wordmark_width_percent
       - wordmark_opacity
       - wordmark_margin_px
+      - wordmark_halo_style
+      - wordmark_halo_opacity
+      - wordmark_halo_blur_px
       - song_name
       - fps
       - reversal_crossfade_seconds
@@ -329,7 +455,14 @@ source_catalog:
       - camera_zoom
       - horizontal_drift_px
       - vertical_drift_px
+      - delivery_resolution
       - output_prefix
+      - animate_brand_logo
+      - visualizer_color_strength
+      - visualizer_min_brightness
+      - visualizer_max_brightness
+      - visualizer_response_seconds
+      - visualizer_halo_extent_percent
       output: unspecified
       dependencies:
       - ''';''.join'
@@ -345,6 +478,7 @@ source_catalog:
       - _write_audio_wav
       - _write_frames_video
       - _write_overlay_png
+      - _write_visualizer_logo_video
       - bool
       - command.extend
       - cycles.append
@@ -355,7 +489,6 @@ source_catalog:
       - int
       - isinstance
       - math.ceil
-      - max
       parser: python-ast
       dependency_targets:
       - path: custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py
@@ -364,24 +497,43 @@ source_catalog:
         symbol: _build_closed_cycle
       - path: custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py
         symbol: _build_reel
-      - *id001
       - *id002
+      - *id003
       - path: custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py
         symbol: _safe_filename_component
       - path: custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py
         symbol: _scalar
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _write_audio_wav
       - path: custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py
         symbol: _write_audio_wav
       - path: custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py
         symbol: _write_frames_video
       - path: custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py
         symbol: _write_overlay_png
-      - *id003
+      - path: custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py
+        symbol: _write_visualizer_logo_video
+      - *id006
       - *id004
+      - *id005
+    - name: MotionPosterVisualizerAssemble.INPUT_TYPES
+      kind: method
+      line_start: 864
+      line_end: 886
+      signature: MotionPosterVisualizerAssemble.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies:
+      - copy.deepcopy
+      - input_types['required'].update
+      - super
+      parser: python-ast
+      dependency_targets: []
   - path: scripts/build_guided_motion_poster_workflow.py
     analysis_version: 1
     language: python
-    content_hash: e2c75eeb89ae1be8216f57d77aab6aab60defe08
+    content_hash: b10de9a95830e72a28583dcbd3fd3eea8e4305f0
     dependencies:
     - __future__
     - copy
@@ -399,8 +551,8 @@ source_catalog:
     symbols:
     - name: input_slot
       kind: function
-      line_start: 27
-      line_end: 33
+      line_start: 31
+      line_end: 37
       signature: input_slot(name, data_type, link, widget, shape)
       inputs:
       - name
@@ -414,8 +566,8 @@ source_catalog:
       dependency_targets: []
     - name: output_slot
       kind: function
-      line_start: 36
-      line_end: 40
+      line_start: 40
+      line_end: 44
       signature: output_slot(name, data_type, slot_index)
       inputs:
       - name
@@ -427,8 +579,8 @@ source_catalog:
       dependency_targets: []
     - name: rebuild_links
       kind: function
-      line_start: 43
-      line_end: 61
+      line_start: 47
+      line_end: 65
       signature: 'rebuild_links(workflow: dict) -> None'
       inputs:
       - 'workflow: dict'
@@ -445,8 +597,8 @@ source_catalog:
       dependency_targets: []
     - name: keep_ancestors
       kind: function
-      line_start: 64
-      line_end: 79
+      line_start: 68
+      line_end: 83
       signature: 'keep_ancestors(workflow: dict, roots: set[int]) -> None'
       inputs:
       - 'workflow: dict'
@@ -457,13 +609,13 @@ source_catalog:
       - set
       parser: python-ast
       dependency_targets:
-      - &id005
+      - &id007
         path: build_auto_s2v_windowed_workflow.py
         symbol: add
     - name: prune_unused_layout
       kind: function
-      line_start: 82
-      line_end: 109
+      line_start: 86
+      line_end: 113
       signature: 'prune_unused_layout(workflow: dict) -> None'
       inputs:
       - 'workflow: dict'
@@ -484,12 +636,13 @@ source_catalog:
       dependency_targets:
       - path: scripts/build_guided_motion_poster_workflow.py
         symbol: prune_unused_layout.group_has_node
-      - *id005
+      - *id007
       - *id004
+      - *id005
     - name: prune_unused_layout.group_has_node
       kind: function
-      line_start: 83
-      line_end: 89
+      line_start: 87
+      line_end: 93
       signature: 'prune_unused_layout.group_has_node(group: dict) -> bool'
       inputs:
       - 'group: dict'
@@ -500,8 +653,8 @@ source_catalog:
       dependency_targets: []
     - name: main
       kind: function
-      line_start: 112
-      line_end: 367
+      line_start: 116
+      line_end: 392
       signature: main() -> int
       inputs: []
       output: int
@@ -511,8 +664,10 @@ source_catalog:
       - TARGET.write_text
       - add_link
       - any
-      - assemble['inputs'][14].get
-      - assemble['inputs'][14].get('widget', {}).get
+      - assemble['inputs'][17].get
+      - assemble['inputs'][17].get('widget', {}).get
+      - assemble['inputs'][24].get
+      - assemble['inputs'][24].get('widget', {}).get
       - copy.deepcopy
       - input_slot
       - int
@@ -523,13 +678,11 @@ source_catalog:
       - load_types.count
       - logo.update
       - max
+      - nodes_by_id[93]['widgets_values_named'].update
       - output_slot
       - print
       - prune_unused_layout
       - rebuild_links
-      - wordmark.update
-      - workflow.get
-      - workflow.setdefault
       parser: python-ast
       dependency_targets:
       - path: build_auto_s2v_workflow.py
@@ -538,13 +691,21 @@ source_catalog:
         symbol: main.add_link
       - path: build_auto_s2v_workflow.py
         symbol: input_slot
+      - path: scripts/build_generic_music_visualizer_workflow.py
+        symbol: input_slot
       - path: scripts/build_guided_motion_poster_workflow.py
+        symbol: input_slot
+      - path: scripts/build_local_music_visualizer_workflow.py
         symbol: input_slot
       - path: scripts/build_guided_motion_poster_workflow.py
         symbol: keep_ancestors
       - path: build_auto_s2v_workflow.py
         symbol: output_slot
+      - path: scripts/build_generic_music_visualizer_workflow.py
+        symbol: output_slot
       - path: scripts/build_guided_motion_poster_workflow.py
+        symbol: output_slot
+      - path: scripts/build_local_music_visualizer_workflow.py
         symbol: output_slot
       - path: scripts/build_guided_motion_poster_workflow.py
         symbol: prune_unused_layout
@@ -552,8 +713,8 @@ source_catalog:
         symbol: rebuild_links
     - name: main.add_link
       kind: function
-      line_start: 316
-      line_end: 321
+      line_start: 337
+      line_end: 342
       signature: main.add_link(origin, origin_slot, target, target_slot, data_type)
       inputs:
       - origin
@@ -567,3 +728,4 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id004
+      - *id005

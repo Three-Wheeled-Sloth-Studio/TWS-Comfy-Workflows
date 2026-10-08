@@ -72,6 +72,9 @@ source_catalog:
       - &id004
         path: custom_nodes/comfyui_audio_duration_plan/__init__.py
         symbol: WanS2VStateAppend.append
+      - &id005
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: VisualizerTargetStack.append
       - &id003
         path: custom_nodes/comfyui_audio_duration_plan/__init__.py
         symbol: WanSoundImageToVideoExtendState.extend
@@ -175,6 +178,7 @@ source_catalog:
       - *id002
       - *id003
       - *id004
+      - *id005
     - name: _validate_loop_aspect
       kind: function
       line_start: 218
@@ -238,16 +242,16 @@ source_catalog:
       - video.get
       parser: python-ast
       dependency_targets:
-      - &id005
-        path: scripts/render_motion_poster.py
-        symbol: _audio_stream
       - &id006
         path: scripts/render_motion_poster.py
-        symbol: _duration
+        symbol: _audio_stream
       - &id007
         path: scripts/render_motion_poster.py
-        symbol: _probe
+        symbol: _duration
       - &id008
+        path: scripts/render_motion_poster.py
+        symbol: _probe
+      - &id009
         path: scripts/render_motion_poster.py
         symbol: _video_stream
     - name: _require_tools
@@ -290,15 +294,15 @@ source_catalog:
       - validate_input_paths
       parser: python-ast
       dependency_targets:
-      - *id005
+      - *id006
       - path: custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py
         symbol: _build_closed_cycle
       - path: scripts/render_motion_poster.py
         symbol: _build_closed_cycle
       - path: scripts/render_motion_poster.py
         symbol: _build_variant_reel
-      - *id006
       - *id007
+      - *id008
       - path: scripts/render_motion_poster.py
         symbol: _render_song
       - path: scripts/render_motion_poster.py
@@ -307,8 +311,9 @@ source_catalog:
         symbol: _validate_loop_aspect
       - path: scripts/render_motion_poster.py
         symbol: _validate_output
-      - *id008
+      - *id009
       - *id004
+      - *id005
       - path: scripts/motion_poster_manifest.py
         symbol: validate_input_paths
     - name: main
@@ -334,5 +339,9 @@ source_catalog:
       dependency_targets:
       - path: scripts/motion_poster_manifest.py
         symbol: load_manifest
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: BeatAwareLocalVisualizer.render
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: GenericBeatAwareLocalVisualizer.render
       - path: scripts/render_motion_poster.py
         symbol: render

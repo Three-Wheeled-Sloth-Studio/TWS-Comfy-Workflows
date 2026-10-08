@@ -1,0 +1,259 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: 1f
+  files:
+  - path: scripts/build_generic_music_visualizer_workflow.py
+    analysis_version: 1
+    language: python
+    content_hash: 692f376c9bfe72cc5f3f17e9134a18fc639b9da7
+    dependencies:
+    - __future__
+    - json
+    - pathlib
+    provides:
+    - input_slot
+    - output_slot
+    - loader
+    - detector
+    - preview
+    - target
+    - stack
+    - renderer
+    - main
+    symbols:
+    - name: input_slot
+      kind: function
+      line_start: 11
+      line_end: 15
+      signature: input_slot(name, data_type, link, widget)
+      inputs:
+      - name
+      - data_type
+      - link
+      - widget
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: output_slot
+      kind: function
+      line_start: 18
+      line_end: 19
+      signature: output_slot(name, data_type, links, slot_index)
+      inputs:
+      - name
+      - data_type
+      - links
+      - slot_index
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: loader
+      kind: function
+      line_start: 22
+      line_end: 50
+      signature: loader(node_id, kind, title, position, filename, output_links)
+      inputs:
+      - node_id
+      - kind
+      - title
+      - position
+      - filename
+      - output_links
+      output: unspecified
+      dependencies:
+      - output_slot
+      parser: python-ast
+      dependency_targets:
+      - &id001
+        path: build_auto_s2v_workflow.py
+        symbol: output_slot
+      - &id002
+        path: scripts/build_generic_music_visualizer_workflow.py
+        symbol: output_slot
+      - &id003
+        path: scripts/build_guided_motion_poster_workflow.py
+        symbol: output_slot
+      - &id004
+        path: scripts/build_local_music_visualizer_workflow.py
+        symbol: output_slot
+    - name: detector
+      kind: function
+      line_start: 53
+      line_end: 70
+      signature: detector(node_id, position, image_link, mask_link, preview_link, find, sensitivity)
+      inputs:
+      - node_id
+      - position
+      - image_link
+      - mask_link
+      - preview_link
+      - find
+      - sensitivity
+      output: unspecified
+      dependencies:
+      - dict
+      - input_slot
+      - output_slot
+      - zip
+      parser: python-ast
+      dependency_targets:
+      - &id005
+        path: build_auto_s2v_workflow.py
+        symbol: input_slot
+      - &id006
+        path: scripts/build_generic_music_visualizer_workflow.py
+        symbol: input_slot
+      - &id007
+        path: scripts/build_guided_motion_poster_workflow.py
+        symbol: input_slot
+      - &id008
+        path: scripts/build_local_music_visualizer_workflow.py
+        symbol: input_slot
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+    - name: preview
+      kind: function
+      line_start: 73
+      line_end: 79
+      signature: preview(node_id, position, image_link, title)
+      inputs:
+      - node_id
+      - position
+      - image_link
+      - title
+      output: unspecified
+      dependencies:
+      - input_slot
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+    - name: target
+      kind: function
+      line_start: 82
+      line_end: 93
+      signature: target(node_id, position, mask_link, output_link, name, prompt, on_beat, off_beat)
+      inputs:
+      - node_id
+      - position
+      - mask_link
+      - output_link
+      - name
+      - prompt
+      - on_beat
+      - off_beat
+      output: unspecified
+      dependencies:
+      - dict
+      - input_slot
+      - output_slot
+      - zip
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+    - name: stack
+      kind: function
+      line_start: 96
+      line_end: 105
+      signature: stack(node_id, position, target_link, output_link, previous_link)
+      inputs:
+      - node_id
+      - position
+      - target_link
+      - output_link
+      - previous_link
+      output: unspecified
+      dependencies:
+      - input_slot
+      - inputs.append
+      - output_slot
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
+        symbol: WanS2VStateAppend.append
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: VisualizerTargetStack.append
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+    - name: renderer
+      kind: function
+      line_start: 108
+      line_end: 127
+      signature: renderer()
+      inputs: []
+      output: unspecified
+      dependencies:
+      - dict
+      - input_slot
+      - output_slot
+      - zip
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+    - name: main
+      kind: function
+      line_start: 130
+      line_end: 188
+      signature: main() -> int
+      inputs: []
+      output: int
+      dependencies:
+      - OUTPUT.parent.mkdir
+      - OUTPUT.relative_to
+      - OUTPUT.write_text
+      - RuntimeError
+      - any
+      - detector
+      - json.dumps
+      - len
+      - loader
+      - next
+      - preview
+      - print
+      - renderer
+      - stack
+      - target
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/build_generic_music_visualizer_workflow.py
+        symbol: detector
+      - path: scripts/build_generic_music_visualizer_workflow.py
+        symbol: loader
+      - path: scripts/build_generic_music_visualizer_workflow.py
+        symbol: preview
+      - path: scripts/build_generic_music_visualizer_workflow.py
+        symbol: renderer
+      - path: scripts/build_local_music_visualizer_workflow.py
+        symbol: renderer
+      - path: scripts/build_generic_music_visualizer_workflow.py
+        symbol: stack
+      - path: scripts/build_generic_music_visualizer_workflow.py
+        symbol: target

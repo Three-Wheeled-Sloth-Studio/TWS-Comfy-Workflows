@@ -1,11 +1,11 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: 2026-10-01
+updated: 2026-10-07
 identity:
   name: TWS Comfy Workflows
   repository_url: https://github.com/Three-Wheeled-Sloth-Studio/TWS-Comfy-Workflows
   summary: Curated ComfyUI workflows, project-owned custom nodes, setup automation, and durable operational knowledge for Three-Wheeled Sloth Studio.
-  current_phase: Prototyping a hybrid motion-poster pipeline for bounded-memory, full-song 16:9 videos.
+  current_phase: Validating a standalone model-free, beat-aware regional-compositing visualizer while retaining the accepted guided Wan motion-poster baseline.
 thesis:
   core_promise: Make studio ComfyUI workflows reproducible, inspectable, recoverable, and easy for humans or agents to continue safely.
 audience:
@@ -32,6 +32,8 @@ source_of_truth:
   testing: refs/testing
   ui: refs/UI
 known_open_questions:
-  - Which ComfyUI loop/execution-cache objects retain GPU memory across long Wan continuation runs?
-  - Should production generation checkpoint each latent chunk to disk and run each chunk as a separate prompt?
-  - Which post-processing upscaler provides the best temporal stability for minimally animated music videos?
+  - Are the Managed Decline procedural masks and effect strengths restrained enough in a complete-song subjective review?
+  - Will painted or optional SAM-assisted masks materially improve irregular cloud and reflection boundaries without making ordinary use cumbersome?
+  - Can static-foreground or regional-motion masking protect small and off-center faces without making ordinary use cumbersome?
+  - Can multi-variant transitions add useful variety without blur or suppressed lighting motion?
+  - Does optional AI upscaling materially improve detail over Lanczos without temporal shimmer or artwork drift?

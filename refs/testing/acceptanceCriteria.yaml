@@ -1,7 +1,43 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: TEMPLATE_TODO_DATE
+updated: 2026-10-07
 criteria:
-  - id: TEMPLATE_TODO-criterion
-    status: draft
-    summary: TEMPLATE_TODO
+  - id: generic-verified-target-flow
+    status: accepted
+    summary: A target lane accepts an object-class query, exposes a detection preview, requires explicit verification, accepts a motion prompt, and independently controls beat-driven and autonomous animation before joining an arbitrary-length target stack.
+  - id: generic-fixed-geometry
+    status: accepted
+    summary: Prompt-resolved procedural effects modify only verified masks and never translate source pixels, including cloud, smoke, and drifting-atmosphere treatments.
+  - id: local-composite-static-base
+    status: accepted
+    summary: The lightweight visualizer begins every frame from the unchanged source and applies no global camera transform; only explicit mask regions enter effect compositing.
+  - id: independent-audio-mappings
+    status: accepted
+    summary: Clouds, candles, red lights, monitor, rain, and reflections use distinct slow-energy, beat, onset, high-band, or continuous-time mappings rather than pulsing together.
+  - id: model-free-bounded-render
+    status: accepted
+    summary: The MVP loads no generative or segmentation model and streams frames through FFmpeg instead of retaining a several-minute video in RAM.
+  - id: local-render-progress
+    status: accepted
+    summary: The V3 renderer reports native ComfyUI progress through audio analysis and per-frame generation.
+  - id: local-postprocess-badging
+    status: accepted
+    summary: The local compositor can apply an upper-left transparent track wordmark with halo and an independent lower-right studio badge after all regional animation.
+  - id: guided-one-queue-operation
+    status: accepted
+    summary: A user can select the reference image and song, edit guidance, configure optional branding and delivery, and generate the complete output with one queue operation.
+  - id: exact-audio-duration
+    status: accepted
+    summary: The assembler streams H.264/AAC output to the exact supplied audio duration without retaining the completed song as an in-memory frame batch.
+  - id: conservative-motion-defaults
+    status: accepted
+    summary: One variant, neutral camera, editable preservation guidance, and anti-lip-sync prompting are the production defaults.
+  - id: post-generation-branding
+    status: accepted
+    summary: Independent lower-right logo and upper-left wordmark overlays are composited after generation and delivery scaling.
+  - id: exact-1080p-delivery
+    status: accepted
+    summary: Default delivery scales the accepted 1024x576 exact-16:9 generation to 1920x1080 without padding, stretching, or cropping; source resolution remains selectable for diagnostics.
+  - id: known-limitations-documented
+    status: accepted
+    summary: Small or off-center face distortion, embedded-text damage, multi-variant blur, and optional future enhancements are documented and are not misrepresented as solved.

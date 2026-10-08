@@ -1,7 +1,55 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: 2026-10-01
+updated: 2026-10-02
 decisions:
+  - id: generic-verified-animation-target-stack
+    status: accepted
+    date: 2026-10-07
+    decision: Fork the fixed six-slot compositor into a repeatable animation-target stack with detection preview, explicit mask verification, natural-language motion description, and separate beat-driven and autonomous strength controls.
+    rationale: Alternate artwork with similar composition transferred well, but a production workflow must describe targets and motion rather than encode one image's six named sockets; detection errors must remain visible and user-correctable.
+    consequences:
+      - The accepted V3 workflow remains intact as a tuned reference while the generic workflow is validated independently.
+      - Any number of target lanes can be chained without changing the renderer schema.
+      - The model-free detector is a proposal generator, not semantic segmentation; unverified masks cannot render and ordinary ComfyUI masks can replace it.
+      - Prompt-resolved procedural effects preserve source geometry and can combine beat and non-beat motion.
+  - id: standalone-local-composite-visualizer
+    status: accepted
+    date: 2026-10-07
+    decision: Prototype the new music visualizer as a standalone CPU procedural compositor with explicit independent masks, per-target audio mappings, a static full-frame base, and streamed FFmpeg output.
+    rationale: The required motion is local and atmospheric; regenerating the complete image with a 14B video model wastes VRAM, destabilizes protected objects, and makes target discovery seed-dependent.
+    consequences:
+      - The MVP does not load Wan, LTX, SAM, or any other model.
+      - Geometric and color-refined masks remain inspectable and replaceable with ordinary ComfyUI masks.
+      - Camera motion and multi-variant blending are absent by design.
+      - Optional automatic segmentation or regional generation may be evaluated later without becoming a default dependency.
+  - id: defer-logo-spectrum-from-production
+    status: accepted
+    date: 2026-10-02
+    decision: Preserve the stereo radial-spectrum workflow as an experiment, but keep the static lower-right logo in the production workflow.
+    rationale: The spectrum passed coherence testing and reacted correctly to note and strength, but drew too much attention to the lower-right corner.
+    consequences:
+      - The primary guided workflow remains the production recommendation.
+      - Future visualizer work should reduce footprint, contrast, or opacity before reconsidering promotion.
+      - The existing experimental workflow stays installable for reference and iteration.
+  - id: targeted-motion-and-generated-title-halo
+    status: accepted
+    date: 2026-10-02
+    decision: Add explicit per-image motion targets and stronger anti-invention prompting for Wan, and derive an optional dark or light title halo deterministically from the wordmark alpha channel during FFmpeg assembly.
+    rationale: Wan does not reliably discover smoke, local light sources, or background appendages in dense artwork and may invent face-like content; the title treatment should remain outside generative video so it stays sharp and predictable.
+    consequences:
+      - Users should name exact existing regions and physical motion in the motion-targets field instead of relying on general scene interpretation.
+      - Prompting reduces but cannot eliminate invented faces; failed seeds still require rejection until regional masking exists.
+      - The halo costs no diffusion time and cannot be deformed by Wan.
+      - Optional 1080p fill delivery removes side bands with a documented small center crop; no-crop 1080p remains the default.
+  - id: lanczos-1080p-delivery-default
+    status: accepted
+    date: 2026-10-01
+    decision: Default the guided assembler to deterministic FFmpeg Lanczos delivery at 1920x1080, scaling the complete exact-16:9 1024x576 foreground before applying branding.
+    rationale: This closes the YouTube delivery path without model downloads, temporal shimmer, foreground crop, or aspect-ratio stretching; optional AI enhancement can be evaluated separately.
+    consequences:
+      - Source resolution remains available in the GUI for diagnostics.
+      - Branding is sized and composited after delivery scaling.
+      - No AI upscale model is currently a production dependency.
   - id: single-variant-motion-poster-default
     status: accepted
     date: 2026-10-01
@@ -38,8 +86,8 @@ decisions:
   - id: generate-low-res-upscale-later
     status: accepted
     date: 2026-09-30
-    decision: Generate at a practical 16:9 Wan resolution, currently 832x480, and upscale as post-processing.
-    rationale: Native 720p and 1080p generation exceed practical VRAM and system-memory margins on the current machine.
+    decision: Generate the guided production asset at 1024x576 exact 16:9 and upscale as post-processing.
+    rationale: A real 1024x576 guided run completed within the user's acceptable time and memory envelope, looked good, and produced a smaller final MP4; native 720p and 1080p diffusion remain outside practical margins on the current machine.
     consequences:
       - Delivery-quality evaluation must include temporal stability of the upscaler.
   - id: hybrid-motion-poster-production-path
@@ -55,7 +103,7 @@ decisions:
   - id: native-guided-motion-loop-assets
     status: accepted
     date: 2026-10-01
-    decision: Generate short motion assets natively at 832x480 from the primary reference image, song audio, explicit motion guidance, and conservative anti-lip-sync negative prompts.
+    decision: Generate guided production motion assets natively at 1024x576 from the primary reference image, song audio, explicit motion guidance, and conservative anti-lip-sync negative prompts.
     rationale: Reframing a square clip damages composition, while unconstrained S2V can invent conspicuous mouth motion that does not match the song.
     consequences:
       - The assembler rejects loop aspect ratios outside the configured tolerance instead of cropping or stretching them.

@@ -1,0 +1,57 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '17'
+  files:
+  - path: scripts/build_guided_motion_poster_visualizer_workflow.py
+    analysis_version: 1
+    language: python
+    content_hash: 8ce5fe2a9141fa6115879502b64c41bf79bf38f9
+    dependencies:
+    - __future__
+    - json
+    - pathlib
+    provides:
+    - _widget_input
+    - main
+    symbols:
+    - name: _widget_input
+      kind: function
+      line_start: 21
+      line_end: 27
+      signature: '_widget_input(name: str, data_type: str) -> dict'
+      inputs:
+      - 'name: str'
+      - 'data_type: str'
+      output: dict
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: main
+      kind: function
+      line_start: 30
+      line_end: 92
+      signature: main() -> int
+      inputs: []
+      output: int
+      dependencies:
+      - RuntimeError
+      - SOURCE.read_text
+      - TARGET.write_text
+      - VISUALIZER_DEFAULTS.values
+      - _widget_input
+      - assembler['inputs'].extend
+      - assembler['widgets_values'].extend
+      - assembler['widgets_values_named'].update
+      - int
+      - json.dumps
+      - json.loads
+      - print
+      - workflow.get
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/build_guided_motion_poster_visualizer_workflow.py
+        symbol: _widget_input
+      - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
+        symbol: WanSoundImageToVideoExtendState.extend

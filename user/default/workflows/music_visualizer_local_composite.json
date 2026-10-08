@@ -1,0 +1,1416 @@
+{
+  "id": "6ef80884-acde-4a30-a808-10ca1a150001",
+  "revision": 0,
+  "last_node_id": 12,
+  "last_link_id": 19,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "LoadImage",
+      "pos": [
+        -1050,
+        -140
+      ],
+      "size": [
+        360,
+        314
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "COMBO",
+          "widget": {
+            "name": "image"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "choose file to upload",
+          "name": "upload",
+          "type": "IMAGEUPLOAD",
+          "widget": {
+            "name": "upload"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            19
+          ],
+          "slot_index": 0
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54"
+      },
+      "widgets_values": [
+        "select_reference_image.png",
+        "image"
+      ],
+      "widgets_values_named": {
+        "image": "select_reference_image.png",
+        "upload": "image"
+      },
+      "title": "1. Source artwork (static base)",
+      "color": "#243",
+      "bgcolor": "#354"
+    },
+    {
+      "id": 2,
+      "type": "LoadAudio",
+      "pos": [
+        -1050,
+        230
+      ],
+      "size": [
+        360,
+        140
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "COMBO",
+          "widget": {
+            "name": "audio"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "audioUI",
+          "name": "audioUI",
+          "type": "AUDIO_UI",
+          "widget": {
+            "name": "audioUI"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "choose file to upload",
+          "name": "upload",
+          "type": "AUDIOUPLOAD",
+          "widget": {
+            "name": "upload"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "AUDIO",
+          "name": "AUDIO",
+          "type": "AUDIO",
+          "links": [
+            8
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadAudio",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54"
+      },
+      "widgets_values": [
+        "select_audio.mp3",
+        null
+      ],
+      "widgets_values_named": {
+        "audio": "select_audio.mp3",
+        "upload": null
+      },
+      "title": "2. Finalized audio",
+      "color": "#243",
+      "bgcolor": "#354"
+    },
+    {
+      "id": 3,
+      "type": "VisualizerRegionMask",
+      "pos": [
+        -600,
+        -650
+      ],
+      "size": [
+        430,
+        300
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 1
+        },
+        {
+          "name": "regions",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "regions"
+          }
+        },
+        {
+          "name": "color_filter",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "color_filter"
+          }
+        },
+        {
+          "name": "threshold",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "threshold"
+          }
+        },
+        {
+          "name": "feather_px",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "feather_px"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "links": [
+            9
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "mask_preview",
+          "type": "IMAGE",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VisualizerRegionMask"
+      },
+      "widgets_values": [
+        "# Upper window sky only; architecture and furniture stay static.\nbox 0.005 0.005 0.195 0.30\nbox 0.225 0.005 0.405 0.30\nbox 0.425 0.005 0.635 0.28",
+        "neutral_bright",
+        0.12,
+        14.0
+      ],
+      "widgets_values_named": {
+        "regions": "# Upper window sky only; architecture and furniture stay static.\nbox 0.005 0.005 0.195 0.30\nbox 0.225 0.005 0.405 0.30\nbox 0.425 0.005 0.635 0.28",
+        "color_filter": "neutral_bright",
+        "threshold": 0.12,
+        "feather_px": 14.0
+      },
+      "title": "3a. Clouds \u2014 slow energy drift"
+    },
+    {
+      "id": 4,
+      "type": "VisualizerRegionMask",
+      "pos": [
+        -140,
+        -650
+      ],
+      "size": [
+        430,
+        300
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 2
+        },
+        {
+          "name": "regions",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "regions"
+          }
+        },
+        {
+          "name": "color_filter",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "color_filter"
+          }
+        },
+        {
+          "name": "threshold",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "threshold"
+          }
+        },
+        {
+          "name": "feather_px",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "feather_px"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "links": [
+            10
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "mask_preview",
+          "type": "IMAGE",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VisualizerRegionMask"
+      },
+      "widgets_values": [
+        "# Flame cores; warm-pixel filter tightens each ellipse.\nellipse 0.027 0.485 0.052 0.595\nellipse 0.073 0.475 0.102 0.595\nellipse 0.104 0.575 0.139 0.690\nellipse 0.165 0.485 0.194 0.595\nellipse 0.005 0.590 0.033 0.700",
+        "warm",
+        0.3,
+        5.0
+      ],
+      "widgets_values_named": {
+        "regions": "# Flame cores; warm-pixel filter tightens each ellipse.\nellipse 0.027 0.485 0.052 0.595\nellipse 0.073 0.475 0.102 0.595\nellipse 0.104 0.575 0.139 0.690\nellipse 0.165 0.485 0.194 0.595\nellipse 0.005 0.590 0.033 0.700",
+        "color_filter": "warm",
+        "threshold": 0.3,
+        "feather_px": 5.0
+      },
+      "title": "3b. Candles \u2014 high band + onset flicker"
+    },
+    {
+      "id": 5,
+      "type": "VisualizerRegionMask",
+      "pos": [
+        -600,
+        -310
+      ],
+      "size": [
+        430,
+        300
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 3
+        },
+        {
+          "name": "regions",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "regions"
+          }
+        },
+        {
+          "name": "color_filter",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "color_filter"
+          }
+        },
+        {
+          "name": "threshold",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "threshold"
+          }
+        },
+        {
+          "name": "feather_px",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "feather_px"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "links": [
+            11
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "mask_preview",
+          "type": "IMAGE",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VisualizerRegionMask"
+      },
+      "widgets_values": [
+        "# Warning lamps and skyline indicators; red filter rejects neutral objects.\nbox 0.320 0.180 0.700 0.505\nbox 0.020 0.250 0.205 0.520",
+        "red",
+        0.18,
+        4.0
+      ],
+      "widgets_values_named": {
+        "regions": "# Warning lamps and skyline indicators; red filter rejects neutral objects.\nbox 0.320 0.180 0.700 0.505\nbox 0.020 0.250 0.205 0.520",
+        "color_filter": "red",
+        "threshold": 0.18,
+        "feather_px": 4.0
+      },
+      "title": "3c. Red lights \u2014 low beat pulse"
+    },
+    {
+      "id": 6,
+      "type": "VisualizerRegionMask",
+      "pos": [
+        -140,
+        -310
+      ],
+      "size": [
+        430,
+        300
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 4
+        },
+        {
+          "name": "regions",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "regions"
+          }
+        },
+        {
+          "name": "color_filter",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "color_filter"
+          }
+        },
+        {
+          "name": "threshold",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "threshold"
+          }
+        },
+        {
+          "name": "feather_px",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "feather_px"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "links": [
+            12
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "mask_preview",
+          "type": "IMAGE",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VisualizerRegionMask"
+      },
+      "widgets_values": [
+        "# Left monitor face.\npolygon 0.218 0.305 0.296 0.330 0.304 0.497 0.220 0.470",
+        "none",
+        0.0,
+        4.0
+      ],
+      "widgets_values_named": {
+        "regions": "# Left monitor face.\npolygon 0.218 0.305 0.296 0.330 0.304 0.497 0.220 0.470",
+        "color_filter": "none",
+        "threshold": 0.0,
+        "feather_px": 4.0
+      },
+      "title": "3d. Monitor \u2014 onset + energy glow"
+    },
+    {
+      "id": 7,
+      "type": "VisualizerRegionMask",
+      "pos": [
+        -600,
+        30
+      ],
+      "size": [
+        430,
+        300
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 5
+        },
+        {
+          "name": "regions",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "regions"
+          }
+        },
+        {
+          "name": "color_filter",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "color_filter"
+          }
+        },
+        {
+          "name": "threshold",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "threshold"
+          }
+        },
+        {
+          "name": "feather_px",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "feather_px"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "links": [
+            13
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "mask_preview",
+          "type": "IMAGE",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VisualizerRegionMask"
+      },
+      "widgets_values": [
+        "# Glass only; separate panes avoid the wall and foreground.\nbox 0.005 0.005 0.195 0.500\nbox 0.225 0.005 0.635 0.485",
+        "none",
+        0.0,
+        2.0
+      ],
+      "widgets_values_named": {
+        "regions": "# Glass only; separate panes avoid the wall and foreground.\nbox 0.005 0.005 0.195 0.500\nbox 0.225 0.005 0.635 0.485",
+        "color_filter": "none",
+        "threshold": 0.0,
+        "feather_px": 2.0
+      },
+      "title": "3e. Rain \u2014 slow continuous motion"
+    },
+    {
+      "id": 8,
+      "type": "VisualizerRegionMask",
+      "pos": [
+        -140,
+        30
+      ],
+      "size": [
+        430,
+        300
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 6
+        },
+        {
+          "name": "regions",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "regions"
+          }
+        },
+        {
+          "name": "color_filter",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "color_filter"
+          }
+        },
+        {
+          "name": "threshold",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "threshold"
+          }
+        },
+        {
+          "name": "feather_px",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "feather_px"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "links": [
+            14
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "mask_preview",
+          "type": "IMAGE",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VisualizerRegionMask"
+      },
+      "widgets_values": [
+        "# Existing red reflections on table and floor.\npolygon 0.170 0.490 0.560 0.485 0.515 0.825 0.205 0.835\npolygon 0.570 0.690 0.830 0.690 0.790 0.990 0.610 0.980",
+        "red",
+        0.12,
+        10.0
+      ],
+      "widgets_values_named": {
+        "regions": "# Existing red reflections on table and floor.\npolygon 0.170 0.490 0.560 0.485 0.515 0.825 0.205 0.835\npolygon 0.570 0.690 0.830 0.690 0.790 0.990 0.610 0.980",
+        "color_filter": "red",
+        "threshold": 0.12,
+        "feather_px": 10.0
+      },
+      "title": "3f. Reflections \u2014 beat + slow shimmer"
+    },
+    {
+      "id": 9,
+      "type": "BeatAwareLocalVisualizerV3",
+      "pos": [
+        480,
+        -260
+      ],
+      "size": [
+        560,
+        900
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 7
+        },
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 8
+        },
+        {
+          "name": "brand_logo",
+          "type": "IMAGE",
+          "link": 15
+        },
+        {
+          "name": "brand_logo_mask",
+          "type": "MASK",
+          "link": 16
+        },
+        {
+          "name": "wordmark",
+          "type": "IMAGE",
+          "link": 17
+        },
+        {
+          "name": "wordmark_mask",
+          "type": "MASK",
+          "link": 18
+        },
+        {
+          "name": "cloud_mask",
+          "type": "MASK",
+          "link": 9
+        },
+        {
+          "name": "candle_mask",
+          "type": "MASK",
+          "link": 10
+        },
+        {
+          "name": "red_light_mask",
+          "type": "MASK",
+          "link": 11
+        },
+        {
+          "name": "monitor_mask",
+          "type": "MASK",
+          "link": 12
+        },
+        {
+          "name": "rain_mask",
+          "type": "MASK",
+          "link": 13
+        },
+        {
+          "name": "reflection_mask",
+          "type": "MASK",
+          "link": 14
+        },
+        {
+          "name": "fps",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "fps"
+          }
+        },
+        {
+          "name": "delivery_resolution",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "delivery_resolution"
+          }
+        },
+        {
+          "name": "pattern_key",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "pattern_key"
+          }
+        },
+        {
+          "name": "cloud_strength",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "cloud_strength"
+          }
+        },
+        {
+          "name": "candle_strength",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "candle_strength"
+          }
+        },
+        {
+          "name": "red_light_strength",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "red_light_strength"
+          }
+        },
+        {
+          "name": "monitor_strength",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "monitor_strength"
+          }
+        },
+        {
+          "name": "rain_strength",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "rain_strength"
+          }
+        },
+        {
+          "name": "reflection_strength",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "reflection_strength"
+          }
+        },
+        {
+          "name": "apply_brand_logo",
+          "type": "BOOLEAN",
+          "link": null,
+          "widget": {
+            "name": "apply_brand_logo"
+          }
+        },
+        {
+          "name": "brand_logo_width_percent",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "brand_logo_width_percent"
+          }
+        },
+        {
+          "name": "brand_logo_opacity",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "brand_logo_opacity"
+          }
+        },
+        {
+          "name": "apply_wordmark",
+          "type": "BOOLEAN",
+          "link": null,
+          "widget": {
+            "name": "apply_wordmark"
+          }
+        },
+        {
+          "name": "wordmark_width_percent",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "wordmark_width_percent"
+          }
+        },
+        {
+          "name": "wordmark_opacity",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "wordmark_opacity"
+          }
+        },
+        {
+          "name": "overlay_margin_px",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "overlay_margin_px"
+          }
+        },
+        {
+          "name": "wordmark_halo_opacity",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "wordmark_halo_opacity"
+          }
+        },
+        {
+          "name": "wordmark_halo_blur_px",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "wordmark_halo_blur_px"
+          }
+        },
+        {
+          "name": "output_prefix",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "output_prefix"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output_path",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "BeatAwareLocalVisualizerV3"
+      },
+      "widgets_values": [
+        16,
+        "1080p",
+        20261007,
+        1.15,
+        1.15,
+        1.0,
+        1.0,
+        0.9,
+        0.95,
+        true,
+        10.0,
+        0.68,
+        true,
+        32.0,
+        0.95,
+        24,
+        0.55,
+        18.0,
+        "local_visualizer/managed_decline"
+      ],
+      "widgets_values_named": {
+        "fps": 16,
+        "delivery_resolution": "1080p",
+        "pattern_key": 20261007,
+        "cloud_strength": 1.15,
+        "candle_strength": 1.15,
+        "red_light_strength": 1.0,
+        "monitor_strength": 1.0,
+        "rain_strength": 0.9,
+        "reflection_strength": 0.95,
+        "apply_brand_logo": true,
+        "brand_logo_width_percent": 10.0,
+        "brand_logo_opacity": 0.68,
+        "apply_wordmark": true,
+        "wordmark_width_percent": 32.0,
+        "wordmark_opacity": 0.95,
+        "overlay_margin_px": 24,
+        "wordmark_halo_opacity": 0.55,
+        "wordmark_halo_blur_px": 18.0,
+        "output_prefix": "local_visualizer/managed_decline"
+      },
+      "title": "4. Render full-song local composite + badging",
+      "color": "#243",
+      "bgcolor": "#354"
+    },
+    {
+      "id": 10,
+      "type": "LoadImage",
+      "pos": [
+        1090,
+        -260
+      ],
+      "size": [
+        360,
+        314
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "COMBO",
+          "widget": {
+            "name": "image"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "choose file to upload",
+          "name": "upload",
+          "type": "IMAGEUPLOAD",
+          "widget": {
+            "name": "upload"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            17
+          ],
+          "slot_index": 0
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            18
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54"
+      },
+      "widgets_values": [
+        "Managed Decline wordmark.png",
+        "image"
+      ],
+      "widgets_values_named": {
+        "image": "Managed Decline wordmark.png",
+        "upload": "image"
+      },
+      "title": "Track title / wordmark \u2014 upper left",
+      "color": "#243",
+      "bgcolor": "#354"
+    },
+    {
+      "id": 11,
+      "type": "LoadImage",
+      "pos": [
+        1090,
+        100
+      ],
+      "size": [
+        360,
+        314
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "COMBO",
+          "widget": {
+            "name": "image"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "choose file to upload",
+          "name": "upload",
+          "type": "IMAGEUPLOAD",
+          "widget": {
+            "name": "upload"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            15
+          ],
+          "slot_index": 0
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            16
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54"
+      },
+      "widgets_values": [
+        "TWS Studio Logo nt - underlay.png",
+        "image"
+      ],
+      "widgets_values_named": {
+        "image": "TWS Studio Logo nt - underlay.png",
+        "upload": "image"
+      },
+      "title": "Studio badge \u2014 lower right",
+      "color": "#243",
+      "bgcolor": "#354"
+    },
+    {
+      "id": 12,
+      "type": "VisualizerCandidateRegions",
+      "pos": [
+        -1050,
+        470
+      ],
+      "size": [
+        420,
+        250
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 19
+        },
+        {
+          "name": "candidate_type",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "candidate_type"
+          }
+        },
+        {
+          "name": "sensitivity",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "sensitivity"
+          }
+        },
+        {
+          "name": "max_regions",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "max_regions"
+          }
+        },
+        {
+          "name": "padding_percent",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "padding_percent"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "suggested_regions",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        },
+        {
+          "name": "candidate_mask",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        },
+        {
+          "name": "candidate_preview",
+          "type": "IMAGE",
+          "links": null,
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VisualizerCandidateRegions"
+      },
+      "widgets_values": [
+        "bright highlights",
+        0.65,
+        6,
+        2.0
+      ],
+      "widgets_values_named": {
+        "candidate_type": "bright highlights",
+        "sensitivity": 0.65,
+        "max_regions": 6,
+        "padding_percent": 2.0
+      },
+      "title": "Optional: suggest candidate regions for a new image"
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      3,
+      0,
+      "IMAGE"
+    ],
+    [
+      2,
+      1,
+      0,
+      4,
+      0,
+      "IMAGE"
+    ],
+    [
+      3,
+      1,
+      0,
+      5,
+      0,
+      "IMAGE"
+    ],
+    [
+      4,
+      1,
+      0,
+      6,
+      0,
+      "IMAGE"
+    ],
+    [
+      5,
+      1,
+      0,
+      7,
+      0,
+      "IMAGE"
+    ],
+    [
+      6,
+      1,
+      0,
+      8,
+      0,
+      "IMAGE"
+    ],
+    [
+      7,
+      1,
+      0,
+      9,
+      0,
+      "IMAGE"
+    ],
+    [
+      8,
+      2,
+      0,
+      9,
+      1,
+      "AUDIO"
+    ],
+    [
+      9,
+      3,
+      0,
+      9,
+      6,
+      "MASK"
+    ],
+    [
+      10,
+      4,
+      0,
+      9,
+      7,
+      "MASK"
+    ],
+    [
+      11,
+      5,
+      0,
+      9,
+      8,
+      "MASK"
+    ],
+    [
+      12,
+      6,
+      0,
+      9,
+      9,
+      "MASK"
+    ],
+    [
+      13,
+      7,
+      0,
+      9,
+      10,
+      "MASK"
+    ],
+    [
+      14,
+      8,
+      0,
+      9,
+      11,
+      "MASK"
+    ],
+    [
+      15,
+      11,
+      0,
+      9,
+      2,
+      "IMAGE"
+    ],
+    [
+      16,
+      11,
+      1,
+      9,
+      3,
+      "MASK"
+    ],
+    [
+      17,
+      10,
+      0,
+      9,
+      4,
+      "IMAGE"
+    ],
+    [
+      18,
+      10,
+      1,
+      9,
+      5,
+      "MASK"
+    ],
+    [
+      19,
+      1,
+      0,
+      12,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "Inputs and candidate-region helper",
+      "bounding": [
+        -1080,
+        -180,
+        470,
+        950
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "Independent editable region masks",
+      "bounding": [
+        -630,
+        -700,
+        950,
+        1080
+      ],
+      "color": "#8a6d3b",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 3,
+      "title": "Streaming procedural render \u2014 no generative model",
+      "bounding": [
+        440,
+        -310,
+        620,
+        1030
+      ],
+      "color": "#487a52",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 4,
+      "title": "Post-process track title and studio badge",
+      "bounding": [
+        1060,
+        -310,
+        420,
+        800
+      ],
+      "color": "#725a8f",
+      "font_size": 24,
+      "flags": {}
+    }
+  ],
+  "definitions": {
+    "subgraphs": []
+  },
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.72,
+      "offset": [
+        990,
+        620
+      ]
+    },
+    "frontendVersion": "1.24.4"
+  },
+  "version": 0.4,
+  "state": {
+    "lastNodeId": 12,
+    "lastLinkId": 19,
+    "lastGroupId": 4
+  }
+}

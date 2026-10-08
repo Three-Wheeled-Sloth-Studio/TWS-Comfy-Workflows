@@ -3,14 +3,14 @@ schema: refs/schemas/schemaRegistry.yaml
 updated: 2026-10-01
 open_questions:
   - id: retained-loop-object
-    status: open
+    status: deferred
     question: Which native-loop expanded output or model-manager allocation accounts for the remaining per-iteration GPU pressure?
   - id: checkpoint-format
-    status: open
+    status: deferred
     question: Should resumable chunks be stored as latents, decoded lossless video segments, or both?
   - id: transition-overlap
-    status: open
+    status: deferred
     question: What overlap/crossfade policy best preserves smooth minimal animation when chunks are executed as separate prompts?
   - id: upscale-tool
-    status: open
-    question: Which local video upscaler provides acceptable temporal stability and throughput for 832x480 music videos?
+    status: deferred
+    question: Does an optional AI upscaler improve visible detail enough to justify its temporal-stability, fidelity, runtime, and model-dependency costs over the accepted Lanczos 1080p default?

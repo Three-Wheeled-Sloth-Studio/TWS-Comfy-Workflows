@@ -1,6 +1,16 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: TEMPLATE_TODO_DATE
+updated: 2026-10-02
 terms:
-  - term: TEMPLATE_TODO
-    definition: TEMPLATE_TODO
+  - term: guided motion poster
+    definition: The primary one-queue ComfyUI workflow that generates a short Wan motion asset and assembles it to the complete song duration.
+  - term: working resolution
+    definition: The 1024x576 exact-16:9 frame accepted for guided production Wan generation on the current machine; the advanced motion-loop diagnostic remains 832x480.
+  - term: delivery resolution
+    definition: The saved output canvas; the accepted default scales the complete exact-16:9 generated foreground to 1920x1080 without padding or cropping.
+  - term: variant
+    definition: An independently seeded generated motion asset. One variant is the accepted baseline; multiple variants remain experimental.
+  - term: closed cycle
+    definition: A forward-and-reversed motion sequence with crossfaded turnarounds that can repeat without a hard endpoint jump.
+  - term: source mode
+    definition: Diagnostic delivery that retains the generated working dimensions so generation artifacts can be assessed before upscaling.

@@ -1,8 +1,8 @@
 {
   "version": 2,
   "inputs": {
-    "audio": "../input/Choir of the Unruled.mp3",
-    "reference_images": ["../input/Last Call for the Shareholders.jpg"],
+    "audio": "../input/select_audio.mp3",
+    "reference_images": ["../input/select_reference_image.png"],
     "lyrics": null
   },
   "generation": {
@@ -30,7 +30,7 @@
     "y_period_seconds": 29.0
   },
   "output": {
-    "path": "../output/motion_poster/choir_of_the_unruled.mp4",
+    "path": "../output/motion_poster/song_title.mp4",
     "width": 832,
     "height": 480,
     "fps": 16,

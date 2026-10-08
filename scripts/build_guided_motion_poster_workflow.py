@@ -14,13 +14,17 @@ DEFAULT_POSITIVE_PROMPT = (
     "Smoke billows slowly in the background. Street and neon lights flicker "
     "intermittently. Preserve the subject's identity, face, expression, lips, "
     "mouth position, pose, framing, clothing, and the original composition. "
-    "Restrained, physically plausible motion with seamless-loop-friendly pacing."
+    "Keep every existing person and face fixed in place and unchanged. Do not "
+    "add or remove people, faces, figures, or objects. Restrained, physically "
+    "plausible motion with seamless-loop-friendly pacing."
 )
 DEFAULT_NEGATIVE_PROMPT = (
     "lip sync, lips moving, mouth movement, singing, talking, speech, changing "
     "expression, blinking to the beat, face deformation, identity drift, body "
     "movement, dancing, camera shake, rapid zoom, scene change, new objects, "
-    "warping, morphing, whole-image pulsing, exaggerated motion"
+    "extra face, duplicate face, new face, face appearing in the background, "
+    "extra person, duplicate person, disembodied face, warping, morphing, "
+    "whole-image pulsing, exaggerated motion"
 )
 
 
@@ -112,14 +116,18 @@ def prune_unused_layout(workflow: dict) -> None:
 def main() -> int:
     workflow = json.loads(SOURCE.read_text(encoding="utf-8"))
     # Node 96 is the decoded first/continuation sequence from the curated
-    # 832x480 graph. The source JSON also contains a disconnected square
+    # landscape graph. The source JSON also contains a disconnected square
     # example; retaining only node 96's ancestors prevents that graph from
     # exposing duplicate media pickers or executing accidentally.
     keep_ancestors(workflow, {96, 58})
     nodes_by_id = {node["id"]: node for node in workflow["nodes"]}
-    nodes_by_id[58]["widgets_values"][0] = "Last Call for the Shareholders.mp3"
+    nodes_by_id[93]["widgets_values"][0:2] = [1024, 576]
+    nodes_by_id[93]["widgets_values_named"].update(
+        {"width": 1024, "height": 576}
+    )
+    nodes_by_id[58]["widgets_values"][0] = "select_audio.mp3"
     nodes_by_id[58]["widgets_values_named"]["audio"] = (
-        "Last Call for the Shareholders.mp3"
+        "select_audio.mp3"
     )
     nodes_by_id[58]["title"] = "Load Song"
     for node_id, label in (
@@ -142,7 +150,7 @@ def main() -> int:
         "id": guidance_id,
         "type": "MotionPosterGuidance",
         "pos": [330, -650],
-        "size": [640, 580],
+        "size": [640, 700],
         "flags": {},
         "order": 31,
         "mode": 0,
@@ -150,6 +158,7 @@ def main() -> int:
             input_slot("positive_prompt", "STRING", widget=True),
             input_slot("negative_prompt", "STRING", widget=True),
             input_slot("allow_lip_motion", "BOOLEAN", widget=True),
+            input_slot("motion_targets", "STRING", widget=True),
             input_slot("lyrics_or_theme_context", "STRING", widget=True),
         ],
         "outputs": [
@@ -162,11 +171,13 @@ def main() -> int:
             DEFAULT_NEGATIVE_PROMPT,
             False,
             "",
+            "",
         ],
         "widgets_values_named": {
             "positive_prompt": DEFAULT_POSITIVE_PROMPT,
             "negative_prompt": DEFAULT_NEGATIVE_PROMPT,
             "allow_lip_motion": False,
+            "motion_targets": "",
             "lyrics_or_theme_context": "",
         },
         "title": "1. Edit positive and negative prompts",
@@ -204,7 +215,7 @@ def main() -> int:
         "id": assemble_id,
         "type": "MotionPosterAssemble",
         "pos": [1350, -650],
-        "size": [560, 680],
+        "size": [560, 780],
         "flags": {},
         "order": 60,
         "mode": 0,
@@ -223,6 +234,9 @@ def main() -> int:
             input_slot("wordmark_width_percent", "FLOAT", widget=True),
             input_slot("wordmark_opacity", "FLOAT", widget=True),
             input_slot("wordmark_margin_px", "INT", widget=True),
+            input_slot("wordmark_halo_style", "COMBO", widget=True),
+            input_slot("wordmark_halo_opacity", "FLOAT", widget=True),
+            input_slot("wordmark_halo_blur_px", "FLOAT", widget=True),
             input_slot("song_name", "STRING", widget=True),
             input_slot("fps", "INT", widget=True),
             input_slot("reversal_crossfade_seconds", "FLOAT", widget=True),
@@ -230,6 +244,7 @@ def main() -> int:
             input_slot("camera_zoom", "FLOAT", widget=True),
             input_slot("horizontal_drift_px", "FLOAT", widget=True),
             input_slot("vertical_drift_px", "FLOAT", widget=True),
+            input_slot("delivery_resolution", "COMBO", widget=True),
             input_slot("output_prefix", "STRING", widget=True),
         ],
         "outputs": [output_slot("output_path", "STRING", slot_index=0)],
@@ -237,8 +252,10 @@ def main() -> int:
         "widgets_values": [
             False, 12.0, 0.72, 16,
             False, 35.0, 0.95, 20,
-            "Last Call for the Shareholders",
+            "dark", 0.55, 18.0,
+            "song_title",
             16, 0.5, 1.0, 1.0, 0.0, 0.0,
+            "1080p",
             "motion_poster/guided_motion_poster",
         ],
         "widgets_values_named": {
@@ -250,13 +267,17 @@ def main() -> int:
             "wordmark_width_percent": 35.0,
             "wordmark_opacity": 0.95,
             "wordmark_margin_px": 20,
-            "song_name": "Last Call for the Shareholders",
+            "wordmark_halo_style": "dark",
+            "wordmark_halo_opacity": 0.55,
+            "wordmark_halo_blur_px": 18.0,
+            "song_name": "song_title",
             "fps": 16,
             "reversal_crossfade_seconds": 0.5,
             "variant_crossfade_seconds": 1.0,
             "camera_zoom": 1.0,
             "horizontal_drift_px": 0.0,
             "vertical_drift_px": 0.0,
+            "delivery_resolution": "1080p",
             "output_prefix": "motion_poster/guided_motion_poster",
         },
         "title": "3. Assemble and save full song",
@@ -277,10 +298,10 @@ def main() -> int:
         "widgets_values": [
             "# Guided motion poster\n\n"
             "1. Select the **Load Image** and **Load Song** inputs.\n"
-            "2. Edit the positive and negative prompts in the green guidance node. Leave lip motion off unless deliberately testing it.\n"
+            "2. Edit the prompts and list exact existing regions in motion targets, for example `left smoke plume — billow slowly; red light bars — pulse locally; background tentacles — sway in place`. Leave lip motion off unless deliberately testing it.\n"
             "3. Choose 1–3 variants. The base seed randomizes after each run unless you select fixed. Three variants give more variety but take roughly three times as long.\n"
-            "4. Camera zoom `1.0` means no zoom; drift defaults to zero. Set the song-title field when changing audio; it starts the output filename.\n"
-            "5. Optional branding is applied after generation: the logo sits subtly at lower right and the wordmark appears at upper left. Enable either independently.\n"
+            "4. Camera zoom `1.0` means no zoom; drift defaults to zero. The 1024×576 generation canvas and default 1920×1080 delivery are both exact 16:9, so normal delivery needs no padding or crop. Set the song-title field when changing audio; it starts the output filename.\n"
+            "5. Optional branding is applied after delivery scaling: the logo sits subtly at lower right and the wordmark appears at upper left. The wordmark can generate its own dark or light blurred halo from its alpha channel.\n"
             "6. Queue once. The graph generates the variants sequentially, closes their loop seams, crossfades them, repeats them to the complete audio duration, and saves one final MP4.\n\n"
             "The normal path requires no manifest edits and no command-line rendering."
         ],
@@ -296,8 +317,8 @@ def main() -> int:
             "pos": [1950, -650],
             "title": "Optional Brand Logo — lower right",
             "order": 28,
-            "widgets_values": ["TWS-Logo.png", "image"],
-            "widgets_values_named": {"image": "TWS-Logo.png"},
+            "widgets_values": ["select_brand_logo.png", "image"],
+            "widgets_values_named": {"image": "select_brand_logo.png"},
         }
     )
     wordmark = copy.deepcopy(nodes_by_id[52])
@@ -305,10 +326,10 @@ def main() -> int:
         {
             "id": wordmark_id,
             "pos": [2310, -650],
-            "title": "Optional Wordmark — upper left",
+            "title": "Optional Title / Wordmark — upper left",
             "order": 29,
-            "widgets_values": ["TWS-Logo.png", "image"],
-            "widgets_values_named": {"image": "TWS-Logo.png"},
+            "widgets_values": ["select_title_wordmark.png", "image"],
+            "widgets_values_named": {"image": "select_title_wordmark.png"},
         }
     )
     workflow["nodes"].extend([guidance, seeds, assemble, note, logo, wordmark])
@@ -356,8 +377,12 @@ def main() -> int:
         raise RuntimeError("stale lower-canvas workflow groups remain")
     if len(workflow["definitions"]["subgraphs"]) != 1:
         raise RuntimeError("unused subgraph definitions remain")
-    if assemble["inputs"][14].get("widget", {}).get("name") != "song_name":
+    if nodes_by_id[93]["widgets_values"][0:2] != [1024, 576]:
+        raise RuntimeError("guided generation resolution must be 1024x576")
+    if assemble["inputs"][17].get("widget", {}).get("name") != "song_name":
         raise RuntimeError("assembler song-title field is missing")
+    if assemble["inputs"][24].get("widget", {}).get("name") != "delivery_resolution":
+        raise RuntimeError("assembler delivery-resolution field is missing")
     TARGET.write_text(
         json.dumps(workflow, ensure_ascii=False, separators=(",", ":")),
         encoding="utf-8",
