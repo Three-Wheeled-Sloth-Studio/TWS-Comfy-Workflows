@@ -120,7 +120,11 @@ persistent correction, open the review node
 itself in Mask Editor, use the first tool (Mask Pen), and press Save; the next
 queue automatically uses that lane's painted mask. A correction belongs only
 to the source artwork on which it was painted; changing the source clears stale
-review state on the next queue. Then enable `mask_verified`. Describe the
+review state on the next queue. To discard a correction without changing the
+source, click **Reset saved mask** and queue once; the node returns to the
+latest detector proposal. The semantic starter graph provides five complete
+lanes, with unused unverified lanes skipped automatically. Then enable
+`mask_verified`. Describe the
 desired lighting/appearance behavior in the text field and select spatial
 behavior with `motion_type`. Use
 `on_beat_flicker` and `off_beat_flicker` for brightness/color modulation, and
@@ -168,6 +172,11 @@ For installation, use the repository `.venv`/ComfyUI Python and omit
 `--list-only`. The download is approximately 577 MiB. Restart ComfyUI after
 installation; the loader is deliberately local-only and never downloads model
 files while a workflow is running.
+
+The generic renderer's `wordmark_sparkle_strength` adds a cheap procedural
+glint after compositing the wordmark. `0` disables it; the default `0.70` makes
+one brief deterministic pass about every six seconds and lightly responds to
+high-frequency audio energy. It requires no additional model or mask lane.
 
 ### Reading and correcting masks
 
@@ -223,7 +232,7 @@ effect is intentional.
 | Workflow | Role |
 | --- | --- |
 | `music_visualizer_target_builder.json` | Generic repeatable detect/verify/prompt/beat-mix target workflow; model-free detector proposals. |
-| `music_visualizer_target_builder_semantic.json` | Separate next-pass copy using optional local CLIPSeg detection with heuristic fallback. |
+| `music_visualizer_target_builder_semantic.json` | Five-lane semantic copy using optional local CLIPSeg detection with heuristic fallback, per-lane mask reset, and wordmark sparkle. |
 | `music_visualizer_local_composite.json` | Standalone lightweight regional compositor; no model or camera motion. |
 | `video_wan2_2_14B_s2v_motion_poster_guided.json` | Recommended production workflow. |
 | `video_wan2_2_14B_s2v_motion_poster_visualizer.json` | Deferred logo-spectrum experiment; coherent, but currently too visually dominant for the lower-right brand position. |

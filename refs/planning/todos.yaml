@@ -1,6 +1,6 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: 2026-10-07
+updated: 2026-10-08
 todos:
   - id: validate-local-composite-user-review
     status: in_progress
@@ -14,6 +14,10 @@ todos:
     status: in_progress
     area: lightweight-visualizer
     summary: Validate crop-first neutral-smoke expansion across more artwork, and evaluate a box-plus-mask or stronger referring-segmentation provider for the unresolved sun-disk and flag-versus-scarf cases before accepting semantic detection quality.
+  - id: add-mask-review-reset
+    status: done
+    area: lightweight-visualizer
+    summary: Added a visible Reset saved mask control that clears one lane's persisted Mask Editor correction without changing the source or rebuilding the node; the next queue displays and emits the latest detector proposal.
   - id: evaluate-assisted-irregular-masks
     status: deferred
     area: lightweight-visualizer

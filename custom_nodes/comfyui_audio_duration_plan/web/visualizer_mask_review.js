@@ -17,6 +17,30 @@ app.registerExtension({
                     widget.computeSize = () => [0, -4];
                 }
             }
+            this.addWidget?.("button", "Reset saved mask", null, () => {
+                let changed = false;
+                for (const name of ["image", "source_fingerprint"]) {
+                    const widget = this.widgets?.find((candidate) => candidate.name === name);
+                    if (widget?.value) {
+                        widget.value = "";
+                        changed = true;
+                    }
+                }
+                // Stop showing the persisted Mask Editor image immediately.
+                // The next queue displays and outputs the latest detector proposal.
+                this.imgs = [];
+                this.imageIndex = null;
+                this.graph?.change?.();
+                this.graph?.setDirtyCanvas(true, true);
+                if (changed) {
+                    app.extensionManager?.toast?.add?.({
+                        severity: "info",
+                        summary: "Saved mask reset",
+                        detail: "Queue the workflow to use the latest detector proposal.",
+                        life: 3000,
+                    });
+                }
+            }, { serialize: false });
         };
 
         const originalExecuted = nodeType.prototype.onExecuted;

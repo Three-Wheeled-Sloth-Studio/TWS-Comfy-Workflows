@@ -116,15 +116,16 @@ def stack(node_id, position, target_link, output_link, previous_link=None):
 
 
 def renderer():
-    widgets = [16, "1080p", 20261007, True, 10.0, 0.68, True, 32.0, 0.95, 24, 0.55, 18.0, "generic_visualizer/render"]
+    widgets = [16, "1080p", 20261007, True, 10.0, 0.68, True, 32.0, 0.95, 24, 0.55, 18.0, "generic_visualizer/render", 0.70]
     names = [
         "fps", "delivery_resolution", "pattern_key", "apply_brand_logo", "brand_logo_width_percent",
         "brand_logo_opacity", "apply_wordmark", "wordmark_width_percent", "wordmark_opacity",
-        "overlay_margin_px", "wordmark_halo_opacity", "wordmark_halo_blur_px", "output_prefix",
+        "overlay_margin_px", "wordmark_halo_opacity", "wordmark_halo_blur_px",
+        "output_prefix", "wordmark_sparkle_strength",
     ]
-    kinds = ["INT", "COMBO", "INT", "BOOLEAN", "FLOAT", "FLOAT", "BOOLEAN", "FLOAT", "FLOAT", "INT", "FLOAT", "FLOAT", "STRING"]
+    kinds = ["INT", "COMBO", "INT", "BOOLEAN", "FLOAT", "FLOAT", "BOOLEAN", "FLOAT", "FLOAT", "INT", "FLOAT", "FLOAT", "STRING", "FLOAT"]
     inputs = [
-        input_slot("image", "IMAGE", 4), input_slot("audio", "AUDIO", 5), input_slot("targets", "LOCAL_VISUALIZER_TARGETS", 21),
+        input_slot("image", "IMAGE", 4), input_slot("audio", "AUDIO", 5), input_slot("targets", "LOCAL_VISUALIZER_TARGETS", 41),
         input_slot("brand_logo", "IMAGE", 8), input_slot("brand_logo_mask", "MASK", 9),
         input_slot("wordmark", "IMAGE", 6), input_slot("wordmark_mask", "MASK", 7),
     ] + [input_slot(name, kind, widget=True) for name, kind in zip(names, kinds)]
@@ -139,7 +140,7 @@ def renderer():
 
 def main() -> int:
     nodes = [
-        loader(1, "LoadImage", "1. Source artwork (static base)", [-1280, -100], "select_reference_image.png", ([1, 2, 3, 4, 25, 26, 27], None)),
+        loader(1, "LoadImage", "1. Source artwork (static base)", [-1280, -100], "select_reference_image.png", ([1, 2, 3, 4, 25, 26, 27, 28, 31, 35, 38], None)),
         loader(2, "LoadAudio", "2. Finalized audio", [-1280, 260], "select_audio.mp3", [5]),
         loader(3, "LoadImage", "Track wordmark", [1600, 760], "Managed Decline wordmark.png", ([6], [7])),
         loader(4, "LoadImage", "Studio badge", [1990, 760], "TWS Studio Logo nt - underlay.png", ([8], [9])),
@@ -155,6 +156,14 @@ def main() -> int:
         review(31, [-350, 280], 19, 18, 27, 24, "VERIFY / EDIT DETECTION: monitor"),
         target(32, [50, 280], 24, 20, "monitor", "monitor scan and glow with occasional beat pulses", "still", 0.70, 0.35, 0.0, 0.0),
         stack(33, [1280, -140], 20, 21, 17),
+        detector(41, [-820, 730], 28, 29, 30, "flowers", 0.60),
+        review(42, [-350, 730], 30, 29, 31, 32, "VERIFY / EDIT DETECTION: flowers"),
+        target(43, [50, 730], 32, 33, "flowers", "flowers swaying gently in a light breeze", "sway", 0.20, 0.35, 0.10, 0.45),
+        stack(44, [560, 850], 33, 34, 21),
+        detector(51, [-820, 1180], 35, 36, 37, "fabric", 0.60),
+        review(52, [-350, 1180], 37, 36, 38, 39, "VERIFY / EDIT DETECTION: fabric"),
+        target(53, [50, 1180], 39, 40, "fabric", "fabric moving softly in the breeze", "sway", 0.15, 0.25, 0.10, 0.40),
+        stack(54, [920, 1030], 40, 41, 34),
         renderer(),
     ]
     links = [
@@ -166,23 +175,29 @@ def main() -> int:
         [14, 20, 0, 21, 1, "MASK"], [15, 20, 1, 21, 0, "IMAGE"], [16, 22, 0, 23, 0, "LOCAL_VISUALIZER_TARGET"],
         [17, 23, 0, 33, 1, "LOCAL_VISUALIZER_TARGETS"],
         [18, 30, 0, 31, 1, "MASK"], [19, 30, 1, 31, 0, "IMAGE"], [20, 32, 0, 33, 0, "LOCAL_VISUALIZER_TARGET"],
-        [21, 33, 0, 40, 2, "LOCAL_VISUALIZER_TARGETS"],
+        [21, 33, 0, 44, 1, "LOCAL_VISUALIZER_TARGETS"],
         [22, 11, 0, 12, 0, "MASK"], [23, 21, 0, 22, 0, "MASK"], [24, 31, 0, 32, 0, "MASK"],
         [25, 1, 0, 11, 2, "IMAGE"], [26, 1, 0, 21, 2, "IMAGE"], [27, 1, 0, 31, 2, "IMAGE"],
+        [28, 1, 0, 41, 0, "IMAGE"], [29, 41, 0, 42, 1, "MASK"], [30, 41, 1, 42, 0, "IMAGE"],
+        [31, 1, 0, 42, 2, "IMAGE"], [32, 42, 0, 43, 0, "MASK"], [33, 43, 0, 44, 0, "LOCAL_VISUALIZER_TARGET"],
+        [34, 44, 0, 54, 1, "LOCAL_VISUALIZER_TARGETS"],
+        [35, 1, 0, 51, 0, "IMAGE"], [36, 51, 0, 52, 1, "MASK"], [37, 51, 1, 52, 0, "IMAGE"],
+        [38, 1, 0, 52, 2, "IMAGE"], [39, 52, 0, 53, 0, "MASK"], [40, 53, 0, 54, 0, "LOCAL_VISUALIZER_TARGET"],
+        [41, 54, 0, 40, 2, "LOCAL_VISUALIZER_TARGETS"],
     ]
     workflow = {
         "id": "e6a21a19-acde-4fcb-b9e0-10ca1a150003", "revision": 0,
-        "last_node_id": 40, "last_link_id": 27, "nodes": nodes, "links": links,
+        "last_node_id": 54, "last_link_id": 41, "nodes": nodes, "links": links,
         "groups": [
             {"id": 1, "title": "Inputs", "bounding": [-1310, -150, 430, 820], "color": "#3f789e", "font_size": 24, "flags": {}},
-            {"id": 2, "title": "Semantic animation target lanes — detection is usable immediately; edit only when needed", "bounding": [-850, -670, 1490, 1370], "color": "#8a6d3b", "font_size": 24, "flags": {}},
-            {"id": 3, "title": "Chain target stack in order", "bounding": [530, -550, 1080, 560], "color": "#486d8a", "font_size": 24, "flags": {}},
+            {"id": 2, "title": "Five semantic animation target lanes — detection is usable immediately; edit only when needed", "bounding": [-850, -670, 1490, 2270], "color": "#8a6d3b", "font_size": 24, "flags": {}},
+            {"id": 3, "title": "Chain target stack in order", "bounding": [530, -550, 1080, 1740], "color": "#486d8a", "font_size": 24, "flags": {}},
             {"id": 4, "title": "Streaming renderer — masked flicker + motion", "bounding": [1570, -100, 630, 850], "color": "#487a52", "font_size": 24, "flags": {}},
             {"id": 5, "title": "Optional post-process badging", "bounding": [1570, 710, 820, 420], "color": "#725a8f", "font_size": 24, "flags": {}},
         ],
         "definitions": {"subgraphs": []}, "config": {},
         "extra": {"ds": {"scale": 0.62, "offset": [920, 560]}, "frontendVersion": "1.24.4"},
-        "version": 0.4, "state": {"lastNodeId": 40, "lastLinkId": 27, "lastGroupId": 5},
+        "version": 0.4, "state": {"lastNodeId": 54, "lastLinkId": 41, "lastGroupId": 5},
     }
     node_ids = {node["id"] for node in nodes}
     if any(link[1] not in node_ids or link[3] not in node_ids for link in links):
@@ -190,13 +205,13 @@ def main() -> int:
     if len({link[0] for link in links}) != len(links):
         raise RuntimeError("Workflow link identifiers are not unique.")
     render_node = next(node for node in nodes if node["type"] == "GenericBeatAwareLocalVisualizer")
-    if render_node["inputs"][2]["name"] != "targets" or render_node["widgets_values"][-1] != "generic_visualizer/render":
+    if render_node["inputs"][2]["name"] != "targets" or render_node["widgets_values"][-2] != "generic_visualizer/render":
         raise RuntimeError("Generic renderer inputs or widgets are positionally misaligned.")
     detectors = [node for node in nodes if node["type"] == "VisualizerSemanticObjectDetector"]
-    if len(detectors) != 3 or any(node["widgets_values_named"].get("detection_provider") != "semantic_or_heuristic" for node in detectors):
-        raise RuntimeError("Starter workflow must contain three example target lanes.")
+    if len(detectors) != 5 or any(node["widgets_values_named"].get("detection_provider") != "semantic_or_heuristic" for node in detectors):
+        raise RuntimeError("Starter workflow must contain five example target lanes.")
     reviewers = [node for node in nodes if node["type"] == "VisualizerMaskReview"]
-    if len(reviewers) != 3 or any(node["inputs"][2]["name"] != "source_image" or node["inputs"][2]["link"] is None for node in reviewers):
+    if len(reviewers) != 5 or any(node["inputs"][2]["name"] != "source_image" or node["inputs"][2]["link"] is None for node in reviewers):
         raise RuntimeError("Every starter target lane must route its optional Mask Editor correction into configuration.")
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(json.dumps(workflow, indent=2) + "\n", encoding="utf-8")

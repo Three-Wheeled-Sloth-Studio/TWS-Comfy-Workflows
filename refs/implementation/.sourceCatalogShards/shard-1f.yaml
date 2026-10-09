@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/build_generic_music_visualizer_workflow.py
     analysis_version: 1
     language: python
-    content_hash: fc01b3e6b869342d3a234f7edabd3e996bab548f
+    content_hash: 157fb64220be540133eca98ab630acf547921b38
     dependencies:
     - __future__
     - json
@@ -211,7 +211,7 @@ source_catalog:
     - name: renderer
       kind: function
       line_start: 118
-      line_end: 137
+      line_end: 138
       signature: renderer()
       inputs: []
       output: unspecified
@@ -232,8 +232,8 @@ source_catalog:
       - *id004
     - name: main
       kind: function
-      line_start: 140
-      line_end: 204
+      line_start: 141
+      line_end: 219
       signature: main() -> int
       inputs: []
       output: int

@@ -77,6 +77,8 @@ target lane:
    the next queue; no separate image or mask upload is required. The correction
    is fingerprint-bound to the source artwork. A new source invalidates and
    clears it rather than displaying or applying pixels from the previous image.
+   Its visible **Reset saved mask** button clears a same-source correction;
+   the next queue displays and emits the latest detector proposal.
 3. `Configure Animation Target` records the verified mask, object name,
    appearance description, explicit motion type, and four independent linear `0..2`
    controls. `on_beat_flicker` and `off_beat_flicker` mix beat-responsive and
@@ -91,7 +93,9 @@ target lane:
 It substitutes `Detect Animation Target (Semantic)` without changing the fixed
 workflow or the downstream review/configuration/renderer contract. The semantic
 node defaults to `semantic_or_heuristic`; `semantic_only` exposes missing or
-runtime failures and `heuristic` explicitly selects the model-free path.
+runtime failures and `heuristic` explicitly selects the model-free path. The
+curated graph contains five complete lanes, which is the intended practical
+maximum for the current UI; unused unverified lanes are skipped.
 
 A locally installed CLIPSeg model maps arbitrary text, including object parts,
 materials, and atmospheric regions, to a semantic heatmap. Inference uses the
@@ -137,6 +141,10 @@ fingerprint in hidden workflow state. When that fingerprint changes, the saved
 mask reference is cleared and the new detector proposal is shown and emitted.
 `Configure Animation Target.approved_mask` remains an optional advanced socket
 for external masks and add/subtract/replace composition.
+After all target layers and static badging are composited, the renderer can add
+a deterministic traveling glint clipped to the wordmark alpha. The effect is a
+small NumPy operation, lightly driven by the high-frequency audio envelope,
+and loads no model. `wordmark_sparkle_strength=0` disables it.
 The built-in detector is not an open-vocabulary vision model: it maps known
 visual concepts to color, luma, neutrality, and texture statistics. Its
 proposal is a starting point and may be replaced by any ComfyUI `MASK`,

@@ -7,7 +7,7 @@ source_catalog:
   - path: custom_nodes/comfyui_audio_duration_plan/web/visualizer_mask_review.js
     analysis_version: 1
     language: javascript
-    content_hash: 431dbd2edfba244e960b0830498f8e78574eb376
+    content_hash: b3bed92d8f9187ba616601188aca7acd9e0472f8
     dependencies:
     - ../../scripts/app.js
     provides:
@@ -16,7 +16,7 @@ source_catalog:
     - name: beforeRegisterNodeDef
       kind: method
       line_start: 5
-      line_end: 48
+      line_end: 72
       signature: beforeRegisterNodeDef(nodeType, nodeData)
       inputs:
       - nodeType

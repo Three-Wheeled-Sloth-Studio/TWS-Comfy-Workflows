@@ -7,7 +7,7 @@ source_catalog:
   - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
     analysis_version: 1
     language: python
-    content_hash: 910af538bee3f05b06a937e1a6366f0ecf189ac7
+    content_hash: af5eac58a597bcf0ffca8731bc670235e2b0818c
     dependencies:
     - PIL
     - __future__
@@ -45,6 +45,7 @@ source_catalog:
     - _overlay_pixels
     - _prepare_overlay
     - _apply_overlay
+    - _apply_wordmark_sparkle
     - _halo_overlay
     - VisualizerCandidateRegions.INPUT_TYPES
     - VisualizerCandidateRegions.discover
@@ -500,10 +501,36 @@ source_catalog:
       - np.clip(original * (1.0 - local_alpha) + changed * local_alpha, 0, 255).astype
       parser: python-ast
       dependency_targets: []
-    - name: _halo_overlay
+    - name: _apply_wordmark_sparkle
       kind: function
       line_start: 415
-      line_end: 425
+      line_end: 456
+      signature: '_apply_wordmark_sparkle(frame, overlay, seconds: float, strength: float, audio_high: float, phase: float)'
+      inputs:
+      - frame
+      - overlay
+      - 'seconds: float'
+      - 'strength: float'
+      - 'audio_high: float'
+      - 'phase: float'
+      output: unspecified
+      dependencies:
+      - float
+      - frame[y0:y1, x0:x1].astype
+      - math.sin
+      - max
+      - min
+      - np.abs
+      - np.arange
+      - np.clip
+      - np.clip(original + (255.0 - original) * sparkle[..., None], 0, 255).astype
+      - np.exp
+      parser: python-ast
+      dependency_targets: []
+    - name: _halo_overlay
+      kind: function
+      line_start: 459
+      line_end: 469
       signature: '_halo_overlay(overlay, opacity: float, blur: float)'
       inputs:
       - overlay
@@ -526,8 +553,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerCandidateRegions.INPUT_TYPES
       kind: method
-      line_start: 430
-      line_end: 442
+      line_start: 474
+      line_end: 486
       signature: VisualizerCandidateRegions.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -537,8 +564,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerCandidateRegions.discover
       kind: method
-      line_start: 450
-      line_end: 535
+      line_start: 494
+      line_end: 579
       signature: VisualizerCandidateRegions.discover(self, image, candidate_type, sensitivity, max_regions, padding_percent)
       inputs:
       - self
@@ -583,8 +610,8 @@ source_catalog:
       - *id002
     - name: VisualizerRegionMask.INPUT_TYPES
       kind: method
-      line_start: 540
-      line_end: 549
+      line_start: 584
+      line_end: 593
       signature: VisualizerRegionMask.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -594,8 +621,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerRegionMask.build
       kind: method
-      line_start: 557
-      line_end: 576
+      line_start: 601
+      line_end: 620
       signature: VisualizerRegionMask.build(self, image, regions, color_filter, threshold, feather_px)
       inputs:
       - self
@@ -623,8 +650,8 @@ source_catalog:
       - *id004
     - name: BeatAwareLocalVisualizer.INPUT_TYPES
       kind: method
-      line_start: 581
-      line_end: 617
+      line_start: 625
+      line_end: 661
       signature: BeatAwareLocalVisualizer.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -634,8 +661,8 @@ source_catalog:
       dependency_targets: []
     - name: BeatAwareLocalVisualizer.render
       kind: method
-      line_start: 626
-      line_end: 835
+      line_start: 670
+      line_end: 879
       signature: BeatAwareLocalVisualizer.render(self, image, audio, brand_logo, brand_logo_mask, wordmark, wordmark_mask,
         cloud_mask, candle_mask, red_light_mask, monitor_mask, rain_mask, reflection_mask, fps, delivery_resolution, pattern_key,
         cloud_strength, candle_strength, red_light_strength, monitor_strength, rain_strength, reflection_strength, apply_brand_logo,
@@ -735,8 +762,8 @@ source_catalog:
         symbol: _write_audio_wav
     - name: _target_candidate_type
       kind: function
-      line_start: 838
-      line_end: 848
+      line_start: 882
+      line_end: 892
       signature: '_target_candidate_type(target_description: str) -> str'
       inputs:
       - 'target_description: str'
@@ -748,8 +775,8 @@ source_catalog:
       dependency_targets: []
     - name: _target_effect_modes
       kind: function
-      line_start: 851
-      line_end: 865
+      line_start: 895
+      line_end: 909
       signature: '_target_effect_modes(object_name: str, animation_prompt: str) -> tuple[str, ...]'
       inputs:
       - 'object_name: str'
@@ -766,8 +793,8 @@ source_catalog:
       - *id002
     - name: VisualizerSemanticObjectDetector.INPUT_TYPES
       kind: method
-      line_start: 878
-      line_end: 889
+      line_start: 922
+      line_end: 933
       signature: VisualizerSemanticObjectDetector.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -777,8 +804,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerSemanticObjectDetector._semantic_model_dir
       kind: method
-      line_start: 898
-      line_end: 905
+      line_start: 942
+      line_end: 949
       signature: VisualizerSemanticObjectDetector._semantic_model_dir(cls) -> Path
       inputs:
       - cls
@@ -790,8 +817,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerSemanticObjectDetector._semantic_assets_available
       kind: method
-      line_start: 908
-      line_end: 914
+      line_start: 952
+      line_end: 958
       signature: VisualizerSemanticObjectDetector._semantic_assets_available(cls) -> bool
       inputs:
       - cls
@@ -809,8 +836,8 @@ source_catalog:
         symbol: VisualizerSemanticObjectDetector._semantic_model_dir
     - name: VisualizerSemanticObjectDetector._load_semantic_model
       kind: method
-      line_start: 917
-      line_end: 939
+      line_start: 961
+      line_end: 983
       signature: VisualizerSemanticObjectDetector._load_semantic_model(cls)
       inputs:
       - cls
@@ -833,8 +860,8 @@ source_catalog:
       - *id006
     - name: VisualizerSemanticObjectDetector._semantic_score
       kind: method
-      line_start: 942
-      line_end: 990
+      line_start: 986
+      line_end: 1034
       signature: VisualizerSemanticObjectDetector._semantic_score(cls, pixels, target, area)
       inputs:
       - cls
@@ -877,8 +904,8 @@ source_catalog:
         symbol: WanSoundImageToVideoExtendState.extend
     - name: VisualizerSemanticObjectDetector._heuristic_score
       kind: method
-      line_start: 993
-      line_end: 1009
+      line_start: 1037
+      line_end: 1053
       signature: VisualizerSemanticObjectDetector._heuristic_score(rgb, candidate_type)
       inputs:
       - rgb
@@ -895,8 +922,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerSemanticObjectDetector.detect
       kind: method
-      line_start: 1011
-      line_end: 1175
+      line_start: 1055
+      line_end: 1219
       signature: VisualizerSemanticObjectDetector.detect(self, image, find, search_area, sensitivity, max_regions, padding_percent,
         detection_provider)
       inputs:
@@ -945,8 +972,8 @@ source_catalog:
       - *id002
     - name: VisualizerObjectDetector.INPUT_TYPES
       kind: method
-      line_start: 1182
-      line_end: 1186
+      line_start: 1226
+      line_end: 1230
       signature: VisualizerObjectDetector.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -959,8 +986,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerObjectDetector.detect
       kind: method
-      line_start: 1190
-      line_end: 1199
+      line_start: 1234
+      line_end: 1243
       signature: VisualizerObjectDetector.detect(self, image, find, search_area, sensitivity, max_regions, padding_percent)
       inputs:
       - self
@@ -977,8 +1004,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerMaskReview.INPUT_TYPES
       kind: method
-      line_start: 1204
-      line_end: 1218
+      line_start: 1248
+      line_end: 1262
       signature: VisualizerMaskReview.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -988,8 +1015,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerMaskReview._saved_correction
       kind: method
-      line_start: 1228
-      line_end: 1254
+      line_start: 1272
+      line_end: 1298
       signature: VisualizerMaskReview._saved_correction(image_name, detected_mask)
       inputs:
       - image_name
@@ -1016,8 +1043,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerMaskReview._source_fingerprint
       kind: method
-      line_start: 1257
-      line_end: 1264
+      line_start: 1301
+      line_end: 1308
       signature: VisualizerMaskReview._source_fingerprint(source_image)
       inputs:
       - source_image
@@ -1035,8 +1062,8 @@ source_catalog:
       - *id003
     - name: VisualizerMaskReview._saved_preview_matches
       kind: method
-      line_start: 1267
-      line_end: 1274
+      line_start: 1311
+      line_end: 1318
       signature: VisualizerMaskReview._saved_preview_matches(saved_rgb, verification_preview)
       inputs:
       - saved_rgb
@@ -1055,8 +1082,8 @@ source_catalog:
       - *id003
     - name: VisualizerMaskReview._saved_image_reference
       kind: method
-      line_start: 1277
-      line_end: 1284
+      line_start: 1321
+      line_end: 1328
       signature: VisualizerMaskReview._saved_image_reference(image_name)
       inputs:
       - image_name
@@ -1074,8 +1101,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerMaskReview.review
       kind: method
-      line_start: 1286
-      line_end: 1317
+      line_start: 1330
+      line_end: 1361
       signature: VisualizerMaskReview.review(self, verification_preview, detected_mask, source_image, image, source_fingerprint)
       inputs:
       - self
@@ -1108,8 +1135,8 @@ source_catalog:
         symbol: VisualizerMaskReview._source_fingerprint
     - name: VisualizerAnimationTarget.INPUT_TYPES
       kind: method
-      line_start: 1322
-      line_end: 1339
+      line_start: 1366
+      line_end: 1383
       signature: VisualizerAnimationTarget.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -1119,8 +1146,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerAnimationTarget.configure
       kind: method
-      line_start: 1347
-      line_end: 1413
+      line_start: 1391
+      line_end: 1457
       signature: VisualizerAnimationTarget.configure(self, mask, object_name, animation_prompt, mask_verified, approved_mask_mode,
         motion_type, on_beat_flicker, off_beat_flicker, on_beat_motion, off_beat_motion, approved_mask)
       inputs:
@@ -1166,8 +1193,8 @@ source_catalog:
         symbol: _target_effect_modes
     - name: VisualizerTargetStack.INPUT_TYPES
       kind: method
-      line_start: 1418
-      line_end: 1422
+      line_start: 1462
+      line_end: 1466
       signature: VisualizerTargetStack.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -1177,8 +1204,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerTargetStack.append
       kind: method
-      line_start: 1430
-      line_end: 1431
+      line_start: 1474
+      line_end: 1475
       signature: VisualizerTargetStack.append(self, target, previous_targets)
       inputs:
       - self
@@ -1191,8 +1218,8 @@ source_catalog:
       dependency_targets: []
     - name: GenericBeatAwareLocalVisualizer.INPUT_TYPES
       kind: method
-      line_start: 1436
-      line_end: 1457
+      line_start: 1480
+      line_end: 1502
       signature: GenericBeatAwareLocalVisualizer.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -1202,12 +1229,12 @@ source_catalog:
       dependency_targets: []
     - name: GenericBeatAwareLocalVisualizer.render
       kind: method
-      line_start: 1466
-      line_end: 1643
+      line_start: 1511
+      line_end: 1700
       signature: GenericBeatAwareLocalVisualizer.render(self, image, audio, targets, brand_logo, brand_logo_mask, wordmark,
         wordmark_mask, fps, delivery_resolution, pattern_key, apply_brand_logo, brand_logo_width_percent, brand_logo_opacity,
         apply_wordmark, wordmark_width_percent, wordmark_opacity, overlay_margin_px, wordmark_halo_opacity, wordmark_halo_blur_px,
-        output_prefix)
+        output_prefix, wordmark_sparkle_strength)
       inputs:
       - self
       - image
@@ -1230,6 +1257,7 @@ source_catalog:
       - wordmark_halo_opacity
       - wordmark_halo_blur_px
       - output_prefix
+      - wordmark_sparkle_strength
       output: unspecified
       dependencies:
       - ''', ''.join'
@@ -1240,6 +1268,7 @@ source_catalog:
       - RuntimeError
       - ValueError
       - _apply_overlay
+      - _apply_wordmark_sparkle
       - _audio_features
       - _blend
       - _deform_pixels
@@ -1255,10 +1284,11 @@ source_catalog:
       - any
       - base.copy
       - bool
-      - empty.append
       parser: python-ast
       dependency_targets:
       - *id008
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _apply_wordmark_sparkle
       - *id009
       - *id010
       - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
@@ -1275,5 +1305,3 @@ source_catalog:
         symbol: _translate_pixels
       - *id015
       - *id016
-      - *id001
-      - *id002

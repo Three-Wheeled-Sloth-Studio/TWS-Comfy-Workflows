@@ -76,7 +76,9 @@ uses detection immediately with no upload step; opening that same node in Mask
 Editor and pressing Save automatically makes the painted mask the lane's
 persistent correction for that source artwork. Selecting a different source
 automatically clears the stale correction and returns the lane to its new
-detector proposal. Duplicate the complete lane to add a target.
+detector proposal. **Reset saved mask** clears a same-source correction; queue
+once afterward to display and use the latest detector proposal. Duplicate the
+complete lane to add a target.
 
 That workflow is the fixed model-free version: its `Detect Animation Target`
 nodes retain the lightweight color/texture detector and have no semantic-model
@@ -84,8 +86,9 @@ dependency. New semantic-detection work lives in the separate next-pass copy:
 
 `user/default/workflows/music_visualizer_target_builder_semantic.json`
 
-Only that copy uses `Detect Animation Target (Semantic)`. Each semantic
-detector defaults to `semantic_or_heuristic`. When the optional local
+Only that copy uses `Detect Animation Target (Semantic)`. Its starter graph
+contains five complete target lanes, and each semantic detector defaults to
+`semantic_or_heuristic`. When the optional local
 CLIPSeg model is installed, the `find` text produces a semantic heatmap before
 the ordinary search-area, sensitivity, and region-count controls are applied.
 Semantic inference runs on the bounding crop of `search_area`, preserving more
@@ -101,6 +104,12 @@ or paint the review mask before verification.
 The advanced `approved_mask` socket remains optional for externally supplied
 add, subtract, or replace masks.
 
+The generic renderer also applies an inexpensive procedural glint to the
+post-process wordmark. `wordmark_sparkle_strength` controls it from `0` (off)
+to `1.5`; the default `0.70` produces one short, deterministic, high-band-aware
+pass roughly every six seconds. It does not invoke a model or consume a target
+lane.
+
 Preview the optional semantic-model installation without downloading anything:
 
 ```powershell
@@ -111,6 +120,10 @@ To install its approximately 577 MiB pinned CLIPSeg snapshot, run the same
 script without `--list-only` using ComfyUI's Python environment, then restart
 ComfyUI. Model files stay under `models/detection/clipseg-rd64-refined` and are
 excluded from version control.
+
+The verified local installation inventory, curated workflow catalog, and
+runtime findings are recorded in
+[`refs/operations/installedInventory.md`](refs/operations/installedInventory.md).
 
 ## Render a motion poster
 

@@ -412,6 +412,50 @@ def _apply_overlay(frame, overlay):
     ).astype(np.uint8)
 
 
+def _apply_wordmark_sparkle(frame, overlay, seconds: float, strength: float, audio_high: float, phase: float):
+    """Apply an occasional traveling white glint clipped to the wordmark alpha."""
+    import numpy as np
+
+    amount = max(0.0, float(strength))
+    if amount <= 0.0:
+        return
+    _, alpha, x, y = overlay
+    height, width = alpha.shape
+    x0, y0 = max(0, x), max(0, y)
+    x1, y1 = min(frame.shape[1], x + width), min(frame.shape[0], y + height)
+    if x1 <= x0 or y1 <= y0:
+        return
+    sx0, sy0 = x0 - x, y0 - y
+    sx1, sy1 = sx0 + x1 - x0, sy0 + y1 - y0
+    local_alpha = alpha[sy0:sy1, sx0:sx1]
+
+    # One short pass every six seconds keeps the branding alive without
+    # becoming a constant scanner. pattern_key offsets the deterministic cycle.
+    cycle = (float(seconds) + float(phase)) % 6.0
+    if cycle >= 1.15:
+        return
+    progress = cycle / 1.15
+    pulse = math.sin(math.pi * progress) ** 2
+    rows = np.arange(sy0, sy1, dtype=np.float32)[:, None]
+    columns = np.arange(sx0, sx1, dtype=np.float32)[None, :]
+    center_x = -0.08 * width + progress * 1.16 * width
+    center_y = height * (0.58 - 0.16 * math.sin(progress * math.pi))
+    radius = max(2.0, min(width, height) * 0.055)
+    core = np.exp(-((columns - center_x) ** 2 + (rows - center_y) ** 2) / (2.0 * radius * radius))
+    horizontal = np.exp(-np.abs(rows - center_y) / max(1.0, radius * 0.20)) * np.exp(
+        -np.abs(columns - center_x) / max(1.0, radius * 3.6)
+    )
+    diagonal = np.exp(-np.abs((rows - center_y) + (columns - center_x)) / max(1.0, radius * 0.24)) * np.exp(
+        -(np.abs(rows - center_y) + np.abs(columns - center_x)) / max(1.0, radius * 4.5)
+    )
+    sparkle = np.clip(core + 0.45 * horizontal + 0.30 * diagonal, 0.0, 1.0)
+    sparkle *= local_alpha * pulse * min(1.5, amount) * (0.70 + 0.30 * float(audio_high))
+    original = frame[y0:y1, x0:x1].astype(np.float32)
+    frame[y0:y1, x0:x1] = np.clip(
+        original + (255.0 - original) * sparkle[..., None], 0, 255
+    ).astype(np.uint8)
+
+
 def _halo_overlay(overlay, opacity: float, blur: float):
     import numpy as np
     from PIL import Image, ImageFilter
@@ -1453,6 +1497,7 @@ class GenericBeatAwareLocalVisualizer:
                 "wordmark_halo_opacity": ("FLOAT", {"default": 0.55, "min": 0.0, "max": 1.0, "step": 0.01}),
                 "wordmark_halo_blur_px": ("FLOAT", {"default": 18.0, "min": 0.5, "max": 100.0, "step": 0.5}),
                 "output_prefix": ("STRING", {"default": "generic_visualizer/render"}),
+                "wordmark_sparkle_strength": ("FLOAT", {"default": 0.70, "min": 0.0, "max": 1.5, "step": 0.05}),
             }
         }
 
@@ -1467,7 +1512,8 @@ class GenericBeatAwareLocalVisualizer:
         self, image, audio, targets, brand_logo, brand_logo_mask, wordmark, wordmark_mask,
         fps, delivery_resolution, pattern_key, apply_brand_logo, brand_logo_width_percent,
         brand_logo_opacity, apply_wordmark, wordmark_width_percent, wordmark_opacity,
-        overlay_margin_px, wordmark_halo_opacity, wordmark_halo_blur_px, output_prefix,
+        overlay_margin_px, wordmark_halo_opacity, wordmark_halo_blur_px,
+        output_prefix, wordmark_sparkle_strength=0.70,
     ):
         import folder_paths
         import numpy as np
@@ -1523,9 +1569,11 @@ class GenericBeatAwareLocalVisualizer:
             raise ValueError("No verified animation target produced a non-empty mask.")
 
         overlays = []
+        wordmark_overlay = None
         margin = round(float(overlay_margin_px) * width / 1920)
         if bool(apply_wordmark):
             overlay = _prepare_overlay(wordmark, wordmark_mask, max(2, round(width * float(wordmark_width_percent) / 100.0)), float(wordmark_opacity), margin, margin)
+            wordmark_overlay = overlay
             if float(wordmark_halo_opacity) > 0:
                 overlays.append(_halo_overlay(overlay, float(wordmark_halo_opacity), float(wordmark_halo_blur_px)))
             overlays.append(overlay)
@@ -1624,6 +1672,15 @@ class GenericBeatAwareLocalVisualizer:
                         _blend(frame, changed, layer)
                     for overlay in overlays:
                         _apply_overlay(frame, overlay)
+                    if wordmark_overlay is not None:
+                        _apply_wordmark_sparkle(
+                            frame,
+                            wordmark_overlay,
+                            seconds,
+                            float(wordmark_sparkle_strength),
+                            float(features["high"][frame_index]),
+                            (int(pattern_key) % 6000) / 1000.0,
+                        )
                     process.stdin.write(np.ascontiguousarray(frame).tobytes())
                     if progress:
                         progress.update_absolute(frame_index + 3, frame_count + 3)

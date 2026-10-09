@@ -154,6 +154,16 @@ the same source, a legacy matching correction is retained, a different source
 returns the detector mask and emits the clear-state signal, and the existing
 Managed Decline correction is rejected against the Bella Ciao source.
 
+Same-source discovery testing exposed a review-state usability gap: after
+saving a flag correction, changing `find` to `flower` and broadening the search
+area recomputed detection but the review node continued to display and output
+its persisted flag correction. `Verify / Edit Detection Mask` now has a visible
+**Reset saved mask** button. It clears only that lane's hidden Mask Editor image
+and source binding, immediately removes the stale saved preview, and uses the
+latest detector proposal on the next queue without changing the source or
+rebuilding the node. A full-frame search area is `box 0 0 1 1`;
+`box 0 0 0 0` is empty.
+
 Bella Ciao review then confirmed the model-free detector's semantic ceiling:
 hair, sun, red fabric, and flags were not understood, while smoke shared the
 same neutral-atmosphere heuristic as clouds. The current mainline work now adds
@@ -201,6 +211,15 @@ changing the fixed workflow's detection behavior.
 Repository history is intentionally maintained on the single `main` branch;
 workflow experimentation is represented by separately named workflow files,
 not long-lived Git branches.
+
+The semantic workflow now contains five complete detector/review/configuration/
+stack lanes, the intended practical UI maximum. The user's live first-three
+lane settings and saved corrections were retained during expansion; the new
+Flowers and Fabric lanes begin unverified. The renderer also adds a cheap
+post-process wordmark sparkle: a deterministic alpha-clipped glint passes about
+every six seconds, responds lightly to high-band energy, and is controlled by
+`wordmark_sparkle_strength` (`0` disables it). It loads no model and consumes
+no target lane.
 
 Motion QA then confirmed that the generic renderer's so-called motion modes
 only changed exposure or color; target pixels never moved. Target configuration
