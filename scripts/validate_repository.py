@@ -33,6 +33,8 @@ ALLOWED_WORKFLOWS = {
     "user/default/workflows/music_visualizer_local_composite.json",
     "user/default/workflows/music_visualizer_target_builder.json",
     "user/default/workflows/music_visualizer_target_builder_semantic.json",
+    "user/default/workflows/music_visualizer_infra_choir_hybrid.json",
+    "user/default/workflows/music_visualizer_infra_choir_production.json",
 }
 FORBIDDEN_SUFFIXES = {
     ".bin", ".ckpt", ".flac", ".gif", ".jpeg", ".jpg", ".mkv", ".mov",

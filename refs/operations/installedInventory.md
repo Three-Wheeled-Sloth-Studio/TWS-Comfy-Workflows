@@ -7,7 +7,7 @@ tags: [operations, inventory, models, workflows, findings]
 ---
 # Installed Models, Curated Workflows, and Findings
 
-Verified on 2026-10-08. This records project-relevant dependencies, not every
+Verified on 2026-10-09. This records project-relevant dependencies, not every
 model or personal workflow present in the live ComfyUI data directory. Model
 binaries remain excluded from Git.
 
@@ -26,6 +26,28 @@ Windows profile name and is not part of the repository contract.
 | Four-step Wan acceleration LoRA | `wan2.2_t2v_lightx2v_4steps_lora_v1.1_high_noise.safetensors` | 1.14 GiB | `C:\Users\<user>\ComfyUI-Shared\models\loras` |
 | Semantic target discovery | `CIDAS/clipseg-rd64-refined`, revision `999e0328d9e10b484360c477313983f9afdd7050` | 0.56 GiB weights; approximately 577 MiB snapshot | `<ComfyUI>\models\detection\clipseg-rd64-refined` |
 
+### Yvann audio-reactive workflow assets
+
+The live Desktop data directory also contains the complete model set referenced
+by the three `ComfyUI_Yvann-Nodes` 2.1.1 example workflows. These third-party
+assets are operational state and remain excluded from Git.
+
+| Model family | Installed assets | Location |
+| --- | --- | --- |
+| SD 1.5 checkpoint | `DreamShaper_8_pruned.safetensors` plus workflow-compatible `dreamshaper_8.safetensors` hardlink | `<ComfyUI>\models\checkpoints` |
+| AnimateDiff | `AnimateLCM_sd15_t2v.ckpt`; `LiquidAF-0-1.safetensors` | `<ComfyUI>\models\animatediff_models`; `<ComfyUI>\models\animatediff_motion_lora` |
+| LoRAs/adapters | `AnimateLCM_sd15_t2v_lora.safetensors`, `Hyper-SD15-12steps-CFG-lora.safetensors`, `v3_sd15_adapter.ckpt` | `<ComfyUI>\models\loras` |
+| ControlNet | QR Monster v2, SD 1.5 lineart/depth fp16, and `v3_sd15_sparsectrl_rgb.ckpt` | `<ComfyUI>\models\controlnet` |
+| VAE and upscaler | `vae-ft-mse-840000-ema-pruned.safetensors`; `2x-sudo-UltraCompact.pth` | `<ComfyUI>\models\vae`; `<ComfyUI>\models\upscale_models` |
+| IP-Adapter | `ip-adapter-plus_sd15.safetensors`; `CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors` | `<ComfyUI>\models\ipadapter`; `<ComfyUI>\models\clip_vision` |
+| Audio separation | Open-Unmix `umxl.pth`; Torchaudio Hybrid Demucs checkpoint | `<ComfyUI>\models\openunmix`; the current user's Torch Hub cache |
+
+The bundled workflows were copied to
+`user/default/workflows/Yvann Audio Reactive/`. Required supporting packs are
+Advanced ControlNet, AnimateDiff Evolved, ControlNet Auxiliary Preprocessors,
+FizzNodes, KJNodes, IPAdapter Plus, and VideoHelperSuite. Optional KJNodes
+MiniMax and Triton-VAE features are not dependencies of these workflows.
+
 The five Wan assets and publisher URLs are declared in
 `assets/wan-s2v-models.json`. `scripts/install-wan-s2v-assets.ps1 -ListOnly`
 previews their destinations without downloading. The CLIPSeg snapshot is
@@ -42,6 +64,8 @@ Only the following workflow files are tracked by this repository:
 
 | Workflow | Status and role |
 | --- | --- |
+| `music_visualizer_infra_choir_hybrid.json` | New seven-lane fixed-frame hybrid workflow. Separates organic motion, light source, illumination, and reflection roles; supports linked audio envelopes, optional stabilized short generated-motion batches, optional branding, and atomic streamed output. |
+| `music_visualizer_infra_choir_production.json` | Production-polish copy of the seven-lane workflow with deterministic editable title cards, optional external-card selection, a restrained shared-analysis bottom EQ, and title-outline-confined glints. |
 | `music_visualizer_target_builder_semantic.json` | Current five-lane semantic target workflow. Uses local CLIPSeg with heuristic fallback, optional painted corrections, per-lane **Reset saved mask**, explicit procedural motion, streamed full-song rendering, static badging, and cheap wordmark sparkle. |
 | `music_visualizer_target_builder.json` | Fixed model-free target workflow retained in place. Uses color/texture proposals and the same review/configuration/render contract without loading CLIPSeg. |
 | `music_visualizer_local_composite.json` | Accepted fixed six-region CPU/NumPy compositor reference; no generative model or camera motion. |
@@ -89,3 +113,6 @@ previews, and general `user/` state are intentionally not repository content.
 - The wordmark sparkle is a short deterministic glint clipped to the wordmark
   alpha about every six seconds. `wordmark_sparkle_strength=0` disables it; the
   default `0.70` adds no model load and no target-lane cost.
+- Explicit sun-disk/source queries use a compact warm-luminance refinement
+  inside the selected search area, avoiding the Bella Ciao broad-glow false
+  positive while leaving atmospheric illumination as its own target.

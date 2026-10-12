@@ -7,6 +7,121 @@ tags: [handoff, comfyui, music-video, compositing, visualizer, wan]
 ---
 # Current Handoff
 
+## 2026-10-12 User Acceptance
+
+The user reviewed the corrected production treatment and explicitly reported
+that it passes QA. The accepted behavior includes the faded-source opening
+card, generated persistent upper-left band/song wordmark, restrained EQ,
+outline-confined glints, bounded organic motion beyond the source matte, and
+the optional direct logo selector. This closes the subjective Infra Choir
+motion-review todo; further Wan clip work remains an optional deferred fidelity
+experiment rather than a production blocker.
+
+## 2026-10-12 Generated Wordmark and Organic Motion Support
+
+The production workflow now treats `band_name` and `song_title` as the source
+for both the opening title card and the persistent upper-left wordmark.
+`apply_wordmark` no longer silently skips when no PNG is connected: it renders
+transparent dark-red/pale-outline serif text, while an explicitly connected
+image/mask remains the override. The generated opening card now uses a dimmed,
+mostly desaturated copy of the source instead of black, controlled by
+`title_card_source_visibility` (default 0.20).
+
+Organic lanes gained bounded `organic_motion_expansion_percent` support
+(default 2.5%, maximum 8%). Procedural alpha is warped with the pixels so hair,
+fabric, smoke, and clouds can move beyond the detected footprint without any
+camera or far-field motion. The freshly saved user workflow was migrated in
+place without replacing its verified masks, revised smoke search area, or
+per-lane motion settings. Direct six-second QA measured 5.691 mean temporal
+delta in the expanded ring and 0.016 in the far field; the expanded render took
+2.19 seconds versus 1.90 seconds with strict clipping. Complete treatment and
+repeat previews both produced H.264/AAC output. A corrected full-song run
+rendered 2,299 frames in 53.71 seconds and preserved the 287.36-second source as
+a 287.375-second H.264/AAC container. ComfyUI must be restarted once to load the
+updated renderer schema. The lower-priority logo gap is also closed with a
+`brand_logo_image` input-folder selector; the existing connected image/mask
+path remains the higher-priority override.
+
+## 2026-10-09 Infra Choir Production Polish
+
+`user/default/workflows/music_visualizer_infra_choir_production.json` is a new
+production copy; the prior hybrid and all reference workflows remain intact.
+The existing `InfraChoirVisualizer` now exposes generated or input-selected
+title cards, a shared-analysis bottom EQ, and title-outline glints. All three
+features are independently optional. The generated title uses editable
+`band_name` and `song_title`, automatic wrapping/sizing, configurable timing and
+placement, and the reference black/crimson/pale-outline treatment. External
+cards override generation without a new connection; unreliable outline
+detection skips only sparkle and reports the reason.
+
+Audio analysis remains one deterministic pass and now retains 24 log-frequency
+bands for the EQ. Environmental animation, linked lighting, optional generated
+motion, streaming FFmpeg assembly, and atomic promotion are unchanged. Georgia
+is a documented local Windows font dependency with DejaVu Serif and Pillow
+fallbacks; no font or model was added to the repository.
+
+Executed validation covered long Unicode text, external override, bottom-only
+EQ restraint, strict sparkle-mask confinement, each feature disabled, generated
+title with no asset, repeat rendering, environmental mask confinement, and
+full-song audio. The complete six-second preview rendered twice without manual
+intervention. A 287.36-second Bella Ciao run produced 2,299 1280x720/8 fps
+frames with AAC in 39.75 seconds and a 287.375-second container. Equal-length
+six-second baseline/polish renders were 2.82/2.37 seconds, so the new layers
+were inside normal codec/startup timing variance rather than adding measurable
+overhead in this harness. QA artifacts remain ignored under
+`output/infra_choir_validation/`.
+
+## 2026-10-09 Yvann Audio-Reactive Environment Install
+
+`ComfyUI_Yvann-Nodes` 2.1.1 and every external node pack referenced by its
+three bundled workflows are installed in the live Comfy Desktop data directory.
+Their requirements were installed with this instance's `.venv` Python. The
+sample workflows are available under `Yvann Audio Reactive` in the user's
+workflow directory, and all 35 referenced non-core node types passed an
+isolated registration check.
+
+The workflows' SD 1.5 checkpoint, AnimateDiff models and LoRAs, ControlNets,
+VAE, IP-Adapter, CLIP vision encoder, upscaler, and path-compatible aliases are
+installed under the repository-local `models/` tree used by Desktop. Hybrid
+Demucs is prewarmed in the Torch Hub cache. Open-Unmix UMX-L is installed as
+`models/openunmix/umxl.pth`; its four cached source models were reconstructed
+from a bit-identical safetensors conversion after the upstream Zenodo endpoint
+proved unreliable. No ComfyUI process or queue was restarted or altered.
+
+## 2026-10-09 Infra Choir Hybrid Visualizer
+
+`user/default/workflows/music_visualizer_infra_choir_hybrid.json` is a new,
+separate seven-lane workflow built by
+`scripts/build_infra_choir_visualizer_workflow.py`. The three local/generic/
+semantic reference workflows were not modified; the user's pre-existing edit
+to `music_visualizer_target_builder_semantic.json` remains untouched.
+
+`InfraChoirAnimationTarget` adds enable/skip behavior, reusable configuration
+JSON, organic/light-source/illumination/reflection roles, shared audio envelope
+groups, bounded light controls, and optional short generated IMAGE batches.
+`InfraChoirVisualizer` translation-stabilizes generated batches, clips all
+changes to verified masks, starts every frame from the source, streams exact
+audio duration, treats branding as optional, and atomically promotes a
+`.part.mp4` only after FFmpeg succeeds. Clips above 161 frames are rejected with
+an actionable short-clip instruction.
+
+Bella Ciao received seven starter lanes: hair, fabric, crop-first smoke,
+clouds, sun source, atmospheric illumination, and river reflection. A compact
+warm-luminance refinement now isolates explicit sun-disk/source queries instead
+of CLIPSeg's earlier broad sunset-cloud response. Every starter mask remains
+unverified by default. Direct QA produced a 2-second 1280x720 H.264/AAC file
+with exact duration; decoded outside-area temporal delta was 0.020 versus 0.434
+inside. Managed Decline generalized without code changes and rendered three
+enabled targets from a seven-lane stack while four disabled/missing lanes were
+skipped. Optional-detector fallback, strict failure, absent overlays, short
+generated-clip stabilization, and interrupted-partial replacement were tested.
+
+Review artifacts are ignored under `output/infra_choir_validation/`. Full
+architecture, usage, evidence, resource observations, and limitations are in
+`refs/architecture/infraChoirVisualizer.md`. The remaining work is subjective
+motion/matte review and, only if useful, embedding a lazy Wan short-clip branch;
+the present workflow is complete without Wan and never loads it by default.
+
 ## 2026-10-07 Lightweight Visualizer Prototype
 
 A new standalone path now exists at

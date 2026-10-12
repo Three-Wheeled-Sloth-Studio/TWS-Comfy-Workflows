@@ -33,6 +33,56 @@ audio duration, scales to an exact 1920×1080 delivery frame by default, and
 writes an H.264/AAC result without retaining the completed song's frames in
 memory.
 
+## Infra Choir hybrid music visualizer
+
+`user/default/workflows/music_visualizer_infra_choir_hybrid.json` is the new
+fixed-frame target visualizer. Its seven starter lanes cover hair, fabric,
+smoke, clouds, a light source, received illumination, and reflection. Each lane
+has independent enable/verification, mask review, organic-motion controls, and
+bounded light controls. The three sunlight lanes can share one audio envelope
+without sharing a mask or effect strength. Disabled, missing, empty, and
+unverified lanes remain connected and are skipped rather than forcing graph
+repairs.
+
+The renderer supports procedural billow/sway/drift and an optional short
+generated `IMAGE` batch per target. Generated batches are globally
+translation-stabilized and composited only through the verified target mask;
+the source image is recopied for every frame, so there is no whole-scene camera
+motion. Branding connections are optional, full-song frames stream to FFmpeg,
+and interrupted `.part.mp4` output is overwritten on retry and atomically
+promoted after success.
+
+`user/default/workflows/music_visualizer_infra_choir_production.json` is the
+production-polish copy. Its renderer adds an independently toggleable opening
+title card, bottom EQ, and title-outline sparkle without changing the seven
+target lanes. Edit `band_name` and `song_title`; the default card is rendered
+deterministically over a subdued copy of the source artwork with dark-red serif
+text and a thin pale outline. `title_card_source_visibility` controls how much
+of the artwork remains visible. Long text shrinks and wraps automatically.
+`title_card_image` can instead
+select or upload an input image; the generated card remains the safe default,
+so no title asset or extra connection is required. Timing, vertical placement,
+EQ mode/height/opacity/color/smoothing, and sparkle response are renderer
+controls.
+
+`apply_wordmark` uses those same `band_name` and `song_title` fields to create
+a persistent transparent upper-left wordmark. A connected wordmark image/mask
+still overrides generated text. `organic_motion_expansion_percent` gives only
+organic lanes a softly bounded support area beyond the verified matte, allowing
+hair, fabric, smoke, and cloud motion to cross the original silhouette while
+the rest of the frame remains fixed. The default is 2.5%; use `0` for the old
+strictly clipped behavior. `brand_logo_image` is a direct input-folder selector
+for the optional lower-right logo; a connected image/mask remains its override.
+Georgia is used from the local Windows font installation, with local
+DejaVu Serif as the documented fallback; the repository redistributes neither
+font.
+
+Restart ComfyUI, open the workflow, select artwork/audio, inspect or correct
+each green preview, and enable `mask_verified` only for correct targets. At
+least one verified lane is required. Full usage, validation evidence, resource
+measurements, target JSON schema, and limitations are documented in
+`refs/architecture/infraChoirVisualizer.md`.
+
 ## Lightweight local music visualizer prototype
 
 `user/default/workflows/music_visualizer_local_composite.json` is a separate

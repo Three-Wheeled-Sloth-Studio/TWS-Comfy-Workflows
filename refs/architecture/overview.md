@@ -32,6 +32,13 @@ source image. It loads no model and applies no camera transform. See
 `refs/architecture/localBeatVisualizer.md` for its mappings, resource boundary,
 and limitations.
 
+The Infra Choir hybrid extends that fixed-frame principle into an arbitrary
+verified target stack with explicit organic, light-source, illumination, and
+reflection roles. Linked targets may share an audio envelope while retaining
+independent masks and bounds. Optional short generated IMAGE batches are
+translation-stabilized and mask-clipped before streaming. See
+`refs/architecture/infraChoirVisualizer.md` for its contract and QA evidence.
+
 The deferred visualizer remains isolated in a copied workflow and a subclassed
 assembler. It performs CPU-only stereo STFT analysis across twelve logarithmic
 bands per channel, renders a padded lossless-alpha radial spectrum at final

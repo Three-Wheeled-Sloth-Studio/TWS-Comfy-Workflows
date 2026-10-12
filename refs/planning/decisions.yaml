@@ -1,7 +1,30 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: 2026-10-08
+updated: 2026-10-12
 decisions:
+  - id: infra-choir-deterministic-production-overlays
+    status: accepted
+    date: 2026-10-12
+    decision: Add deterministic title-card and persistent wordmark generation, a bottom EQ, title-outline glints, optional logo selection, and bounded organic-mask expansion in a separate production copy of the fixed-frame hybrid workflow.
+    rationale: The visual identity needs repeatable titling and restrained music response without new models, required files, graph rewiring, or changes to the proven target and lighting architecture.
+    consequences:
+      - Generated text is the no-file default for both the faded-source opening card and persistent upper-left band/song wordmark; external inputs remain overrides.
+      - The EQ reuses frequency bands retained by the existing single audio-analysis pass.
+      - Sparkles are clipped to generated stroke masks or conservatively detected external pale outlines and otherwise skip with a diagnostic.
+      - Stationary overlays are independently optional and cannot introduce camera motion; organic expansion is explicitly bounded and leaves the far field static.
+      - A direct input-folder selector closes the optional lower-right logo-selection gap without removing the connected image/mask override.
+      - Georgia remains a documented local dependency with DejaVu Serif and Pillow fallbacks; no font asset is redistributed.
+  - id: infra-choir-fixed-frame-hybrid
+    status: accepted
+    date: 2026-10-09
+    decision: Add a new seven-lane fixed-frame workflow that combines reviewed semantic masks, procedural motion, optional stabilized short generated-motion batches, and explicit linked light-source, illumination, and reflection roles.
+    rationale: The existing target stack already provides safe mask review and bounded streaming, but it cannot distinguish lighting roles or consume generated organic pixels without risking whole-frame motion.
+    consequences:
+      - The local, generic, and semantic workflows remain unchanged references; the hybrid is a separately named workflow and builder.
+      - Every output frame begins from the source, generated frames are translation-stabilized and mask-clipped, and global camera/exposure motion is absent.
+      - Automatic candidates remain unverified by default; incorrect detection cannot silently render.
+      - Target behavior is exportable as version-1 JSON while masks and generated IMAGE batches remain typed workflow connections.
+      - Interrupted FFmpeg output is isolated in a replaceable partial and promoted atomically after success.
   - id: generic-verified-animation-target-stack
     status: accepted
     date: 2026-10-07

@@ -1,7 +1,19 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: 2026-10-08
+updated: 2026-10-12
 todos:
+  - id: add-infra-choir-production-polish
+    status: done
+    area: lightweight-visualizer
+    summary: Added a separate production workflow with deterministic editable title cards over a faded source, generated persistent band/song wordmarks with external override, a restrained shared-analysis bottom EQ, outline-confined title glints, bounded organic motion expansion, independent toggles, and repeat/full-song validation.
+  - id: subjective-infra-choir-motion-review
+    status: done
+    area: lightweight-visualizer
+    summary: User accepted the corrected Bella Ciao production treatment on 2026-10-12 after reviewing the faded-source opener, generated persistent wordmark, EQ, and bounded organic motion beyond the original matte footprint.
+  - id: native-wan-clip-lane
+    status: deferred
+    area: generation-fidelity
+    summary: Optionally embed a lazy short-Wan generation branch after the stabilized generated IMAGE input proves visually superior to procedural billow/sway on reviewed masks; keep the 14B model out of the default queue.
   - id: validate-local-composite-user-review
     status: in_progress
     area: lightweight-visualizer

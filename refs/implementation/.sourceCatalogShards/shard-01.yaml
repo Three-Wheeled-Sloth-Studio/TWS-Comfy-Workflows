@@ -343,5 +343,7 @@ source_catalog:
         symbol: BeatAwareLocalVisualizer.render
       - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: GenericBeatAwareLocalVisualizer.render
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: InfraChoirVisualizer.render
       - path: scripts/render_motion_poster.py
         symbol: render

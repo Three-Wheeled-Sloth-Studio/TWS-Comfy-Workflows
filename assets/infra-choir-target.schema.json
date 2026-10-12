@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tws.local/schemas/infra-choir-target-v1.json",
+  "title": "Infra Choir animation target",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version", "target_id", "object_name", "animation_prompt", "enabled",
+    "mask_verified", "target_role", "envelope_group", "audio_driver",
+    "motion_source", "motion_type", "on_beat_flicker", "off_beat_flicker",
+    "on_beat_motion", "off_beat_motion", "generated_motion_strength",
+    "max_luminance_change", "glow_strength", "glow_radius_px",
+    "saturation_variation", "hue_variation_degrees"
+  ],
+  "properties": {
+    "version": {"const": 1},
+    "target_id": {"type": "string", "minLength": 1},
+    "object_name": {"type": "string"},
+    "animation_prompt": {"type": "string"},
+    "enabled": {"type": "boolean"},
+    "mask_verified": {"type": "boolean"},
+    "target_role": {"enum": ["organic", "light_source", "illumination", "reflection"]},
+    "envelope_group": {"type": "string", "minLength": 1},
+    "audio_driver": {"enum": ["beat", "slow", "energy", "high", "onset"]},
+    "motion_source": {"enum": ["procedural", "generated_clip", "generated_then_procedural"]},
+    "motion_type": {"enum": ["billow", "sway", "drift", "still"]},
+    "on_beat_flicker": {"type": "number", "minimum": 0, "maximum": 2},
+    "off_beat_flicker": {"type": "number", "minimum": 0, "maximum": 2},
+    "on_beat_motion": {"type": "number", "minimum": 0, "maximum": 2},
+    "off_beat_motion": {"type": "number", "minimum": 0, "maximum": 2},
+    "generated_motion_strength": {"type": "number", "minimum": 0, "maximum": 1},
+    "max_luminance_change": {"type": "number", "minimum": 0, "maximum": 0.5},
+    "glow_strength": {"type": "number", "minimum": 0, "maximum": 1},
+    "glow_radius_px": {"type": "number", "minimum": 0, "maximum": 160},
+    "saturation_variation": {"type": "number", "minimum": -0.5, "maximum": 0.5},
+    "hue_variation_degrees": {"type": "number", "minimum": -30, "maximum": 30}
+  },
+  "description": "Mask pixels and optional generated IMAGE batches remain ComfyUI connections. This JSON records reusable target behavior and verification state; changing artwork invalidates saved review masks by source fingerprint."
+}

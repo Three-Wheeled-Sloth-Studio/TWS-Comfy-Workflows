@@ -1,7 +1,22 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: 2026-10-08
+updated: 2026-10-12
 criteria:
+  - id: infra-choir-production-polish
+    status: accepted
+    summary: User accepted the production workflow on 2026-10-12 after reviewing its editable generated or external faded-source title card, generated persistent upper-left band/song wordmark with external override, optional logo selector, bottom-only spectrum/waveform EQ, outline-confined glints, and bounded organic-mask expansion; repeat and 287.375-second H.264/AAC validation preserved the fixed far field and audio.
+  - id: infra-choir-seven-lane-workflow
+    status: accepted
+    summary: A separately named workflow provides seven complete independent lanes, skips disabled/incomplete/unverified targets without rewiring, accepts fewer or more configured targets, exposes reusable version-1 target JSON, and streams exact-duration output with optional overlays.
+  - id: infra-choir-static-frame-hybrid
+    status: accepted
+    summary: Every frame starts from the source; procedural and optional translation-stabilized generated motion remain inside verified masks, linked glow stays local, and decoded Bella QA showed 0.020 mean temporal delta outside conservative target areas versus 0.434 inside.
+  - id: infra-choir-linked-light-roles
+    status: accepted
+    summary: Light source, received illumination, and reflection use independent verified masks and bounded luminance/glow/saturation/hue settings while targets sharing an envelope group receive the same selected audio drive and deterministic phase.
+  - id: infra-choir-semantic-quality
+    status: provisional
+    summary: Bella validation produced non-empty candidates for hair, fabric, crop-first smoke, clouds, compact sun disk, atmospheric illumination, and river reflection, but coarse hair/fabric/reflection boundaries still require human verification or painted correction before production.
   - id: generic-verified-target-flow
     status: accepted
     summary: A target lane accepts an object-class query, exposes a search-area-outlined detection review that passes the proposal through without requiring an upload, automatically uses a painted mask after Mask Editor Save, clears that correction when the source-artwork fingerprint changes, and exposes Reset saved mask for same-source rediscovery; it uses verification as an inclusion toggle, retains optional external-mask add/subtract/replace modes, accepts an appearance description and explicit billow/sway/drift/still motion type, and independently controls on/off-beat flicker and on/off-beat masked motion before joining an arbitrary-length target stack; the semantic starter graph provides five complete lanes, and connected unverified or empty lanes are skipped without rewiring when another usable target exists.

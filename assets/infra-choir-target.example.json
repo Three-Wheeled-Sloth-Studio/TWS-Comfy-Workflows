@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "target_id": "sun_source",
+  "object_name": "sun disk",
+  "animation_prompt": "setting sun emitting a subtle bounded musical pulse",
+  "enabled": true,
+  "mask_verified": false,
+  "target_role": "light_source",
+  "envelope_group": "sunlight",
+  "audio_driver": "beat",
+  "motion_source": "procedural",
+  "motion_type": "still",
+  "on_beat_flicker": 0.52,
+  "off_beat_flicker": 0.12,
+  "on_beat_motion": 0.0,
+  "off_beat_motion": 0.0,
+  "generated_motion_strength": 0.85,
+  "max_luminance_change": 0.12,
+  "glow_strength": 0.3,
+  "glow_radius_px": 28.0,
+  "saturation_variation": 0.08,
+  "hue_variation_degrees": -3.0
+}

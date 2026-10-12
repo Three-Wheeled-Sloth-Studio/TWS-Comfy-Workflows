@@ -1,7 +1,11 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: 2026-10-07
+updated: 2026-10-12
 roadmap:
+  - id: infra-choir-hybrid-visualizer
+    horizon: now
+    status: complete
+    summary: User-accepted seven-lane fixed-frame visualizer plus a production workflow with faded-source title cards, generated persistent wordmarks, optional logo selection, restrained shared-analysis EQ, outline-confined glints, bounded organic motion expansion, recovery-safe exact-duration output, and full-song validation.
   - id: lightweight-local-visualizer
     horizon: now
     status: in_progress

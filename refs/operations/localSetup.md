@@ -85,6 +85,24 @@ rendered output to this repository.
 
 ## Local visualizer prototype
 
+For the new combined interface, open
+`user/default/workflows/music_visualizer_infra_choir_hybrid.json`. It starts
+with seven Bella Ciao lanes but is image-independent: change the source, edit
+queries/search areas, inspect every preview, and verify only correct masks.
+Disabled or unused lanes stay connected. `sun_source`, `sun_illumination`, and
+`river_reflection` share the `sunlight` audio envelope while retaining
+independent masks and bounds. Branding inputs are optional and may remain
+unconnected. Queue **Render Infra Choir Hybrid Visualizer** once after at least
+one lane is enabled and verified.
+
+For optional generated organic motion, connect a short decoded ComfyUI `IMAGE`
+batch to a target's `generated_motion` socket and choose `generated_clip` or
+`generated_then_procedural`. The renderer stabilizes global translation and
+never composites that batch outside the verified mask. Leaving the socket
+empty needs no placeholder and falls back to procedural motion. Target nodes
+emit reusable version-1 JSON matching
+`assets/infra-choir-target.schema.json`.
+
 The standalone procedural path needs ComfyUI's existing Torch, NumPy, and
 Pillow environment plus FFmpeg on `PATH`; it requires no model files. After the
 same backend restart, open
@@ -231,6 +249,7 @@ effect is intentional.
 
 | Workflow | Role |
 | --- | --- |
+| `music_visualizer_infra_choir_hybrid.json` | Seven-lane fixed-frame hybrid workflow with semantic review, explicit light roles/linking, optional stabilized generated motion, and atomic streamed delivery. |
 | `music_visualizer_target_builder.json` | Generic repeatable detect/verify/prompt/beat-mix target workflow; model-free detector proposals. |
 | `music_visualizer_target_builder_semantic.json` | Five-lane semantic copy using optional local CLIPSeg detection with heuristic fallback, per-lane mask reset, and wordmark sparkle. |
 | `music_visualizer_local_composite.json` | Standalone lightweight regional compositor; no model or camera motion. |

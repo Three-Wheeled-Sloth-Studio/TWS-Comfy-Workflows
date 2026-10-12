@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import math
+import hashlib
+import json
 import re
 import shutil
 import subprocess
@@ -131,8 +133,28 @@ def _normalize_feature(values):
     return np.clip((values - floor) / max(ceiling - floor, 1e-9), 0.0, 1.0)
 
 
+def _normalize_feature_matrix(values):
+    """Normalize each frequency band independently while preserving frame order."""
+    import numpy as np
+
+    values = np.asarray(values, dtype=np.float32)
+    if values.ndim != 2:
+        raise ValueError("Expected a frame-by-band feature matrix.")
+    output = np.zeros_like(values)
+    for band in range(values.shape[1]):
+        output[:, band] = _normalize_feature(values[:, band])
+    return output
+
+
+def _stable_phase(value: str) -> float:
+    """Return a deterministic phase without Python's process-randomized hash()."""
+    digest = hashlib.sha256(str(value).encode("utf-8")).digest()
+    integer = int.from_bytes(digest[:8], "big")
+    return (integer / float(2**64)) * math.tau
+
+
 def _audio_features(audio: dict, fps: int, duration: float):
-    """Extract deterministic low beat, onset, high-band, and slow energy envelopes."""
+    """Extract shared deterministic envelopes and compact log-frequency EQ bands."""
     import numpy as np
 
     waveform = audio["waveform"].detach().to("cpu", dtype=__import__("torch").float32).numpy()
@@ -147,7 +169,13 @@ def _audio_features(audio: dict, fps: int, duration: float):
     frequencies = np.fft.rfftfreq(window_size, 1.0 / sample_rate)
     low_bins = (frequencies >= 35.0) & (frequencies <= 180.0)
     high_bins = (frequencies >= 1800.0) & (frequencies <= min(9000.0, sample_rate / 2))
-    rms, low, high, onset = [], [], [], []
+    upper_frequency = max(90.0, min(12000.0, sample_rate / 2.0))
+    band_edges = np.geomspace(45.0, upper_frequency, 25)
+    band_bins = [
+        (frequencies >= band_edges[index]) & (frequencies < band_edges[index + 1])
+        for index in range(len(band_edges) - 1)
+    ]
+    rms, low, high, onset, spectrum_bands = [], [], [], [], []
     previous = None
     half = window_size // 2
     for index in range(frame_count):
@@ -163,6 +191,10 @@ def _audio_features(audio: dict, fps: int, duration: float):
         low.append(float(np.mean(spectrum[low_bins])) if np.any(low_bins) else 0.0)
         high.append(float(np.mean(spectrum[high_bins])) if np.any(high_bins) else 0.0)
         onset.append(0.0 if previous is None else float(np.mean(np.maximum(spectrum - previous, 0.0))))
+        spectrum_bands.append([
+            float(np.log1p(np.mean(spectrum[bins]))) if np.any(bins) else 0.0
+            for bins in band_bins
+        ])
         previous = spectrum
     energy = _normalize_feature(rms)
     low = _normalize_feature(low)
@@ -189,7 +221,14 @@ def _audio_features(audio: dict, fps: int, duration: float):
             for position in range(index, tail):
                 beat[position] = max(beat[position], amplitude * math.exp(-(position - index) / max(1.0, fps * 0.10)))
             last_peak = index
-    return {"beat": beat, "onset": onset, "high": high, "slow": slow, "energy": energy}
+    return {
+        "beat": beat,
+        "onset": onset,
+        "high": high,
+        "slow": slow,
+        "energy": energy,
+        "spectrum_bands": _normalize_feature_matrix(spectrum_bands),
+    }
 
 
 @dataclass
@@ -339,6 +378,114 @@ def _motion_interior(mask, radius: int):
     return mask
 
 
+def _phase_correlation_shift(reference, moving, maximum_fraction: float = 0.08):
+    """Estimate the translation that aligns moving to reference.
+
+    The estimate intentionally uses a small grayscale proxy. It is only a
+    stabilization guard for short generated clips; the final compositor still
+    applies generated pixels exclusively inside a verified mask.
+    """
+    import numpy as np
+    from PIL import Image
+
+    height, width = reference.shape[:2]
+    proxy_width = min(256, width)
+    proxy_height = max(16, round(height * proxy_width / max(1, width)))
+
+    def proxy(pixels):
+        image = Image.fromarray(np.clip(pixels, 0, 255).astype(np.uint8), "RGB")
+        image = image.resize((proxy_width, proxy_height), Image.Resampling.BILINEAR).convert("L")
+        values = np.asarray(image, dtype=np.float32)
+        values -= float(values.mean())
+        return values
+
+    fixed, candidate = proxy(reference), proxy(moving)
+    fixed_spectrum = np.fft.fft2(fixed)
+    candidate_spectrum = np.fft.fft2(candidate)
+    cross = fixed_spectrum * np.conj(candidate_spectrum)
+    cross /= np.maximum(np.abs(cross), 1e-8)
+    correlation = np.abs(np.fft.ifft2(cross))
+    peak_y, peak_x = np.unravel_index(int(np.argmax(correlation)), correlation.shape)
+    if peak_x > proxy_width // 2:
+        peak_x -= proxy_width
+    if peak_y > proxy_height // 2:
+        peak_y -= proxy_height
+    shift_x = float(peak_x) * width / proxy_width
+    shift_y = float(peak_y) * height / proxy_height
+    limit_x = max(1.0, width * max(0.0, float(maximum_fraction)))
+    limit_y = max(1.0, height * max(0.0, float(maximum_fraction)))
+    clipped = abs(shift_x) > limit_x or abs(shift_y) > limit_y
+    return float(np.clip(shift_x, -limit_x, limit_x)), float(np.clip(shift_y, -limit_y, limit_y)), clipped
+
+
+def _prepare_generated_motion(motion_clip, width: int, height: int, base, maximum_fraction: float):
+    """Move a bounded short IMAGE batch to CPU, resize, and remove global translation."""
+    import numpy as np
+    from PIL import Image
+
+    value = motion_clip.detach().to("cpu")
+    if value.ndim == 3:
+        value = value[None, ...]
+    if value.ndim != 4 or value.shape[-1] < 3:
+        raise ValueError("Generated motion must be a ComfyUI IMAGE batch.")
+    frame_count = int(value.shape[0])
+    if frame_count <= 1:
+        return (), {"frames": frame_count, "max_shift_px": 0.0, "clipped_shifts": 0}
+    if frame_count > 161:
+        raise ValueError(
+            f"Generated motion has {frame_count} frames; use a reusable short clip of at most 161 frames."
+        )
+    prepared = []
+    max_shift = 0.0
+    clipped_count = 0
+    for index in range(frame_count):
+        pixels = np.clip(value[index, ..., :3].numpy() * 255.0, 0, 255).round().astype(np.uint8)
+        if (pixels.shape[1], pixels.shape[0]) != (width, height):
+            pixels = np.asarray(
+                Image.fromarray(pixels, "RGB").resize((width, height), Image.Resampling.LANCZOS),
+                dtype=np.uint8,
+            )
+        shift_x, shift_y, clipped = _phase_correlation_shift(base, pixels, maximum_fraction)
+        max_shift = max(max_shift, abs(shift_x), abs(shift_y))
+        clipped_count += int(clipped)
+        aligned = _translate_pixels(pixels, shift_x, shift_y)
+        prepared.append(np.clip(aligned, 0, 255).astype(np.uint8))
+    return tuple(prepared), {
+        "frames": frame_count,
+        "max_shift_px": round(max_shift, 3),
+        "clipped_shifts": clipped_count,
+    }
+
+
+def _ping_pong_index(frame_index: int, frame_count: int) -> int:
+    if frame_count <= 1:
+        return 0
+    period = (frame_count - 1) * 2
+    position = frame_index % period
+    return position if position < frame_count else period - position
+
+
+def _shift_hue_and_saturation(pixels, hue_degrees: float, saturation_delta: float):
+    """Apply a small bounded YIQ hue rotation and saturation adjustment."""
+    import numpy as np
+
+    rgb = np.clip(pixels, 0, 255).astype(np.float32) / 255.0
+    angle = math.radians(float(hue_degrees))
+    cosine, sine = math.cos(angle), math.sin(angle)
+    yiq = np.empty_like(rgb)
+    yiq[..., 0] = 0.299 * rgb[..., 0] + 0.587 * rgb[..., 1] + 0.114 * rgb[..., 2]
+    yiq[..., 1] = 0.596 * rgb[..., 0] - 0.274 * rgb[..., 1] - 0.322 * rgb[..., 2]
+    yiq[..., 2] = 0.211 * rgb[..., 0] - 0.523 * rgb[..., 1] + 0.312 * rgb[..., 2]
+    chroma_scale = max(0.0, 1.0 + float(saturation_delta))
+    i_channel = (yiq[..., 1] * cosine - yiq[..., 2] * sine) * chroma_scale
+    q_channel = (yiq[..., 1] * sine + yiq[..., 2] * cosine) * chroma_scale
+    output = np.empty_like(rgb)
+    output[..., 0] = yiq[..., 0] + 0.956 * i_channel + 0.621 * q_channel
+    output[..., 1] = yiq[..., 0] - 0.272 * i_channel - 0.647 * q_channel
+    output[..., 2] = yiq[..., 0] - 1.106 * i_channel + 1.703 * q_channel
+    return np.clip(output * 255.0, 0, 255)
+
+
 def _expanded_layer(layer: _Layer, radius: float) -> _Layer:
     import numpy as np
     from PIL import Image, ImageFilter
@@ -353,6 +500,28 @@ def _expanded_layer(layer: _Layer, radius: float) -> _Layer:
     y0, x0 = selected.min(axis=0)
     y1, x1 = selected.max(axis=0) + 1
     return _Layer(expanded, (int(x0), int(y0), int(x1), int(y1)))
+
+
+def _dilated_layer(layer: _Layer, radius: float, feather: float = 2.0) -> _Layer:
+    """Expand a verified mask by a bounded radius, then softly feather its edge."""
+    import numpy as np
+    from PIL import Image, ImageFilter
+
+    amount = max(0, int(round(radius)))
+    if layer.bounds is None or amount <= 0:
+        return layer
+    mask = Image.fromarray(np.clip(layer.mask * 255.0, 0, 255).astype(np.uint8), "L")
+    size = amount * 2 + 1
+    expanded = mask.filter(ImageFilter.MaxFilter(size=size))
+    if feather > 0:
+        expanded = expanded.filter(ImageFilter.GaussianBlur(radius=float(feather)))
+    pixels = np.asarray(expanded, dtype=np.float32) / 255.0
+    selected = np.argwhere(pixels > 0.005)
+    if not selected.size:
+        return _Layer(pixels, None)
+    y0, x0 = selected.min(axis=0)
+    y1, x1 = selected.max(axis=0) + 1
+    return _Layer(pixels, (int(x0), int(y0), int(x1), int(y1)))
 
 
 def _overlay_pixels(image, mask):
@@ -467,6 +636,354 @@ def _halo_overlay(overlay, opacity: float, blur: float):
     halo_alpha = np.asarray(canvas.filter(ImageFilter.GaussianBlur(radius=blur)), dtype=np.float32) / 255.0
     halo_rgb = np.zeros((*halo_alpha.shape, 3), dtype=np.float32)
     return halo_rgb, np.clip(halo_alpha * opacity, 0.0, 1.0), x - padding, y - padding
+
+
+_GENERATED_TITLE_CARD = "(generate from text)"
+_NO_OVERLAY_IMAGE = "(none)"
+
+
+def _title_card_choices():
+    """Expose an upload-capable selector without making an external image mandatory."""
+    try:
+        import folder_paths
+
+        extensions = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff"}
+        input_directory = Path(folder_paths.get_input_directory())
+        files = [
+            path.relative_to(input_directory).as_posix()
+            for path in input_directory.rglob("*")
+            if path.is_file() and path.suffix.casefold() in extensions
+        ]
+    except (ImportError, AttributeError, OSError):
+        files = []
+    return [_GENERATED_TITLE_CARD, *sorted(files, key=str.casefold)]
+
+
+def _optional_overlay_choices():
+    return [_NO_OVERLAY_IMAGE, *[choice for choice in _title_card_choices() if choice != _GENERATED_TITLE_CARD]]
+
+
+def _load_title_font(size: int, italic: bool = False):
+    """Load a local serif font; no font is bundled or redistributed by this project."""
+    from PIL import ImageFont
+
+    windows_name = "georgiai.ttf" if italic else "georgia.ttf"
+    dejavu_name = "DejaVuSerif-Italic.ttf" if italic else "DejaVuSerif.ttf"
+    candidates = (
+        Path("C:/Windows/Fonts") / windows_name,
+        Path("/usr/share/fonts/truetype/dejavu") / dejavu_name,
+        dejavu_name,
+    )
+    for candidate in candidates:
+        try:
+            return ImageFont.truetype(str(candidate), int(size))
+        except OSError:
+            continue
+    return ImageFont.load_default(size=max(8, int(size)))
+
+
+def _wrap_title_lines(draw, text: str, font, maximum_width: int, maximum_lines: int):
+    """Wrap words, and split a single overlong token only when necessary."""
+    paragraphs = str(text).replace("\r", "").split("\n")
+    lines = []
+    for paragraph in paragraphs:
+        words = paragraph.split() or [""]
+        current = ""
+        for word in words:
+            candidate = word if not current else f"{current} {word}"
+            if draw.textlength(candidate, font=font) <= maximum_width:
+                current = candidate
+                continue
+            if current:
+                lines.append(current)
+                current = ""
+            if draw.textlength(word, font=font) <= maximum_width:
+                current = word
+                continue
+            fragment = ""
+            for character in word:
+                candidate = fragment + character
+                if fragment and draw.textlength(candidate, font=font) > maximum_width:
+                    lines.append(fragment)
+                    fragment = character
+                else:
+                    fragment = candidate
+            current = fragment
+        lines.append(current)
+    if len(lines) > maximum_lines:
+        return None
+    return lines
+
+
+def _fit_title_text(draw, text: str, maximum_width: int, maximum_height: int, maximum_size: int, minimum_size: int, maximum_lines: int, italic: bool = False):
+    for size in range(int(maximum_size), int(minimum_size) - 1, -2):
+        font = _load_title_font(size, italic=italic)
+        lines = _wrap_title_lines(draw, text, font, maximum_width, maximum_lines)
+        if lines is None:
+            continue
+        line_height = max(1, font.getbbox("Ag")[3] - font.getbbox("Ag")[1])
+        spacing = max(2, round(size * 0.18))
+        total_height = len(lines) * line_height + max(0, len(lines) - 1) * spacing
+        if total_height <= maximum_height:
+            return font, lines, line_height, spacing, total_height
+    font = _load_title_font(minimum_size, italic=italic)
+    lines = _wrap_title_lines(draw, text, font, maximum_width, maximum_lines) or [str(text)[:80]]
+    line_height = max(1, font.getbbox("Ag")[3] - font.getbbox("Ag")[1])
+    spacing = max(2, round(minimum_size * 0.18))
+    return font, lines, line_height, spacing, len(lines) * line_height + max(0, len(lines) - 1) * spacing
+
+
+def _draw_centered_text_lines(draw, outline_draw, fill_draw, lines, font, center_x, top, line_height, spacing, fill, outline, stroke_width):
+    y = float(top)
+    for line in lines:
+        box = draw.textbbox((0, 0), line, font=font, stroke_width=stroke_width)
+        x = float(center_x) - (box[2] - box[0]) / 2.0 - box[0]
+        draw.text((x, y), line, font=font, fill=fill, stroke_width=stroke_width, stroke_fill=outline)
+        outline_draw.text((x, y), line, font=font, fill=255, stroke_width=stroke_width, stroke_fill=255)
+        fill_draw.text((x, y), line, font=font, fill=255)
+        y += line_height + spacing
+
+
+def _render_generated_title_card(base, band_name: str, song_title: str, placement: str, reserved_bottom: int = 0, source_visibility: float = 0.20):
+    """Render deterministic title text over a subdued version of the source artwork."""
+    import numpy as np
+    from PIL import Image, ImageDraw
+
+    source = np.clip(base, 0, 255).astype(np.float32)
+    height, width = source.shape[:2]
+    luminance = source[..., 0] * 0.2126 + source[..., 1] * 0.7152 + source[..., 2] * 0.0722
+    muted = source * 0.30 + luminance[..., None] * 0.70
+    visibility = min(0.50, max(0.05, float(source_visibility)))
+    card = Image.fromarray(np.clip(muted * visibility, 0, 255).astype(np.uint8), "RGB")
+    draw = ImageDraw.Draw(card)
+    outline_image = Image.new("L", (width, height), 0)
+    fill_image = Image.new("L", (width, height), 0)
+    outline_draw = ImageDraw.Draw(outline_image)
+    fill_draw = ImageDraw.Draw(fill_image)
+    maximum_width = round(width * 0.86)
+    available_height = max(round(height * 0.42), height - reserved_bottom - round(height * 0.18))
+    band = (str(band_name).strip() or "Infra Choir").upper()
+    title = (str(song_title).strip() or "Untitled").upper()
+    band_fit = _fit_title_text(draw, band, maximum_width, round(height * 0.28), round(height * 0.23), round(height * 0.050), 2)
+    title_fit = _fit_title_text(draw, title, maximum_width, round(height * 0.22), round(height * 0.10), round(height * 0.032), 3)
+    band_font, band_lines, band_height, band_spacing, band_total = band_fit
+    title_font, title_lines, title_height, title_spacing, title_total = title_fit
+    gap = max(round(height * 0.045), round(band_height * 0.50))
+    total_height = band_total + gap + title_total
+    center_fraction = {"upper_center": 0.42, "center": 0.50, "lower_center": 0.58}.get(str(placement), 0.50)
+    center_y = min(height - reserved_bottom - total_height / 2.0 - height * 0.04, height * center_fraction)
+    center_y = max(total_height / 2.0 + height * 0.04, center_y)
+    top = center_y - total_height / 2.0
+    stroke_width = max(1, round(height / 540.0))
+    fill = (104, 12, 25)
+    outline = (232, 230, 224)
+    _draw_centered_text_lines(draw, outline_draw, fill_draw, band_lines, band_font, width / 2.0, top, band_height, band_spacing, fill, outline, stroke_width)
+    _draw_centered_text_lines(draw, outline_draw, fill_draw, title_lines, title_font, width / 2.0, top + band_total + gap, title_height, title_spacing, fill, outline, stroke_width)
+    outline_pixels = np.asarray(outline_image, dtype=np.float32) / 255.0
+    fill_pixels = np.asarray(fill_image, dtype=np.float32) / 255.0
+    outline_mask = np.clip(outline_pixels - fill_pixels, 0.0, 1.0)
+    return np.asarray(card, dtype=np.uint8), outline_mask, f"generated over faded source ({visibility:.0%} visibility) with {band_font.getname()[0]} / {title_font.getname()[0]}"
+
+
+def _render_generated_wordmark(width: int, height: int, band_name: str, song_title: str, target_width: int, opacity: float, margin: int):
+    """Render the band and title as a persistent transparent upper-left wordmark."""
+    import numpy as np
+    from PIL import Image, ImageDraw
+
+    canvas_width = max(120, min(width - max(0, margin), int(target_width)))
+    canvas_height = max(64, min(round(height * 0.30), round(canvas_width * 0.48)))
+    card = Image.new("RGB", (canvas_width, canvas_height), (0, 0, 0))
+    alpha_image = Image.new("L", (canvas_width, canvas_height), 0)
+    outline_image = Image.new("L", (canvas_width, canvas_height), 0)
+    fill_image = Image.new("L", (canvas_width, canvas_height), 0)
+    draw = ImageDraw.Draw(card)
+    alpha_draw = ImageDraw.Draw(alpha_image)
+    outline_draw = ImageDraw.Draw(outline_image)
+    fill_draw = ImageDraw.Draw(fill_image)
+    maximum_width = max(40, canvas_width - round(canvas_width * 0.04))
+    band = (str(band_name).strip() or "Infra Choir").upper()
+    title = (str(song_title).strip() or "Untitled").upper()
+    band_fit = _fit_title_text(draw, band, maximum_width, round(canvas_height * 0.48), round(canvas_height * 0.34), max(12, round(canvas_height * 0.13)), 2)
+    title_fit = _fit_title_text(draw, title, maximum_width, round(canvas_height * 0.34), round(canvas_height * 0.18), max(9, round(canvas_height * 0.09)), 3, italic=True)
+    band_font, band_lines, band_height, band_spacing, band_total = band_fit
+    title_font, title_lines, title_height, title_spacing, title_total = title_fit
+    gap = max(3, round(canvas_height * 0.035))
+    total_height = band_total + gap + title_total
+    top = max(1, round((canvas_height - total_height) * 0.18))
+    stroke_width = max(1, round(height / 720.0))
+    fill = (112, 13, 29)
+    outline = (238, 236, 230)
+
+    def draw_left(lines, font, y, line_height, spacing):
+        for line in lines:
+            x = max(stroke_width + 1, round(canvas_width * 0.02))
+            draw.text((x, y), line, font=font, fill=fill, stroke_width=stroke_width, stroke_fill=outline)
+            alpha_draw.text((x, y), line, font=font, fill=255, stroke_width=stroke_width, stroke_fill=255)
+            outline_draw.text((x, y), line, font=font, fill=255, stroke_width=stroke_width, stroke_fill=255)
+            fill_draw.text((x, y), line, font=font, fill=255)
+            y += line_height + spacing
+        return y
+
+    next_y = draw_left(band_lines, band_font, top, band_height, band_spacing)
+    draw_left(title_lines, title_font, next_y + gap, title_height, title_spacing)
+    alpha = np.asarray(alpha_image, dtype=np.float32) / 255.0
+    outline_mask = np.clip(
+        np.asarray(outline_image, dtype=np.float32) / 255.0 - np.asarray(fill_image, dtype=np.float32) / 255.0,
+        0.0, 1.0,
+    )
+    overlay = (np.asarray(card, dtype=np.float32), np.clip(alpha * float(opacity), 0.0, 1.0), int(margin), int(margin))
+    full_outline = np.zeros((height, width), dtype=np.float32)
+    y1 = min(height, margin + canvas_height)
+    x1 = min(width, margin + canvas_width)
+    if y1 > margin and x1 > margin:
+        full_outline[margin:y1, margin:x1] = outline_mask[:y1 - margin, :x1 - margin]
+    return overlay, full_outline, f"generated from band/song text with {band_font.getname()[0]} / {title_font.getname()[0]}"
+
+
+def _load_external_title_card(selection: str, width: int, height: int):
+    """Load an optional input image and conservatively detect a pale text outline."""
+    import numpy as np
+    import folder_paths
+    from PIL import Image, ImageOps
+
+    path = folder_paths.get_annotated_filepath(selection)
+    with Image.open(path) as opened:
+        rgba = ImageOps.exif_transpose(opened).convert("RGBA")
+    contained = ImageOps.contain(rgba, (width, height), Image.Resampling.LANCZOS)
+    card = Image.new("RGBA", (width, height), (0, 0, 0, 255))
+    card.alpha_composite(contained, ((width - contained.width) // 2, (height - contained.height) // 2))
+    rgb = np.asarray(card.convert("RGB"), dtype=np.uint8)
+    maximum = rgb.max(axis=2)
+    minimum = rgb.min(axis=2)
+    luminance = rgb.astype(np.float32).mean(axis=2)
+    outline_mask = ((luminance >= 185.0) & ((maximum - minimum) <= 52)).astype(np.float32)
+    coverage = float(outline_mask.mean())
+    dark_background = float((luminance <= 28.0).mean())
+    if dark_background < 0.45:
+        return rgb, None, f"external image selected; sparkle skipped because the image lacks a title-card-like dark field ({dark_background:.1%} dark coverage)"
+    if coverage < 0.00015:
+        return rgb, None, f"external image selected; sparkle skipped because no reliable pale outline was detected ({coverage:.4%} coverage)"
+    if coverage > 0.12:
+        return rgb, None, f"external image selected; sparkle skipped because pale regions were too broad for reliable outline detection ({coverage:.2%} coverage)"
+    return rgb, outline_mask, f"external image selected; pale outline detected ({coverage:.3%} coverage)"
+
+
+def _load_overlay_selection(selection: str, target_width: int, opacity: float, x: int, y: int):
+    """Load a selected input image as a transparency-aware stationary overlay."""
+    import folder_paths
+    import numpy as np
+    from PIL import Image, ImageOps
+
+    path = folder_paths.get_annotated_filepath(selection)
+    with Image.open(path) as opened:
+        rgba = ImageOps.exif_transpose(opened).convert("RGBA")
+    target_height = max(1, round(rgba.height * target_width / max(1, rgba.width)))
+    rgba = rgba.resize((int(target_width), target_height), Image.Resampling.LANCZOS)
+    pixels = np.asarray(rgba, dtype=np.float32)
+    return pixels[..., :3], np.clip(pixels[..., 3] / 255.0 * float(opacity), 0.0, 1.0), int(x), int(y)
+
+
+def _title_card_alpha(seconds: float, start: float, duration: float, fade: float) -> float:
+    local = float(seconds) - max(0.0, float(start))
+    length = max(0.0, float(duration))
+    if local < 0.0 or local >= length or length <= 0.0:
+        return 0.0
+    transition = min(max(0.0, float(fade)), length * 0.5)
+    if transition <= 1e-6:
+        return 1.0
+    return min(1.0, local / transition, (length - local) / transition)
+
+
+def _smooth_spectrum_bands(values, smoothing: float):
+    import numpy as np
+
+    values = np.asarray(values, dtype=np.float32)
+    result = np.empty_like(values)
+    state = np.zeros(values.shape[1], dtype=np.float32)
+    coefficient = min(0.98, max(0.0, float(smoothing)))
+    for index, row in enumerate(values):
+        state = coefficient * state + (1.0 - coefficient) * row
+        result[index] = state
+    return result
+
+
+def _parse_overlay_color(value: str):
+    text = str(value).strip().lstrip("#")
+    if len(text) == 3:
+        text = "".join(character * 2 for character in text)
+    if len(text) == 6 and all(character in "0123456789abcdefABCDEF" for character in text):
+        return tuple(int(text[index:index + 2], 16) for index in (0, 2, 4))
+    raise ValueError("EQ color must be a hexadecimal RGB value such as #8E1325.")
+
+
+def _apply_eq_overlay(frame, band_values, mode: str, height_percent: float, opacity: float, color):
+    """Composite a restrained bottom-only spectrum treatment."""
+    import numpy as np
+    from PIL import Image, ImageDraw, ImageFilter
+
+    frame_height, frame_width = frame.shape[:2]
+    region_height = max(8, round(frame_height * min(18.0, max(4.0, float(height_percent))) / 100.0))
+    baseline = region_height - max(2, round(region_height * 0.08))
+    count = max(24, min(56, round(frame_width / 46)))
+    samples = np.interp(np.linspace(0, len(band_values) - 1, count), np.arange(len(band_values)), band_values)
+    mask = Image.new("L", (frame_width, region_height), 0)
+    draw = ImageDraw.Draw(mask)
+    if mode == "continuous_waveform":
+        points = []
+        for index, value in enumerate(samples):
+            x = round(index * (frame_width - 1) / max(1, count - 1))
+            y = baseline - round((0.12 + 0.76 * float(value)) * region_height)
+            points.append((x, y))
+        draw.polygon([(0, baseline), *points, (frame_width - 1, baseline)], fill=68)
+        draw.line(points, fill=220, width=max(1, round(frame_height / 540.0)), joint="curve")
+    else:
+        slot = frame_width / count
+        gap = max(1, round(slot * 0.30))
+        for index, value in enumerate(samples):
+            x0 = round(index * slot + gap / 2)
+            x1 = max(x0 + 1, round((index + 1) * slot - gap / 2))
+            bar_height = round((0.08 + 0.84 * float(value)) * region_height)
+            draw.rounded_rectangle((x0, baseline - bar_height, x1, baseline), radius=max(1, gap // 3), fill=205)
+    glow = mask.filter(ImageFilter.GaussianBlur(radius=max(1.0, frame_height / 420.0)))
+    core = np.asarray(mask, dtype=np.float32) / 255.0
+    glow_pixels = np.asarray(glow, dtype=np.float32) / 255.0
+    vertical_fade = np.linspace(0.25, 1.0, region_height, dtype=np.float32)[:, None]
+    alpha = np.clip((core + 0.34 * glow_pixels) * vertical_fade * min(0.85, max(0.0, float(opacity))), 0.0, 1.0)
+    y0 = frame_height - region_height
+    original = frame[y0:].astype(np.float32)
+    overlay = np.empty_like(original)
+    overlay[:] = np.asarray(color, dtype=np.float32)
+    frame[y0:] = np.clip(original * (1.0 - alpha[..., None]) + overlay * alpha[..., None], 0, 255).astype(np.uint8)
+
+
+def _apply_title_outline_sparkle(frame, outline_mask, seconds: float, strength: float, audio_response: float, pattern_key: int, title_alpha: float):
+    """Brighten sparse points strictly inside the rendered or detected outline mask."""
+    import numpy as np
+
+    if outline_mask is None or float(strength) <= 0.0 or title_alpha <= 0.0:
+        return
+    coordinates = np.argwhere(outline_mask > 0.18)
+    if len(coordinates) < 8:
+        return
+    cycle_length = 2.6
+    cycle_index = math.floor(float(seconds) / cycle_length)
+    local = float(seconds) - cycle_index * cycle_length
+    active_length = 0.24
+    if local >= active_length:
+        return
+    pulse = math.sin(math.pi * local / active_length) ** 2
+    point_index = int((cycle_index * 104729 + int(pattern_key) * 8191) % len(coordinates))
+    center_y, center_x = coordinates[point_index]
+    radius = max(2, round(frame.shape[0] / 360.0))
+    y0, y1 = max(0, center_y - radius * 2), min(frame.shape[0], center_y + radius * 2 + 1)
+    x0, x1 = max(0, center_x - radius * 2), min(frame.shape[1], center_x + radius * 2 + 1)
+    rows, columns = np.ogrid[y0:y1, x0:x1]
+    glint = np.exp(-((columns - center_x) ** 2 + (rows - center_y) ** 2) / (2.0 * radius * radius))
+    local_outline = outline_mask[y0:y1, x0:x1]
+    glint *= np.where(local_outline > 0.18, local_outline, 0.0)
+    amount = np.clip(glint * pulse * float(strength) * (0.72 + 0.28 * float(audio_response)) * title_alpha, 0.0, 1.0)
+    original = frame[y0:y1, x0:x1].astype(np.float32)
+    frame[y0:y1, x0:x1] = np.clip(original + (255.0 - original) * amount[..., None], 0, 255).astype(np.uint8)
 
 
 class VisualizerCandidateRegions:
@@ -881,7 +1398,7 @@ class BeatAwareLocalVisualizer:
 
 def _target_candidate_type(target_description: str) -> str:
     value = target_description.casefold()
-    if any(word in value for word in ("candle", "flame", "fire", "lamp", "warm")):
+    if any(word in value for word in ("candle", "flame", "fire", "lamp", "warm", "sun")):
         return "warm lights"
     if any(word in value for word in ("red", "warning", "taillight", "neon")):
         return "red accents"
@@ -1052,6 +1569,39 @@ class VisualizerSemanticObjectDetector:
         dy = np.abs(np.diff(luma, axis=0, prepend=luma[:1, :]))
         return np.clip((dx + dy) * 3.0, 0, 1)
 
+    @staticmethod
+    def _guided_sun_disk_score(rgb, area):
+        """Find a compact warm luminance peak inside a user-supplied sun search area."""
+        import numpy as np
+        from PIL import Image, ImageFilter
+
+        eligible = np.argwhere(area > 0.05)
+        score = np.zeros(area.shape, dtype=np.float32)
+        if not eligible.size:
+            return score
+        y0, x0 = eligible.min(axis=0)
+        y1, x1 = eligible.max(axis=0) + 1
+        crop = rgb[y0:y1, x0:x1]
+        luma = crop[..., 0] * 0.2126 + crop[..., 1] * 0.7152 + crop[..., 2] * 0.0722
+        blur_radius = max(3, round(min(crop.shape[:2]) * 0.012))
+        blurred = np.asarray(
+            Image.fromarray(np.clip(luma * 255.0, 0, 255).astype(np.uint8), "L").filter(
+                ImageFilter.GaussianBlur(radius=blur_radius)
+            ),
+            dtype=np.float32,
+        ) / 255.0
+        peak_y, peak_x = np.unravel_index(int(np.argmax(blurred)), blurred.shape)
+        rows, columns = np.ogrid[: crop.shape[0], : crop.shape[1]]
+        radius = max(4.0, min(crop.shape[:2]) * 0.025)
+        radial = np.exp(-((columns - peak_x) ** 2 + (rows - peak_y) ** 2) / (2.0 * radius * radius))
+        warm = np.clip((crop[..., 0] - crop[..., 2] * 0.45) * 1.5, 0.0, 1.0)
+        local = np.clip((luma ** 3) * warm * radial, 0.0, 1.0)
+        maximum = float(local.max())
+        if maximum > 1e-8:
+            local /= maximum
+        score[y0:y1, x0:x1] = local * (area[y0:y1, x0:x1] > 0.05)
+        return score
+
     def detect(
         self,
         image,
@@ -1091,7 +1641,13 @@ class VisualizerSemanticObjectDetector:
         provider_note = ""
         semantic_note = ""
         used_provider = "heuristic"
-        if provider == "heuristic":
+        target_words = set(re.findall(r"[a-z]+", target.casefold()))
+        guided_sun = "sun" in target_words and bool(target_words.intersection({"disk", "orb", "source"}))
+        if guided_sun:
+            score = self._guided_sun_disk_score(rgb, area)
+            used_provider = "guided sun-disk locator"
+            semantic_note = "a compact warm luminance peak refined the requested sun source"
+        elif provider == "heuristic":
             score = self._heuristic_score(rgb, candidate_type)
         else:
             try:
@@ -1168,6 +1724,8 @@ class VisualizerSemanticObjectDetector:
             semantic_floor,
             float(np.quantile(score[eligible], min(0.97, 0.58 + float(sensitivity) * 0.37))) if np.any(eligible) else 1.0,
         )
+        if used_provider == "guided sun-disk locator":
+            cutoff = max(0.35, cutoff)
         mask = ((score >= cutoff) & eligible).astype(np.float32)
         mask = np.asarray(
             Image.fromarray((mask * 255).astype(np.uint8), "L").filter(ImageFilter.GaussianBlur(radius=4.0)),
@@ -1198,9 +1756,9 @@ class VisualizerSemanticObjectDetector:
             else ""
         )
         semantic_details = f" {semantic_note.capitalize()}." if semantic_note else ""
-        provider_label = used_provider if used_provider == "semantic CLIPSeg" else f"heuristic {candidate_type}"
+        provider_label = used_provider if used_provider in {"semantic CLIPSeg", "guided sun-disk locator"} else f"heuristic {candidate_type}"
         report = (
-            f"'{target}' used {provider_label}; selected {selected_fraction:.1%} of the frame."
+            f"'{target}' used {provider_label}; selected {selected_fraction:.2%} of the frame."
             f"{confidence}{semantic_details}{provider_note} The gold outline is search_area. "
             "Inspect verification_preview, adjust if needed, "
             "then explicitly verify the target."
@@ -1700,6 +2258,543 @@ class GenericBeatAwareLocalVisualizer:
         return {"ui": {"images": [preview], "animated": (True,)}, "result": (str(output_path),)}
 
 
+class InfraChoirAnimationTarget:
+    """One independently switchable target for the hybrid visualizer."""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": False}),
+                "target_id": ("STRING", {"default": "target_1"}),
+                "object_name": ("STRING", {"default": ""}),
+                "animation_prompt": ("STRING", {"multiline": True, "default": ""}),
+                "mask_verified": ("BOOLEAN", {"default": False}),
+                "target_role": (["organic", "light_source", "illumination", "reflection"], {"default": "organic"}),
+                "envelope_group": ("STRING", {"default": "independent"}),
+                "audio_driver": (["beat", "slow", "energy", "high", "onset"], {"default": "beat"}),
+                "motion_source": (["procedural", "generated_clip", "generated_then_procedural"], {"default": "procedural"}),
+                "motion_type": (["auto", "billow", "sway", "drift", "still"], {"default": "auto"}),
+                "on_beat_flicker": ("FLOAT", {"default": 0.35, "min": 0.0, "max": 2.0, "step": 0.05}),
+                "off_beat_flicker": ("FLOAT", {"default": 0.35, "min": 0.0, "max": 2.0, "step": 0.05}),
+                "on_beat_motion": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 2.0, "step": 0.05}),
+                "off_beat_motion": ("FLOAT", {"default": 0.45, "min": 0.0, "max": 2.0, "step": 0.05}),
+                "generated_motion_strength": ("FLOAT", {"default": 0.85, "min": 0.0, "max": 1.0, "step": 0.05}),
+                "max_luminance_change": ("FLOAT", {"default": 0.12, "min": 0.0, "max": 0.5, "step": 0.01}),
+                "glow_strength": ("FLOAT", {"default": 0.15, "min": 0.0, "max": 1.0, "step": 0.05}),
+                "glow_radius_px": ("FLOAT", {"default": 18.0, "min": 0.0, "max": 160.0, "step": 1.0}),
+                "saturation_variation": ("FLOAT", {"default": 0.06, "min": -0.5, "max": 0.5, "step": 0.01}),
+                "hue_variation_degrees": ("FLOAT", {"default": 3.0, "min": -30.0, "max": 30.0, "step": 0.5}),
+                "approved_mask_mode": (["add", "subtract", "replace"], {"default": "add"}),
+            },
+            "optional": {
+                "mask": ("MASK",),
+                "approved_mask": ("MASK",),
+                "generated_motion": ("IMAGE",),
+            },
+        }
+
+    RETURN_TYPES = ("LOCAL_VISUALIZER_TARGET", "STRING", "STRING")
+    RETURN_NAMES = ("animation_target", "diagnostic", "configuration_json")
+    FUNCTION = "configure"
+    CATEGORY = "audio/infra choir"
+    DESCRIPTION = "Configure an optional organic, light-source, illumination, or reflection target."
+
+    def configure(
+        self, enabled, target_id, object_name, animation_prompt, mask_verified,
+        target_role, envelope_group, audio_driver, motion_source, motion_type,
+        on_beat_flicker, off_beat_flicker, on_beat_motion, off_beat_motion,
+        generated_motion_strength, max_luminance_change, glow_strength, glow_radius_px,
+        saturation_variation, hue_variation_degrees, approved_mask_mode,
+        mask=None, approved_mask=None, generated_motion=None,
+    ):
+        identifier = str(target_id).strip()
+        name = str(object_name).strip()
+        prompt = str(animation_prompt).strip()
+        active = bool(enabled)
+        diagnostic = "disabled"
+        selected_mask = mask
+        if active and (not identifier or not name):
+            diagnostic = "skipped: enabled target needs target_id and object_name"
+        elif active and selected_mask is None:
+            diagnostic = "skipped: enabled target has no mask connection"
+        elif active and not bool(mask_verified):
+            diagnostic = "skipped: mask has not been verified"
+        elif active:
+            diagnostic = "ready"
+
+        if selected_mask is not None and approved_mask is not None:
+            import torch.nn.functional as functional
+
+            base = selected_mask.detach().to("cpu", dtype=__import__("torch").float32)
+            correction = approved_mask.detach().to("cpu", dtype=base.dtype)
+            if base.ndim == 2:
+                base = base[None, ...]
+            if correction.ndim == 2:
+                correction = correction[None, ...]
+            if correction.shape[-2:] != base.shape[-2:]:
+                correction = functional.interpolate(
+                    correction[:, None, ...], size=base.shape[-2:], mode="bilinear", align_corners=False,
+                )[:, 0, ...]
+            mode = str(approved_mask_mode).casefold()
+            if mode == "replace":
+                selected_mask = correction
+            elif mode == "add":
+                selected_mask = (base + correction).clamp(0.0, 1.0)
+            elif mode == "subtract":
+                selected_mask = (base - correction).clamp(0.0, 1.0)
+
+        requested_motion = str(motion_type).casefold()
+        combined = f"{name} {prompt}".casefold()
+        if requested_motion == "auto":
+            if any(word in combined for word in ("cloud", "smoke", "fog", "mist", "steam", "billow")):
+                resolved_motion = "billow"
+            elif any(word in combined for word in ("hair", "fabric", "flag", "scarf", "flame", "sway", "breeze")):
+                resolved_motion = "sway"
+            else:
+                resolved_motion = "drift"
+        else:
+            resolved_motion = requested_motion
+        serializable = {
+            "version": 1,
+            "target_id": identifier,
+            "object_name": name,
+            "animation_prompt": prompt,
+            "enabled": active,
+            "mask_verified": bool(mask_verified),
+            "target_role": str(target_role),
+            "envelope_group": str(envelope_group).strip() or "independent",
+            "audio_driver": str(audio_driver),
+            "motion_source": str(motion_source),
+            "motion_type": resolved_motion,
+            "on_beat_flicker": float(on_beat_flicker),
+            "off_beat_flicker": float(off_beat_flicker),
+            "on_beat_motion": float(on_beat_motion),
+            "off_beat_motion": float(off_beat_motion),
+            "generated_motion_strength": float(generated_motion_strength),
+            "max_luminance_change": float(max_luminance_change),
+            "glow_strength": float(glow_strength),
+            "glow_radius_px": float(glow_radius_px),
+            "saturation_variation": float(saturation_variation),
+            "hue_variation_degrees": float(hue_variation_degrees),
+        }
+        target = {
+            **serializable,
+            "mask": selected_mask,
+            "generated_motion": generated_motion,
+            "effect_modes": _target_effect_modes(name, prompt),
+            "configuration_valid": diagnostic == "ready",
+            "configuration_diagnostic": diagnostic,
+        }
+        return target, f"{identifier or 'unnamed'}: {diagnostic}", json.dumps(serializable, sort_keys=True)
+
+
+class InfraChoirVisualizer:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                "audio": ("AUDIO",),
+                "targets": ("LOCAL_VISUALIZER_TARGETS",),
+                "fps": ("INT", {"default": 16, "min": 8, "max": 30}),
+                "delivery_resolution": (["720p", "1080p", "source"], {"default": "1080p"}),
+                "pattern_key": ("INT", {"default": 20261009, "min": 0, "max": 0x7FFFFFFF}),
+                "maximum_stabilization_percent": ("FLOAT", {"default": 4.0, "min": 0.5, "max": 10.0, "step": 0.5}),
+                "apply_brand_logo": ("BOOLEAN", {"default": False}),
+                "brand_logo_width_percent": ("FLOAT", {"default": 10.0, "min": 2.0, "max": 40.0, "step": 1.0}),
+                "brand_logo_opacity": ("FLOAT", {"default": 0.68, "min": 0.05, "max": 1.0, "step": 0.01}),
+                "apply_wordmark": ("BOOLEAN", {"default": False}),
+                "wordmark_width_percent": ("FLOAT", {"default": 32.0, "min": 5.0, "max": 80.0, "step": 1.0}),
+                "wordmark_opacity": ("FLOAT", {"default": 0.95, "min": 0.05, "max": 1.0, "step": 0.01}),
+                "overlay_margin_px": ("INT", {"default": 24, "min": 0, "max": 200}),
+                "title_card_enabled": ("BOOLEAN", {"default": True}),
+                "band_name": ("STRING", {"default": "Infra Choir"}),
+                "song_title": ("STRING", {"default": "Bella Ciao"}),
+                "title_card_image": (_title_card_choices(), {"default": _GENERATED_TITLE_CARD, "image_upload": True}),
+                "title_card_placement": (["center", "upper_center", "lower_center"], {"default": "center"}),
+                "title_card_start_seconds": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 3600.0, "step": 0.1}),
+                "title_card_duration_seconds": ("FLOAT", {"default": 4.5, "min": 0.0, "max": 60.0, "step": 0.1}),
+                "title_card_fade_seconds": ("FLOAT", {"default": 0.55, "min": 0.0, "max": 5.0, "step": 0.05}),
+                "title_sparkle_enabled": ("BOOLEAN", {"default": True}),
+                "title_sparkle_strength": ("FLOAT", {"default": 0.55, "min": 0.0, "max": 1.0, "step": 0.05}),
+                "title_sparkle_audio_response": ("FLOAT", {"default": 0.30, "min": 0.0, "max": 1.0, "step": 0.05}),
+                "eq_enabled": ("BOOLEAN", {"default": True}),
+                "eq_mode": (["spectrum_bars", "continuous_waveform"], {"default": "spectrum_bars"}),
+                "eq_height_percent": ("FLOAT", {"default": 11.0, "min": 4.0, "max": 18.0, "step": 0.5}),
+                "eq_opacity": ("FLOAT", {"default": 0.46, "min": 0.0, "max": 0.85, "step": 0.01}),
+                "eq_color": ("STRING", {"default": "#8E1325"}),
+                "eq_smoothing": ("FLOAT", {"default": 0.72, "min": 0.0, "max": 0.98, "step": 0.01}),
+                "organic_motion_expansion_percent": ("FLOAT", {"default": 2.5, "min": 0.0, "max": 8.0, "step": 0.25}),
+                "title_card_source_visibility": ("FLOAT", {"default": 0.20, "min": 0.05, "max": 0.50, "step": 0.01}),
+                "brand_logo_image": (_optional_overlay_choices(), {"default": _NO_OVERLAY_IMAGE}),
+                "output_prefix": ("STRING", {"default": "infra_choir/render"}),
+            },
+            "optional": {
+                "brand_logo": ("IMAGE",),
+                "brand_logo_mask": ("MASK",),
+                "wordmark": ("IMAGE",),
+                "wordmark_mask": ("MASK",),
+            },
+        }
+
+    RETURN_TYPES = ("STRING", "STRING")
+    RETURN_NAMES = ("output_path", "qa_report")
+    OUTPUT_NODE = True
+    FUNCTION = "render"
+    CATEGORY = "audio/infra choir"
+    DESCRIPTION = "Render a fixed-frame hybrid visualizer with linked local lighting and optional stabilized generated motion."
+
+    @staticmethod
+    def _audio_drive(features, frame_index: int, driver: str) -> float:
+        if driver == "beat":
+            return float(0.72 * features["beat"][frame_index] + 0.28 * features["onset"][frame_index])
+        return float(features.get(driver, features["energy"])[frame_index])
+
+    def render(
+        self, image, audio, targets, fps, delivery_resolution, pattern_key,
+        maximum_stabilization_percent, apply_brand_logo, brand_logo_width_percent,
+        brand_logo_opacity, apply_wordmark, wordmark_width_percent, wordmark_opacity,
+        overlay_margin_px, title_card_enabled, band_name, song_title, title_card_image,
+        title_card_placement, title_card_start_seconds, title_card_duration_seconds,
+        title_card_fade_seconds, title_sparkle_enabled, title_sparkle_strength,
+        title_sparkle_audio_response, eq_enabled, eq_mode, eq_height_percent,
+        eq_opacity, eq_color, eq_smoothing, organic_motion_expansion_percent,
+        title_card_source_visibility, brand_logo_image, output_prefix, brand_logo=None, brand_logo_mask=None,
+        wordmark=None, wordmark_mask=None,
+    ):
+        import folder_paths
+        import numpy as np
+        from PIL import Image
+
+        try:
+            from comfy.utils import ProgressBar
+        except ImportError:
+            ProgressBar = None
+        if shutil.which("ffmpeg") is None:
+            raise RuntimeError("FFmpeg must be available on PATH for Infra Choir rendering.")
+
+        all_targets = tuple(targets or ())
+        diagnostics = []
+        usable = []
+        for target in all_targets:
+            label = target.get("target_id") or target.get("object_name") or "unnamed"
+            if not target.get("enabled"):
+                diagnostics.append(f"{label}: disabled")
+            elif not target.get("configuration_valid"):
+                diagnostics.append(f"{label}: {target.get('configuration_diagnostic', 'invalid configuration')}")
+            else:
+                usable.append(target)
+        if not usable:
+            raise ValueError("No usable targets. Enable and verify at least one non-empty target; disabled and incomplete lanes are safe to leave connected.")
+
+        source = Image.fromarray(_image_pixels(image), "RGB")
+        source_width, source_height = source.size
+        sizes = {"720p": (1280, 720), "1080p": (1920, 1080), "source": (source_width, source_height)}
+        if delivery_resolution not in sizes:
+            raise ValueError(f"Unsupported delivery resolution: {delivery_resolution}")
+        width, height = sizes[delivery_resolution]
+        if source.size != (width, height):
+            source = source.resize((width, height), Image.Resampling.LANCZOS)
+        base = np.asarray(source, dtype=np.uint8)
+
+        motion_cache = {}
+        plans = []
+        for index, target in enumerate(usable):
+            layer = _prepare_layer(target["mask"], width, height)
+            label = target.get("target_id") or target["object_name"]
+            if layer.bounds is None:
+                diagnostics.append(f"{label}: skipped empty verified mask")
+                continue
+            generated_frames = ()
+            motion_report = None
+            requested_generated = target.get("motion_source") in {"generated_clip", "generated_then_procedural"}
+            motion_clip = target.get("generated_motion")
+            if requested_generated and motion_clip is not None:
+                cache_key = id(motion_clip)
+                if cache_key not in motion_cache:
+                    motion_cache[cache_key] = _prepare_generated_motion(
+                        motion_clip, width, height, base, float(maximum_stabilization_percent) / 100.0,
+                    )
+                generated_frames, motion_report = motion_cache[cache_key]
+                if not generated_frames:
+                    diagnostics.append(f"{label}: generated clip has fewer than two frames; procedural fallback used")
+            elif requested_generated:
+                diagnostics.append(f"{label}: generated clip not connected; procedural fallback used")
+            role = target.get("target_role", "organic")
+            motion_type = str(target.get("motion_type", "drift"))
+            expansion_radius = 0
+            composite_layer = layer
+            if role == "organic" and motion_type != "still":
+                expansion_radius = round(height * min(8.0, max(0.0, float(organic_motion_expansion_percent))) / 100.0)
+                composite_layer = _dilated_layer(layer, expansion_radius, max(1.0, height / 720.0))
+            x0, y0, x1, y1 = composite_layer.bounds
+            glow_layer = _expanded_layer(layer, float(target.get("glow_radius_px", 0.0)) * height / 1080.0) if role == "light_source" else None
+            phase_key = target.get("envelope_group", label)
+            phase_offset = 0.0 if role in {"light_source", "illumination", "reflection"} else index * 0.173
+            plans.append({
+                **target,
+                "layer": composite_layer,
+                "source_layer": layer,
+                "expansion_radius": expansion_radius,
+                "glow_layer": glow_layer,
+                "generated_frames": generated_frames,
+                "motion_report": motion_report,
+                "motion_mask": layer.mask if expansion_radius else _motion_interior(layer.mask, round(8.0 * max(0.75, height / 720.0))),
+                "rows": np.arange(y1 - y0, dtype=np.float32)[:, None, None],
+                "columns": np.arange(x1 - x0, dtype=np.float32)[None, :, None],
+                "phase": (_stable_phase(phase_key) + int(pattern_key) * 0.0001 + phase_offset) % math.tau,
+            })
+            detail = f"{label}: ready ({role}, {target.get('motion_source', 'procedural')})"
+            if expansion_radius:
+                detail += f"; organic support expanded {expansion_radius}px beyond verified mask"
+            if motion_report:
+                detail += f"; stabilized {motion_report['frames']} frames, max shift {motion_report['max_shift_px']:.1f}px"
+                if motion_report["clipped_shifts"]:
+                    detail += f", {motion_report['clipped_shifts']} bounded shift(s)"
+            diagnostics.append(detail)
+        if not plans:
+            raise ValueError("Every enabled target produced an empty mask.")
+
+        overlays = []
+        wordmark_outline_mask = None
+        margin = round(float(overlay_margin_px) * width / 1920)
+        if bool(apply_wordmark):
+            if wordmark is None or wordmark_mask is None:
+                generated_wordmark, wordmark_outline_mask, wordmark_report = _render_generated_wordmark(
+                    width, height, band_name, song_title,
+                    max(2, round(width * float(wordmark_width_percent) / 100.0)),
+                    float(wordmark_opacity), margin,
+                )
+                overlays.append(generated_wordmark)
+                diagnostics.append(f"wordmark: {wordmark_report}")
+            else:
+                overlays.append(_prepare_overlay(wordmark, wordmark_mask, max(2, round(width * float(wordmark_width_percent) / 100.0)), float(wordmark_opacity), margin, margin))
+                diagnostics.append("wordmark: external image override")
+        else:
+            diagnostics.append("wordmark: disabled")
+        if bool(apply_brand_logo):
+            if brand_logo is not None and brand_logo_mask is not None:
+                target_width = max(2, round(width * float(brand_logo_width_percent) / 100.0))
+                rgb, _ = _overlay_pixels(brand_logo, brand_logo_mask)
+                target_height = max(1, round(rgb.shape[0] * target_width / rgb.shape[1]))
+                overlays.append(_prepare_overlay(brand_logo, brand_logo_mask, target_width, float(brand_logo_opacity), width - target_width - margin, height - target_height - margin))
+                diagnostics.append("brand logo: connected image/mask override")
+            elif str(brand_logo_image or _NO_OVERLAY_IMAGE) != _NO_OVERLAY_IMAGE:
+                try:
+                    target_width = max(2, round(width * float(brand_logo_width_percent) / 100.0))
+                    selected_overlay = _load_overlay_selection(str(brand_logo_image), target_width, float(brand_logo_opacity), 0, 0)
+                    target_height = selected_overlay[0].shape[0]
+                    overlays.append((selected_overlay[0], selected_overlay[1], width - target_width - margin, height - target_height - margin))
+                    diagnostics.append(f"brand logo: selected {brand_logo_image}")
+                except (FileNotFoundError, OSError, ValueError) as exc:
+                    diagnostics.append(f"brand logo: selected image unavailable ({exc}); skipped")
+            else:
+                diagnostics.append("brand logo: enabled but no selected or connected image; skipped")
+
+        title_card = None
+        title_outline_mask = None
+        if bool(title_card_enabled):
+            selected_card = str(title_card_image or _GENERATED_TITLE_CARD)
+            if selected_card != _GENERATED_TITLE_CARD:
+                try:
+                    title_card, title_outline_mask, title_report = _load_external_title_card(selected_card, width, height)
+                except (FileNotFoundError, OSError, ValueError) as exc:
+                    diagnostics.append(f"title card: external image unavailable ({exc}); generated text fallback used")
+                    title_card, title_outline_mask, title_report = _render_generated_title_card(
+                        base, band_name, song_title, title_card_placement,
+                        round(height * float(eq_height_percent) / 100.0) if bool(eq_enabled) else 0,
+                        float(title_card_source_visibility),
+                    )
+            else:
+                title_card, title_outline_mask, title_report = _render_generated_title_card(
+                    base, band_name, song_title, title_card_placement,
+                    round(height * float(eq_height_percent) / 100.0) if bool(eq_enabled) else 0,
+                    float(title_card_source_visibility),
+                )
+            diagnostics.append(f"title card: {title_report}")
+        else:
+            diagnostics.append("title card: disabled")
+        eq_color_rgb = _parse_overlay_color(eq_color) if bool(eq_enabled) else None
+        diagnostics.append(
+            f"EQ overlay: {eq_mode}, {float(eq_height_percent):.1f}% height, {float(eq_opacity):.2f} opacity"
+            if bool(eq_enabled) else "EQ overlay: disabled"
+        )
+
+        prefix = _safe_name(str(output_prefix).replace("\\", "/").split("/")[-1])
+        parent = Path(str(output_prefix).replace("\\", "/")).parent.as_posix()
+        save_prefix = f"{parent}/{prefix}" if parent not in {"", "."} else prefix
+        output_folder, filename, counter, subfolder, _ = folder_paths.get_save_image_path(save_prefix, folder_paths.get_output_directory(), width, height)
+        output_file = f"{filename}_{counter:05}_.mp4"
+        output_path = Path(output_folder) / output_file
+        partial_path = output_path.with_name(output_path.stem + ".part.mp4")
+
+        with tempfile.TemporaryDirectory(prefix="infra-choir-") as temporary:
+            audio_path = Path(temporary) / "audio.wav"
+            duration = _write_audio_wav(audio, audio_path)
+            features = _audio_features(audio, int(fps), duration)
+            eq_bands = _smooth_spectrum_bands(features["spectrum_bands"], float(eq_smoothing)) if bool(eq_enabled) else None
+            frame_count = len(features["energy"])
+            progress = ProgressBar(frame_count + 3) if ProgressBar else None
+            if progress:
+                progress.update_absolute(2, frame_count + 3)
+            command = [
+                "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-f", "rawvideo",
+                "-pixel_format", "rgb24", "-video_size", f"{width}x{height}", "-framerate", str(int(fps)),
+                "-i", "-", "-i", str(audio_path), "-map", "0:v:0", "-map", "1:a:0", "-t", f"{duration:.9f}",
+                "-c:v", "libx264", "-preset", "fast", "-crf", "20", "-pix_fmt", "yuv420p",
+                "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", str(partial_path),
+            ]
+            process = subprocess.Popen(command, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+            try:
+                for frame_index in range(frame_count):
+                    frame = base.copy()
+                    seconds = frame_index / float(fps)
+                    for plan in plans:
+                        layer = plan["layer"]
+                        x0, y0, x1, y1 = layer.bounds
+                        original = frame[y0:y1, x0:x1].astype(np.float32)
+                        changed = original.copy()
+                        driver = str(plan.get("audio_driver", "beat"))
+                        audio_drive = self._audio_drive(features, frame_index, driver)
+                        beat_signal = self._audio_drive(features, frame_index, "beat")
+                        phase = plan["phase"]
+                        off_flicker = float(plan.get("off_beat_flicker", 0.0))
+                        autonomous = off_flicker * (0.55 + 0.25 * math.sin(seconds * 0.83 + phase) + 0.20 * math.sin(seconds * 1.91 + phase * 1.7))
+                        reactive = float(plan.get("on_beat_flicker", 0.0)) * audio_drive
+
+                        generated_frames = plan["generated_frames"]
+                        if generated_frames:
+                            clip_frame = generated_frames[_ping_pong_index(frame_index, len(generated_frames))]
+                            generated_crop = clip_frame[y0:y1, x0:x1].astype(np.float32)
+                            amount = float(plan.get("generated_motion_strength", 0.85))
+                            changed = changed * (1.0 - amount) + generated_crop * amount
+
+                        procedural = plan.get("motion_source") != "generated_clip" or not generated_frames
+                        if procedural:
+                            motion_type = str(plan.get("motion_type", "drift"))
+                            motion_pixels = {"billow": 11.0, "sway": 5.0, "drift": 6.0, "still": 0.0}.get(motion_type, 4.0)
+                            motion_pixels *= max(0.75, height / 720.0)
+                            if plan.get("expansion_radius", 0):
+                                motion_pixels += float(plan["expansion_radius"]) * (0.55 if motion_type == "billow" else 0.40)
+                            motion_amount = motion_pixels * (
+                                float(plan.get("off_beat_motion", 0.0)) + float(plan.get("on_beat_motion", 0.0)) * beat_signal
+                            )
+                            if motion_type in {"billow", "sway"}:
+                                warped = _deform_pixels(changed, seconds, phase, motion_amount, motion_type)
+                                if plan.get("expansion_radius", 0):
+                                    mask_pixels = np.repeat(
+                                        np.clip(plan["motion_mask"][y0:y1, x0:x1, None] * 255.0, 0, 255),
+                                        3, axis=2,
+                                    )
+                                    alpha = _deform_pixels(mask_pixels, seconds, phase, motion_amount, motion_type)[..., :1] / 255.0
+                                else:
+                                    alpha = plan["motion_mask"][y0:y1, x0:x1, None]
+                                changed = changed * (1.0 - alpha) + warped * alpha
+                            elif motion_type == "drift":
+                                warped = _translate_pixels(
+                                    changed,
+                                    motion_amount * math.sin(seconds * 0.72 + phase),
+                                    motion_amount * 0.45 * math.cos(seconds * 0.51 + phase * 1.7),
+                                )
+                                alpha = plan["motion_mask"][y0:y1, x0:x1, None]
+                                changed = changed * (1.0 - alpha) + warped * alpha
+
+                        role = plan.get("target_role", "organic")
+                        bounded = min(float(plan.get("max_luminance_change", 0.12)), max(0.0, reactive + 0.35 * autonomous) * 0.18)
+                        if role in {"light_source", "illumination", "reflection"}:
+                            changed *= 1.0 + bounded
+                            hue = float(plan.get("hue_variation_degrees", 0.0)) * (reactive + 0.25 * autonomous)
+                            saturation = float(plan.get("saturation_variation", 0.0)) * (reactive + 0.25 * autonomous)
+                            changed = _shift_hue_and_saturation(changed, hue, saturation)
+                            if role == "reflection":
+                                shimmer = 0.5 + 0.5 * np.sin(plan["rows"] * 0.09 + seconds * 2.7 + phase)
+                                changed *= 1.0 + min(0.18, bounded) * shimmer
+                        else:
+                            flow = 0.5 * (
+                                np.sin(plan["columns"] * 0.008 + plan["rows"] * 0.005 - seconds * 0.55 + phase)
+                                + np.cos(plan["columns"] * 0.004 - plan["rows"] * 0.009 + seconds * 0.37 + phase)
+                            )
+                            for mode in plan.get("effect_modes", ("drift",)):
+                                if mode == "drift":
+                                    changed *= 1.0 + 0.045 * reactive + autonomous * (0.035 + 0.10 * flow)
+                                elif mode == "flicker":
+                                    changed *= 1.0 + 0.16 * (reactive + autonomous)
+                                elif mode == "flash":
+                                    changed += 28.0 * reactive
+                                elif mode == "shimmer":
+                                    shimmer = 0.5 + 0.5 * np.sin(plan["rows"] * 0.09 + seconds * 2.7 + phase)
+                                    changed *= 1.0 + 0.12 * (reactive + autonomous) * shimmer
+                        _blend(frame, changed, layer)
+
+                        glow_layer = plan.get("glow_layer")
+                        if glow_layer is not None and glow_layer.bounds is not None and float(plan.get("glow_strength", 0.0)) > 0:
+                            gx0, gy0, gx1, gy1 = glow_layer.bounds
+                            glow_pixels = frame[gy0:gy1, gx0:gx1].astype(np.float32)
+                            glow_amount = min(0.20, float(plan.get("glow_strength", 0.0)) * (reactive + 0.20 * autonomous) * 0.16)
+                            glow_pixels = _shift_hue_and_saturation(glow_pixels * (1.0 + glow_amount), float(plan.get("hue_variation_degrees", 0.0)) * reactive, 0.0)
+                            _blend(frame, glow_pixels, glow_layer, opacity=min(1.0, float(plan.get("glow_strength", 0.0))))
+                    for overlay in overlays:
+                        _apply_overlay(frame, overlay)
+                    title_alpha = 0.0
+                    if title_card is not None:
+                        title_alpha = _title_card_alpha(
+                            seconds, title_card_start_seconds, title_card_duration_seconds, title_card_fade_seconds,
+                        )
+                        if title_alpha > 0.0:
+                            frame = np.clip(
+                                frame.astype(np.float32) * (1.0 - title_alpha)
+                                + title_card.astype(np.float32) * title_alpha,
+                                0, 255,
+                            ).astype(np.uint8)
+                    if eq_bands is not None:
+                        _apply_eq_overlay(
+                            frame, eq_bands[frame_index], str(eq_mode), float(eq_height_percent),
+                            float(eq_opacity), eq_color_rgb,
+                        )
+                    if bool(title_sparkle_enabled) and title_outline_mask is not None and title_alpha > 0.0:
+                        sparkle_response = (
+                            (1.0 - float(title_sparkle_audio_response))
+                            + float(title_sparkle_audio_response) * float(features["high"][frame_index])
+                        )
+                        _apply_title_outline_sparkle(
+                            frame, title_outline_mask, seconds, float(title_sparkle_strength),
+                            sparkle_response, int(pattern_key), title_alpha,
+                        )
+                    if bool(title_sparkle_enabled) and wordmark_outline_mask is not None and title_alpha < 1.0:
+                        sparkle_response = (
+                            (1.0 - float(title_sparkle_audio_response))
+                            + float(title_sparkle_audio_response) * float(features["high"][frame_index])
+                        )
+                        _apply_title_outline_sparkle(
+                            frame, wordmark_outline_mask, seconds, float(title_sparkle_strength),
+                            sparkle_response, int(pattern_key) + 17, 1.0 - title_alpha,
+                        )
+                    process.stdin.write(np.ascontiguousarray(frame).tobytes())
+                    if progress:
+                        progress.update_absolute(frame_index + 3, frame_count + 3)
+                process.stdin.close()
+                error = process.stderr.read().decode("utf-8", errors="replace").strip()
+                return_code = process.wait()
+                if return_code:
+                    raise RuntimeError(f"FFmpeg failed: {error or return_code}")
+            except BaseException:
+                if process.stdin and not process.stdin.closed:
+                    process.stdin.close()
+                process.kill()
+                process.wait()
+                raise
+
+        partial_path.replace(output_path)
+        qa_report = "\n".join(diagnostics + [
+            f"rendered {frame_count} frames at {width}x{height}/{int(fps)} fps",
+            "static-base invariant: environmental motion remains confined to verified masks plus bounded organic expansion; wordmark/title/EQ are stationary overlays",
+            "audio preserved via AAC mux; completed output promoted atomically from .part.mp4",
+        ])
+        preview = {"filename": output_file, "subfolder": subfolder, "type": "output"}
+        return {"ui": {"images": [preview], "animated": (True,)}, "result": (str(output_path), qa_report)}
+
+
 NODE_CLASS_MAPPINGS = {
     "VisualizerCandidateRegions": VisualizerCandidateRegions,
     "VisualizerRegionMask": VisualizerRegionMask,
@@ -1712,6 +2807,8 @@ NODE_CLASS_MAPPINGS = {
     "VisualizerAnimationTarget": VisualizerAnimationTarget,
     "VisualizerTargetStack": VisualizerTargetStack,
     "GenericBeatAwareLocalVisualizer": GenericBeatAwareLocalVisualizer,
+    "InfraChoirAnimationTarget": InfraChoirAnimationTarget,
+    "InfraChoirVisualizer": InfraChoirVisualizer,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -1726,4 +2823,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "VisualizerAnimationTarget": "Configure Animation Target",
     "VisualizerTargetStack": "Add Animation Target",
     "GenericBeatAwareLocalVisualizer": "Render Generic Target Visualizer",
+    "InfraChoirAnimationTarget": "Configure Infra Choir Target",
+    "InfraChoirVisualizer": "Render Infra Choir Hybrid Visualizer",
 }

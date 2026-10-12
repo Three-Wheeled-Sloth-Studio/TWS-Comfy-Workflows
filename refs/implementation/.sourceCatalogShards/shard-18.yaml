@@ -689,24 +689,8 @@ source_catalog:
         symbol: add_link
       - path: scripts/build_guided_motion_poster_workflow.py
         symbol: main.add_link
-      - path: build_auto_s2v_workflow.py
-        symbol: input_slot
-      - path: scripts/build_generic_music_visualizer_workflow.py
-        symbol: input_slot
-      - path: scripts/build_guided_motion_poster_workflow.py
-        symbol: input_slot
-      - path: scripts/build_local_music_visualizer_workflow.py
-        symbol: input_slot
       - path: scripts/build_guided_motion_poster_workflow.py
         symbol: keep_ancestors
-      - path: build_auto_s2v_workflow.py
-        symbol: output_slot
-      - path: scripts/build_generic_music_visualizer_workflow.py
-        symbol: output_slot
-      - path: scripts/build_guided_motion_poster_workflow.py
-        symbol: output_slot
-      - path: scripts/build_local_music_visualizer_workflow.py
-        symbol: output_slot
       - path: scripts/build_guided_motion_poster_workflow.py
         symbol: prune_unused_layout
       - path: scripts/build_guided_motion_poster_workflow.py
