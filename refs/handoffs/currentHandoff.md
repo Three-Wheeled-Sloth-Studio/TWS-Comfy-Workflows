@@ -9,10 +9,12 @@ tags: [handoff, comfyui, music-video, compositing, visualizer, wan]
 
 ## 2026-10-20 Next Video Quality Priorities
 
-Raise the Neon Black v2 is accepted, but review found a loop jump and fuzz.
-The old overlap reset caused 9.44 median boundary change versus 1.49 normally.
-Correct `N-overlap` indexing plus a regression reduced a real probe boundary to
-1.55. Continue visual/numeric seam gates and lossless stage comparisons.
+Raise the Neon Black v2 `_00002_` is the current accepted render. The old
+overlap reset caused 9.44 median boundary change versus 1.49 normally. Correct
+`N-overlap` indexing reduced all 21 regenerated full-song boundaries to 1.414
+median and 1.667 maximum, below the 3.235 ordinary-frame 95th percentile.
+Crossfade-reset ghosting is fixed; other model/encode fuzz still requires the
+planned lossless stage comparison.
 
 Next, test Wan 2.1 VACE 1.3B separately at 832x480/~81 frames on the next
 user-selected art. No checkpoint is installed. Gate runtime/VRAM, source and
