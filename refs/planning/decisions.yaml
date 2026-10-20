@@ -1,7 +1,60 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: 2026-10-12
+updated: 2026-10-20
 decisions:
+  - id: next-video-vace-and-loop-quality-gate
+    status: accepted
+    date: 2026-10-20
+    decision: Before the next full-song render, eliminate the visible loop jump, isolate the source of temporal fuzz, and evaluate Wan 2.1 VACE 1.3B in a separate short 832x480 fixed-seed benchmark.
+    rationale: The corrected v2 compositor preserves motion and overlays, but visual review still finds a screen jump and fuzzing. Official VACE guidance positions the 1.3B model around 81-frame 480p output, which is a plausible lower-cost controlled-motion candidate but remains unproven on the local 12 GB system.
+    consequences:
+      - Do not infer the next image, song, regions, or prompts from Raise the Neon Black; bind the benchmark to the next user-selected inputs.
+      - Measure every loop boundary and protected static region; aggregate motion alone is not an acceptance gate.
+      - Preserve lossless or near-lossless intermediates so model instability can be separated from seam blending, scaling, and encode artifacts.
+      - Do not download VACE weights or run a full song until the user initiates the benchmark and the short candidate passes.
+  - id: raise-neon-black-cached-motion-full-song
+    status: accepted
+    date: 2026-10-20
+    decision: Use the reviewed short Wan asset as a cached full-frame motion lane, amplify its existing atmosphere temporally without spatial warping, and add title, ultra-band EQ, and localized light response in the deterministic full-song renderer.
+    rationale: The accepted clip preserves character and composition while a nominally cheap 640x360 Wan gate consumed 95 minutes before failing on incompatible latent dimensions; deterministic reuse completed the 208-second production render safely in 28 minutes.
+    consequences:
+      - Keep short Wan generation and full-song assembly as separate stages.
+      - Do not assume reduced Wan resolution or frame count is an inexpensive prompt-discovery path on the current 12 GB/offload setup.
+      - Derive per-song lighting masks from the current source artwork and keep them separate from prior-song masks and configuration.
+      - Preserve the dual-track scaffold; song-specific full renders use separately versioned workflows.
+  - id: infra-choir-modal-manual-target-settings
+    status: accepted
+    date: 2026-10-15
+    decision: Keep common manual-target controls on compact graph cards and edit infrequent per-target controls through a modal Advanced Settings editor backed by one hidden serialized field.
+    rationale: Full enhanced target cards are too tall to associate visually with their detector lanes, while separate settings nodes add graph wiring and alignment burden.
+    consequences:
+      - The modal exposes audio drivers, response envelopes, grouping, detailed glow and shimmer, and cached atmospheric clip controls without adding graph nodes or links.
+      - Detector-side inclusion remains the single render inclusion control.
+      - The root workflow is authoritative user state and must not be regenerated from an image- or song-specific baseline; no TWS/Video duplicate should be created.
+      - Role-specific filtering must not present generated-clip blend, shimmer, glow, lighting, or motion controls on cards where the renderer cannot consume them.
+      - Visible smoke and lighting controls must retain perceptible transfer after soft-mask compositing while respecting explicit luminance, glow, and source-motion safety bounds.
+  - id: infra-choir-reviewed-dual-track-targets
+    status: accepted
+    date: 2026-10-14
+    decision: Merge reviewed image-bound auto targets with the manual stack.
+    rationale: Discovery can accelerate new-image setup, but masks and semantic labels are not trustworthy enough to enter a full-song render without image binding and human approval; the proven manual lanes must remain the overriding rollback path.
+    consequences:
+      - Discovery defaults to idle and does not perform analysis during ordinary rendering.
+      - Only approved, edited, or locked targets with matching source fingerprints deserialize into runtime targets.
+        - Manual-only, auto-only, keep-both, manual-wins, and auto-wins policies are explicit; the discovery scaffold defaults to auto-only so image-specific legacy lanes cannot silently reinterpret a new source image.
+      - Optional atmosphere clips are prepared offline and never cause diffusion to run inside the full-song renderer.
+      - Desktop import and full-song visual QA are required before the candidate can be called production-ready.
+  - id: infra-choir-enhanced-streaming-analysis
+    status: accepted
+    date: 2026-10-13
+    decision: Add the Fill-Nodes-informed audio, envelope, masked-effect, and genuine high-resolution spectrum capabilities as project-owned streaming extensions in a separately named enhanced production workflow.
+    rationale: Fill-Nodes provides useful Apache-2.0 signal and effect concepts, but its FL_AUDIO_ENVELOPE types and full-image-batch effect nodes are incompatible with the existing target JSON and full-song bounded-memory architecture.
+    consequences:
+      - The existing production workflow and original node registrations remain backward compatible and unchanged as the A/B baseline.
+      - One cacheable STFT pass supplies all target, lighting, reflection, title, effect, and EQ signals on a common output-frame timebase.
+      - Enhancements are independently switchable, and disabling the master enhancement control reproduces the baseline decoded output.
+      - Source separation remains optional and absent; vocal and instrument controls are explicitly documented spectral proxies.
+      - The renderer remains CPU/NumPy plus FFmpeg and does not require cloud services, generative models, or CPU model offloading.
   - id: infra-choir-deterministic-production-overlays
     status: accepted
     date: 2026-10-12

@@ -4,33 +4,45 @@ source_catalog:
   format_version: 1
   generated_by: refs/tools/generate_source_catalog.py
   derived: true
-  tracked_source_files: 16
-  symbols: 178
+  tracked_source_files: 28
+  symbols: 276
   languages:
-    javascript: 1
-    python: 15
+    javascript: 3
+    python: 25
   parsers:
-    javascript-pattern: 1
-    python-ast: 177
+    javascript-pattern: 11
+    python-ast: 265
   shards:
   - path: refs/implementation/.sourceCatalogShards/shard-01.yaml
     files: 1
     symbols: 13
+  - path: refs/implementation/.sourceCatalogShards/shard-02.yaml
+    files: 1
+    symbols: 3
+  - path: refs/implementation/.sourceCatalogShards/shard-03.yaml
+    files: 1
+    symbols: 9
   - path: refs/implementation/.sourceCatalogShards/shard-05.yaml
     files: 2
-    symbols: 11
+    symbols: 12
   - path: refs/implementation/.sourceCatalogShards/shard-08.yaml
     files: 1
     symbols: 9
   - path: refs/implementation/.sourceCatalogShards/shard-0d.yaml
     files: 1
     symbols: 2
-  - path: refs/implementation/.sourceCatalogShards/shard-10.yaml
+  - path: refs/implementation/.sourceCatalogShards/shard-0e.yaml
     files: 1
     symbols: 2
-  - path: refs/implementation/.sourceCatalogShards/shard-12.yaml
-    files: 1
+  - path: refs/implementation/.sourceCatalogShards/shard-10.yaml
+    files: 3
     symbols: 9
+  - path: refs/implementation/.sourceCatalogShards/shard-12.yaml
+    files: 3
+    symbols: 20
+  - path: refs/implementation/.sourceCatalogShards/shard-13.yaml
+    files: 1
+    symbols: 3
   - path: refs/implementation/.sourceCatalogShards/shard-16.yaml
     files: 1
     symbols: 1
@@ -43,15 +55,18 @@ source_catalog:
   - path: refs/implementation/.sourceCatalogShards/shard-1a.yaml
     files: 2
     symbols: 12
+  - path: refs/implementation/.sourceCatalogShards/shard-1b.yaml
+    files: 2
+    symbols: 5
   - path: refs/implementation/.sourceCatalogShards/shard-1c.yaml
     files: 1
     symbols: 4
   - path: refs/implementation/.sourceCatalogShards/shard-1d.yaml
-    files: 1
-    symbols: 78
+    files: 2
+    symbols: 131
   - path: refs/implementation/.sourceCatalogShards/shard-1f.yaml
-    files: 1
-    symbols: 9
+    files: 2
+    symbols: 13
   query_command: python refs/tools/generate_source_catalog.py --query "<task or symbol>"
   notes:
   - Generated from source; never hand-edit this catalog or its shards.

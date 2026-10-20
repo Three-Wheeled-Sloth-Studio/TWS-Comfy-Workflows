@@ -4,6 +4,47 @@ source_catalog:
   format_version: 1
   bucket: '10'
   files:
+  - path: custom_nodes/comfyui_audio_duration_plan/web/infra_choir_auto_discover.js
+    analysis_version: 1
+    language: javascript
+    content_hash: 36d057baea6ceaa1669e8b25c4ff3f0e3f0d50ad
+    dependencies:
+    - ../../scripts/api.js
+    - ../../scripts/app.js
+    provides:
+    - beforeRegisterNodeDef
+    symbols:
+    - name: beforeRegisterNodeDef
+      kind: method
+      line_start: 6
+      line_end: 110
+      signature: beforeRegisterNodeDef(nodeType, nodeData)
+      inputs:
+      - nodeType
+      - nodeData
+      output: unspecified
+      dependencies:
+      - Error
+      - JSON.stringify
+      - Math.max
+      - String
+      - api.fetchApi
+      - apply
+      - async
+      - find
+      - function
+      - manifest
+      - navigator.clipboard.writeText
+      - response.json
+      - target
+      - this._infraChoirReport.split
+      - widget
+      parser: javascript-pattern
+      dependency_targets:
+      - path: scripts/build_generic_music_visualizer_workflow.py
+        symbol: target
+      - path: scripts/build_infra_choir_visualizer_workflow.py
+        symbol: target
   - path: scripts/install_visualizer_semantic_assets.py
     analysis_version: 1
     language: python
@@ -55,3 +96,161 @@ source_catalog:
       dependency_targets:
       - path: scripts/install_visualizer_semantic_assets.py
         symbol: _arguments
+  - path: scripts/render_infra_choir_raise_neon_black_full_video.py
+    analysis_version: 1
+    language: python
+    content_hash: bd6c0695102e2628e81a8eccec1397c2b033f5fb
+    dependencies:
+    - PIL
+    - __future__
+    - argparse
+    - folder_paths
+    - importlib.util
+    - json
+    - numpy
+    - pathlib
+    - subprocess
+    - sys
+    - torch
+    provides:
+    - _load_runtime
+    - _image_tensor
+    - _mask_tensor
+    - _audio_tensor
+    - _target
+    - main
+    symbols:
+    - name: _load_runtime
+      kind: function
+      line_start: 20
+      line_end: 31
+      signature: _load_runtime()
+      inputs: []
+      output: unspecified
+      dependencies:
+      - folder_paths.set_input_directory
+      - folder_paths.set_output_directory
+      - folder_paths.set_temp_directory
+      - importlib.util.module_from_spec
+      - importlib.util.spec_from_file_location
+      - specification.loader.exec_module
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: _image_tensor
+      kind: function
+      line_start: 34
+      line_end: 41
+      signature: '_image_tensor(path: Path)'
+      inputs:
+      - 'path: Path'
+      output: unspecified
+      dependencies:
+      - Image.open
+      - ImageOps.exif_transpose
+      - ImageOps.exif_transpose(opened).convert
+      - np.asarray
+      - torch.from_numpy
+      parser: python-ast
+      dependency_targets: []
+    - name: _mask_tensor
+      kind: function
+      line_start: 44
+      line_end: 51
+      signature: '_mask_tensor(path: Path)'
+      inputs:
+      - 'path: Path'
+      output: unspecified
+      dependencies:
+      - Image.open
+      - np.asarray
+      - opened.convert
+      - torch.from_numpy
+      parser: python-ast
+      dependency_targets: []
+    - name: _audio_tensor
+      kind: function
+      line_start: 54
+      line_end: 64
+      signature: '_audio_tensor(path: Path, seconds: float | None)'
+      inputs:
+      - 'path: Path'
+      - 'seconds: float | None'
+      output: unspecified
+      dependencies:
+      - command.extend
+      - np.frombuffer
+      - np.frombuffer(decoded, dtype='<f4').copy
+      - np.frombuffer(decoded, dtype='<f4').copy().reshape
+      - str
+      - subprocess.run
+      - torch.from_numpy
+      parser: python-ast
+      dependency_targets:
+      - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
+        symbol: WanSoundImageToVideoExtendState.extend
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: InfraChoirAutoDiscover.run
+    - name: _target
+      kind: function
+      line_start: 67
+      line_end: 72
+      signature: '_target(node: dict, mask, target_class)'
+      inputs:
+      - 'node: dict'
+      - mask
+      - target_class
+      output: unspecified
+      dependencies:
+      - RuntimeError
+      - diagnostic.endswith
+      - node['inputs'].items
+      - target_class
+      - target_class().configure
+      parser: python-ast
+      dependency_targets: []
+    - name: main
+      kind: function
+      line_start: 75
+      line_end: 117
+      signature: main() -> int
+      inputs: []
+      output: int
+      dependencies:
+      - PROMPT.read_text
+      - _audio_tensor
+      - _image_tensor
+      - _load_runtime
+      - _mask_tensor
+      - _target
+      - argparse.ArgumentParser
+      - json.loads
+      - parser.add_argument
+      - parser.parse_args
+      - print
+      - prompt['11']['inputs'].items
+      - renderer_class
+      - renderer_class().render
+      - torch.ones
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/render_infra_choir_raise_neon_black_full_video.py
+        symbol: _audio_tensor
+      - path: scripts/render_infra_choir_raise_neon_black_full_video.py
+        symbol: _image_tensor
+      - path: scripts/benchmark_infra_choir_enhanced.py
+        symbol: _load_runtime
+      - path: scripts/render_infra_choir_raise_neon_black_full_video.py
+        symbol: _load_runtime
+      - path: scripts/render_infra_choir_raise_neon_black_full_video.py
+        symbol: _mask_tensor
+      - path: scripts/render_infra_choir_raise_neon_black_full_video.py
+        symbol: _target
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: BeatAwareLocalVisualizer.render
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: GenericBeatAwareLocalVisualizer.render
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: InfraChoirVisualizer.render
+      - path: scripts/render_motion_poster.py
+        symbol: render

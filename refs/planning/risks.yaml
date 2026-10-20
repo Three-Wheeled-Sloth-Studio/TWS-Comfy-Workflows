@@ -1,7 +1,52 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: 2026-10-07
+updated: 2026-10-20
 risks:
+  - id: cached-motion-loop-seam-and-temporal-fuzz
+    status: open
+    severity: high
+    summary: Repeating a short generated motion clip can produce a visible screen jump at the cycle boundary, while tail/head dissolves, temporal amplification, stabilization, scaling, and repeated lossy encodes can introduce ghosting or texture fuzz.
+    mitigation: Gate the next clip on every loop boundary rather than aggregate statistics; prefer a naturally cyclic range or motion-compensated seam, keep intermediates lossless or near-lossless, compare each processing stage, and reject longer dissolves that conceal the jump by increasing fuzz.
+  - id: wan21-vace-13b-fit-and-fidelity
+    status: open
+    severity: medium
+    summary: Wan 2.1 VACE 1.3B is not installed or benchmarked locally; its official optimum is the 480p/832x480 range, and its ability to preserve detailed Infra Choir artwork, produce a clean loop, and run acceptably on the 12 GB RTX 4070 is unknown.
+    mitigation: Use a separate fixed-seed 832x480 short benchmark on the next user-selected artwork, record runtime/VRAM/source similarity/static-region stability/target motion/seam quality, and promote it only after an 8-second composited probe passes visual review.
+  - id: infra-choir-auto-target-review-quality
+    status: open
+    severity: medium
+    summary: Automatic light, atmosphere, reflection, hair, fabric, and person proposals can be semantically wrong or spatially imprecise even when their image fingerprint is current.
+    mitigation: Keep discovery setup-only and idle by default, require an approved/edited/locked review state, preview embedded masks, return stale manifests as empty, and retain manual-wins as the default merge policy.
+  - id: infra-choir-cached-atmosphere-runtime
+    status: mitigated
+    severity: medium
+    summary: Offline generated atmosphere clips can be expensive to create on the RTX 4070 12 GB, and invalid Wan dimensions may fail only after long offloaded setup and sampling work.
+    mitigation: The accepted 1024x576 clip and 208-second cached-motion render are now benchmarked; use compatible 32-pixel dimensions, keep diffusion outside full-song rendering, cap decoded clips, crossfade loop boundaries, and use cached/procedural previews for cheap iteration.
+  - id: infra-choir-enhanced-proxy-and-mask-quality
+    status: open
+    severity: medium
+    summary: Vocal/instrument controls are lightweight spectral proxies rather than source separation, while selective effects remain only as spatially accurate as the reviewed masks; some mixes or imperfect masks can therefore drive or illuminate the wrong content.
+    mitigation: Keep proxy labels explicit, use conservative defaults, inspect every semantic mask, tune per-target drivers and section gains, and use painted mask corrections or optional offline stems when a production mix needs stronger semantic isolation.
+  - id: ltx23-q2-audio-loop-vram-budget
+    status: open
+    severity: medium
+    summary: The accepted LTX 2.3 Q2 AudioLoopHelper baseline peaks at 10,834 MiB on the 12 GB RTX 4070; future attempts to reach the under-10-GiB target could appear successful only by shifting model work to slow CPU offloading.
+    mitigation: Keep the current 10.58 GiB workflow as accepted; for experiments target less than 10 GiB but accept any peak that remains fully GPU-resident, reject lower-VRAM results that use model or layer CPU offloading, and never substitute the LTX 2.5 22B INT8 stack silently.
+  - id: comfy-d-drive-storage-dependency
+    status: open
+    severity: medium
+    summary: Comfy Desktop models, inputs, outputs, and temporary generation data now depend on the D-drive Comfy storage root, so Comfy model discovery and media access will fail if the D drive is unavailable or its folder layout changes.
+    mitigation: Keep the D drive mounted with the current folder layout, retain the compatibility junctions on C, and update both Desktop settings and generated model-path files together before any future relocation.
+  - id: yue2-noncommercial-model-license
+    status: open
+    severity: high
+    summary: YuE2, SheetSage2, and the selected instrumental adapter use CC BY-NC 4.0 weights, so their generated or derived production output cannot be assumed safe for commercial Infra Choir releases.
+    mitigation: Keep YuE2 work non-commercial unless the rights holder grants separate permission; retain ACE-Step or another commercially compatible engine for releasable production.
+  - id: remiqora-separate-runtime-and-model-duplication
+    status: open
+    severity: medium
+    summary: Remiqora is a separate orchestrator rather than a Comfy node, and its YuE2 path requires audio.cpp plus GGUF weights that cannot reuse the existing Comfy safetensors.
+    mitigation: Treat Remiqora as an optional standalone DAW/reference tool, reuse the existing standalone ACE-Step install, and do not add the duplicate YuE2 stack unless its separate UX justifies the storage and maintenance cost.
   - id: local-mask-spill
     status: open
     severity: medium

@@ -253,4 +253,32 @@ from .local_visualizer_nodes import (
 NODE_CLASS_MAPPINGS.update(LOCAL_VISUALIZER_NODE_CLASS_MAPPINGS)
 NODE_DISPLAY_NAME_MAPPINGS.update(LOCAL_VISUALIZER_NODE_DISPLAY_NAME_MAPPINGS)
 
+# The setup-node button intentionally persists only an already-produced,
+# image-fingerprinted discovery manifest. It does not queue or alter the active
+# render graph, so pushing targets cannot accidentally start a full-song job.
+try:
+    from aiohttp import web
+    from server import PromptServer
+    from .local_visualizer_nodes import approve_infra_choir_discovery
+
+    @PromptServer.instance.routes.post("/infra_choir/apply_discovery")
+    async def apply_infra_choir_discovery(request):
+        try:
+            payload = await request.json()
+            manifest, saved_text, destination = approve_infra_choir_discovery(
+                payload.get("manifest", ""),
+                payload.get("manifest_path", "infra_choir/auto_targets.json"),
+                payload.get("preserve_reviewed_targets", True),
+            )
+            return web.json_response({
+                "ok": True,
+                "count": len(manifest["targets"]),
+                "manifest": saved_text,
+                "status": f"PUSHED — {len(manifest['targets'])} target(s) are active at {destination}",
+            })
+        except (TypeError, ValueError, OSError) as exc:
+            return web.json_response({"ok": False, "error": str(exc)}, status=400)
+except ImportError:
+    pass
+
 WEB_DIRECTORY = "./web"

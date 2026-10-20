@@ -17,6 +17,11 @@ needed, then enable `mask_verified` on the corresponding **Configure Infra Choir
 Target** node. Queue the renderer once. Disabled, incomplete, empty, and
 unverified lanes remain connected and are skipped with a diagnostic.
 
+For the separately named high-resolution-spectrum and richer-envelope variant,
+open `user/default/workflows/music_visualizer_infra_choir_enhanced.json` and
+see `refs/architecture/infraChoirVisualizerEnhanced.md`. This document and the
+production workflow remain the unchanged baseline for A/B and compatibility.
+
 The starter graph has seven independent lanes: red hair, red fabric, industrial
 smoke, clouds, sun source, sunlit atmospheric illumination, and river
 reflection. The last three use the shared `sunlight` envelope group while

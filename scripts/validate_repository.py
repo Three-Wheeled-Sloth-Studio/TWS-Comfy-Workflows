@@ -35,6 +35,8 @@ ALLOWED_WORKFLOWS = {
     "user/default/workflows/music_visualizer_target_builder_semantic.json",
     "user/default/workflows/music_visualizer_infra_choir_hybrid.json",
     "user/default/workflows/music_visualizer_infra_choir_production.json",
+    "user/default/workflows/music_visualizer_infra_choir_enhanced.json",
+    "user/default/workflows/video_raise_the_neon_black_full_visualizer_v2.json",
 }
 FORBIDDEN_SUFFIXES = {
     ".bin", ".ckpt", ".flac", ".gif", ".jpeg", ".jpg", ".mkv", ".mov",

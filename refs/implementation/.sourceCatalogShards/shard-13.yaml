@@ -1,0 +1,96 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '13'
+  files:
+  - path: scripts/build_infra_choir_raise_neon_black_full_video.py
+    analysis_version: 1
+    language: python
+    content_hash: 6fff08901f81f4401881175575498e96b7cd0aca
+    dependencies:
+    - PIL
+    - __future__
+    - copy
+    - cv2
+    - json
+    - numpy
+    - pathlib
+    - uuid
+    provides:
+    - _lighting_mask
+    - _link
+    - build
+    symbols:
+    - name: _lighting_mask
+      kind: function
+      line_start: 25
+      line_end: 45
+      signature: _lighting_mask() -> Path
+      inputs: []
+      output: Path
+      dependencies:
+      - Image.fromarray
+      - Image.fromarray(mask, 'L').save
+      - Image.open
+      - Image.open(INPUT_ROOT / IMAGE_NAME).convert
+      - cv2.GaussianBlur
+      - cv2.cvtColor
+      - cv2.cvtColor(source, cv2.COLOR_RGB2HSV).astype
+      - cv2.dilate
+      - emissive.astype
+      - np.asarray
+      - np.ones
+      - path.parent.mkdir
+      parser: python-ast
+      dependency_targets: []
+    - name: _link
+      kind: function
+      line_start: 48
+      line_end: 49
+      signature: '_link(link_id: int, origin: int, origin_slot: int, target: int, target_slot: int, kind: str) -> list'
+      inputs:
+      - 'link_id: int'
+      - 'origin: int'
+      - 'origin_slot: int'
+      - 'target: int'
+      - 'target_slot: int'
+      - 'kind: str'
+      output: list
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: build
+      kind: function
+      line_start: 52
+      line_end: 239
+      signature: build() -> tuple[Path, Path, Path]
+      inputs: []
+      output: tuple[Path, Path, Path]
+      dependencies:
+      - API_PROMPT.write_text
+      - SCAFFOLD.read_text
+      - WORKFLOW.write_text
+      - _lighting_mask
+      - _link
+      - audio.update
+      - copy.deepcopy
+      - dict
+      - image.update
+      - int
+      - json.dumps
+      - json.loads
+      - light_target.update
+      - motion_target.update
+      - renderer.update
+      - stack_one.update
+      - stack_two.update
+      - str
+      - uuid.uuid5
+      - zip
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/build_infra_choir_raise_neon_black_full_video.py
+        symbol: _lighting_mask
+      - path: scripts/build_infra_choir_raise_neon_black_full_video.py
+        symbol: _link

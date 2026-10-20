@@ -1,0 +1,116 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '02'
+  files:
+  - path: scripts/test_infra_choir_dual_track.py
+    analysis_version: 1
+    language: python
+    content_hash: 3db5af539edb2cf6ba16af856f79fbb8b6a0e981
+    dependencies:
+    - __future__
+    - importlib.util
+    - json
+    - math
+    - numpy
+    - pathlib
+    - sys
+    - tempfile
+    - torch
+    - types
+    provides:
+    - _module
+    - _assert_workflow_schema
+    - main
+    symbols:
+    - name: _module
+      kind: function
+      line_start: 18
+      line_end: 23
+      signature: _module()
+      inputs: []
+      output: unspecified
+      dependencies:
+      - importlib.util.module_from_spec
+      - importlib.util.spec_from_file_location
+      - specification.loader.exec_module
+      parser: python-ast
+      dependency_targets: []
+    - name: _assert_workflow_schema
+      kind: function
+      line_start: 26
+      line_end: 137
+      signature: _assert_workflow_schema(module) -> None
+      inputs:
+      - module
+      output: None
+      dependencies:
+      - ADVANCED_UI_PATH.read_text
+      - WORKFLOW_PATH.read_text
+      - advanced_ui.split
+      - any
+      - expected.extend
+      - expected_types.items
+      - expected_values.append
+      - expected_values.extend
+      - isinstance
+      - item.get
+      - json.loads
+      - len
+      - list
+      - module.InfraChoirAtmosphericTargetEnhanced.INPUT_TYPES
+      - module.NODE_CLASS_MAPPINGS[node_type].INPUT_TYPES
+      - node.get
+      - schema.get
+      - set
+      - set(expected).issubset
+      - sum
+      parser: python-ast
+      dependency_targets:
+      - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
+        symbol: WanSoundImageToVideoExtendState.extend
+      - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
+        symbol: WanS2VStateAppend.append
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: VisualizerTargetStack.append
+    - name: main
+      kind: function
+      line_start: 140
+      line_end: 495
+      signature: main() -> int
+      inputs: []
+      output: int
+      dependencies:
+      - AssertionError
+      - MODULE_PATH.read_text
+      - _assert_workflow_schema
+      - _module
+      - a.astype
+      - abs
+      - atmospheric_inputs.items
+      - atmospheric_values.update
+      - b.astype
+      - centered_points[:, 0].min
+      - centered_points[:, 1].min
+      - compact_diagnostic.endswith
+      - compact_light_diagnostic.endswith
+      - dict
+      - dilation.mask[30:150, 100:220].min
+      - dilation.mask[:29].max
+      - dilation_mask.sum
+      - float
+      - glow.mask.sum
+      - guarded[5:7, 9:11].min
+      - guarded[9:14, 13:18].max
+      - image.clone
+      - isinstance
+      - json.dumps
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/test_infra_choir_dual_track.py
+        symbol: _assert_workflow_schema
+      - path: scripts/test_infra_choir_dual_track.py
+        symbol: _module
+      - path: scripts/test_infra_choir_enhanced.py
+        symbol: _module

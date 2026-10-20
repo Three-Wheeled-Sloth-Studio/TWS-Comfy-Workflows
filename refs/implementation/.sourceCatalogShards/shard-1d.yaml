@@ -7,23 +7,27 @@ source_catalog:
   - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
     analysis_version: 1
     language: python
-    content_hash: 9613dd21c4288f4740962acc671a94db2fbc4921
+    content_hash: 5b017e4aeff085a7d794a3d06eb0352b3272d08b
     dependencies:
     - PIL
     - __future__
+    - base64
     - comfy.utils
     - dataclasses
     - folder_paths
     - hashlib
+    - io
     - json
     - math
     - nodes
     - numpy
     - pathlib
     - re
+    - scipy.ndimage
     - shutil
     - subprocess
     - tempfile
+    - time
     - torch
     - torch.nn.functional
     - transformers
@@ -31,6 +35,10 @@ source_catalog:
     provides:
     - _safe_name
     - _image_pixels
+    - _image_identity
+    - _manifest_path
+    - _mask_png_base64
+    - _mask_from_png_base64
     - _parse_shapes
     - _mask_pixels
     - _write_audio_wav
@@ -38,19 +46,31 @@ source_catalog:
     - _normalize_feature_matrix
     - _stable_phase
     - _audio_features
+    - _asymmetric_smooth
+    - _transient_envelope
+    - _audio_cache_key
+    - _enhanced_audio_features
     - _prepare_layer
     - _blend
     - _translate_pixels
     - _deform_pixels
     - _deform_pixels.displacement
     - _motion_interior
+    - _procedural_motion_pixels
     - _phase_correlation_shift
     - _phase_correlation_shift.proxy
     - _prepare_generated_motion
+    - _motion_source_similarity
+    - _motion_source_similarity.proxy
+    - _resolve_cached_motion_path
+    - _load_cached_motion_file
+    - _looped_motion_frame
     - _ping_pong_index
     - _shift_hue_and_saturation
     - _expanded_layer
+    - _emissive_glow_layer
     - _dilated_layer
+    - _protected_expansion_layer
     - _overlay_pixels
     - _prepare_overlay
     - _apply_overlay
@@ -61,7 +81,7 @@ source_catalog:
     - _load_title_font
     - _wrap_title_lines
     - _fit_title_text
-    - _draw_centered_text_lines
+    - _draw_title_text_lines
     - _render_generated_title_card
     - _render_generated_wordmark
     - _render_generated_wordmark.draw_left
@@ -71,6 +91,15 @@ source_catalog:
     - _smooth_spectrum_bands
     - _parse_overlay_color
     - _apply_eq_overlay
+    - _shape_audio_response
+    - _lighting_luminance_amount
+    - _lighting_glow_amount
+    - _non_geometric_atmospheric_billow
+    - _non_geometric_atmospheric_billow.advect
+    - _spectrum_peak_envelope
+    - _section_override_curve
+    - _apply_high_resolution_eq
+    - _masked_edge_alpha
     - _apply_title_outline_sparkle
     - VisualizerCandidateRegions.INPUT_TYPES
     - VisualizerCandidateRegions.discover
@@ -90,6 +119,8 @@ source_catalog:
     - VisualizerSemanticObjectDetector.detect
     - VisualizerObjectDetector.INPUT_TYPES
     - VisualizerObjectDetector.detect
+    - VisualizerManualTargetDetector.INPUT_TYPES
+    - VisualizerManualTargetDetector.detect
     - VisualizerMaskReview.INPUT_TYPES
     - VisualizerMaskReview._saved_correction
     - VisualizerMaskReview._source_fingerprint
@@ -104,14 +135,38 @@ source_catalog:
     - GenericBeatAwareLocalVisualizer.render
     - InfraChoirAnimationTarget.INPUT_TYPES
     - InfraChoirAnimationTarget.configure
+    - InfraChoirAnimationTargetEnhanced.INPUT_TYPES
+    - InfraChoirAtmosphericTargetEnhanced.INPUT_TYPES
+    - InfraChoirAtmosphericTargetEnhanced.configure
+    - _manual_advanced_settings
+    - InfraChoirManualAtmosphereTarget.INPUT_TYPES
+    - InfraChoirManualAtmosphereTarget.configure
+    - InfraChoirManualTargetCompact.INPUT_TYPES
+    - InfraChoirManualTargetCompact.configure
+    - _auto_target_settings
+    - _enforce_auto_target_behavior
+    - _protect_auto_motion_overlaps
+    - _subtract_protected_mask
+    - _manifest_preview
+    - _auto_discover_response
+    - approve_infra_choir_discovery
+    - InfraChoirAutoDiscover.INPUT_TYPES
+    - InfraChoirAutoDiscover.run
+    - InfraChoirApprovedTargets.INPUT_TYPES
+    - InfraChoirApprovedTargets.load
+    - _target_masks_overlap
+    - InfraChoirTargetMerge.INPUT_TYPES
+    - InfraChoirTargetMerge.merge
     - InfraChoirVisualizer.INPUT_TYPES
     - InfraChoirVisualizer._audio_drive
     - InfraChoirVisualizer.render
+    - InfraChoirVisualizerEnhanced.INPUT_TYPES
+    - InfraChoirVisualizerDualTrack.INPUT_TYPES
     symbols:
     - name: _safe_name
       kind: function
-      line_start: 15
-      line_end: 17
+      line_start: 17
+      line_end: 19
       signature: '_safe_name(value: str) -> str'
       inputs:
       - 'value: str'
@@ -123,8 +178,8 @@ source_catalog:
       dependency_targets: []
     - name: _image_pixels
       kind: function
-      line_start: 20
-      line_end: 28
+      line_start: 22
+      line_end: 30
       signature: _image_pixels(image)
       inputs:
       - image
@@ -139,10 +194,95 @@ source_catalog:
       - value[..., :3].numpy
       parser: python-ast
       dependency_targets: []
+    - name: _image_identity
+      kind: function
+      line_start: 33
+      line_end: 39
+      signature: _image_identity(image) -> dict
+      inputs:
+      - image
+      output: dict
+      dependencies:
+      - _image_pixels
+      - digest.hexdigest
+      - digest.update
+      - f'{width}x{height}:rgb8:'.encode
+      - hashlib.sha256
+      - int
+      - pixels.tobytes
+      parser: python-ast
+      dependency_targets:
+      - &id009
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _image_pixels
+    - name: _manifest_path
+      kind: function
+      line_start: 42
+      line_end: 57
+      signature: '_manifest_path(value: str) -> Path'
+      inputs:
+      - 'value: str'
+      output: Path
+      dependencies:
+      - (user_root / relative).resolve
+      - Path
+      - Path(__file__).resolve
+      - ValueError
+      - folder_paths.get_user_directory
+      - relative.is_absolute
+      - str
+      - str(value or 'infra_choir/auto_targets.json').replace
+      - user_root.resolve
+      parser: python-ast
+      dependency_targets: []
+    - name: _mask_png_base64
+      kind: function
+      line_start: 60
+      line_end: 70
+      signature: _mask_png_base64(mask) -> str
+      inputs:
+      - mask
+      output: str
+      dependencies:
+      - Image.fromarray
+      - Image.fromarray(pixels, 'L').save
+      - __import__
+      - base64.b64encode
+      - base64.b64encode(stream.getvalue()).decode
+      - io.BytesIO
+      - mask.detach
+      - mask.detach().to
+      - np.clip
+      - np.clip(value.numpy() * 255.0, 0, 255).round
+      - np.clip(value.numpy() * 255.0, 0, 255).round().astype
+      - stream.getvalue
+      - value.numpy
+      parser: python-ast
+      dependency_targets: []
+    - name: _mask_from_png_base64
+      kind: function
+      line_start: 73
+      line_end: 84
+      signature: '_mask_from_png_base64(value: str)'
+      inputs:
+      - 'value: str'
+      output: unspecified
+      dependencies:
+      - Image.open
+      - ValueError
+      - base64.b64decode
+      - io.BytesIO
+      - np.asarray
+      - opened.convert
+      - pixels.copy
+      - str
+      - torch.from_numpy
+      parser: python-ast
+      dependency_targets: []
     - name: _parse_shapes
       kind: function
-      line_start: 31
-      line_end: 61
+      line_start: 87
+      line_end: 117
       signature: '_parse_shapes(text: str, width: int, height: int)'
       inputs:
       - 'text: str'
@@ -173,8 +313,8 @@ source_catalog:
         symbol: VisualizerTargetStack.append
     - name: _mask_pixels
       kind: function
-      line_start: 64
-      line_end: 98
+      line_start: 120
+      line_end: 154
       signature: '_mask_pixels(image_pixels, regions: str, color_filter: str, threshold: float, feather: float)'
       inputs:
       - image_pixels
@@ -204,13 +344,13 @@ source_catalog:
       - np.min
       parser: python-ast
       dependency_targets:
-      - &id009
+      - &id015
         path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: _parse_shapes
     - name: _write_audio_wav
       kind: function
-      line_start: 101
-      line_end: 120
+      line_start: 157
+      line_end: 176
       signature: '_write_audio_wav(audio: dict, destination: Path) -> float'
       inputs:
       - 'audio: dict'
@@ -238,8 +378,8 @@ source_catalog:
       dependency_targets: []
     - name: _normalize_feature
       kind: function
-      line_start: 123
-      line_end: 133
+      line_start: 179
+      line_end: 189
       signature: _normalize_feature(values)
       inputs:
       - values
@@ -257,8 +397,8 @@ source_catalog:
       dependency_targets: []
     - name: _normalize_feature_matrix
       kind: function
-      line_start: 136
-      line_end: 146
+      line_start: 192
+      line_end: 202
       signature: _normalize_feature_matrix(values)
       inputs:
       - values
@@ -276,8 +416,8 @@ source_catalog:
         symbol: _normalize_feature
     - name: _stable_phase
       kind: function
-      line_start: 149
-      line_end: 153
+      line_start: 205
+      line_end: 209
       signature: '_stable_phase(value: str) -> float'
       inputs:
       - 'value: str'
@@ -293,8 +433,8 @@ source_catalog:
       dependency_targets: []
     - name: _audio_features
       kind: function
-      line_start: 156
-      line_end: 231
+      line_start: 212
+      line_end: 287
       signature: '_audio_features(audio: dict, fps: int, duration: float)'
       inputs:
       - 'audio: dict'
@@ -333,10 +473,139 @@ source_catalog:
         symbol: _normalize_feature_matrix
       - *id002
       - *id003
+    - name: _asymmetric_smooth
+      kind: function
+      line_start: 290
+      line_end: 303
+      signature: '_asymmetric_smooth(values, attack_seconds: float, release_seconds: float, fps: float)'
+      inputs:
+      - values
+      - 'attack_seconds: float'
+      - 'release_seconds: float'
+      - 'fps: float'
+      output: unspecified
+      dependencies:
+      - enumerate
+      - float
+      - math.exp
+      - max
+      - np.asarray
+      - np.empty_like
+      - np.where
+      - np.zeros
+      parser: python-ast
+      dependency_targets: []
+    - name: _transient_envelope
+      kind: function
+      line_start: 306
+      line_end: 324
+      signature: '_transient_envelope(flux, fps: int, sensitivity: float, release_seconds: float)'
+      inputs:
+      - flux
+      - 'fps: int'
+      - 'sensitivity: float'
+      - 'release_seconds: float'
+      output: unspecified
+      dependencies:
+      - _asymmetric_smooth
+      - _normalize_feature
+      - float
+      - len
+      - max
+      - min
+      - np.percentile
+      - np.zeros_like
+      - range
+      - round
+      parser: python-ast
+      dependency_targets:
+      - &id004
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _asymmetric_smooth
+      - *id001
+    - name: _audio_cache_key
+      kind: function
+      line_start: 327
+      line_end: 337
+      signature: '_audio_cache_key(waveform, sample_rate: int, configuration: dict) -> str'
+      inputs:
+      - waveform
+      - 'sample_rate: int'
+      - 'configuration: dict'
+      output: str
+      dependencies:
+      - digest.hexdigest
+      - digest.update
+      - hashlib.sha256
+      - int
+      - json.dumps
+      - json.dumps(configuration, sort_keys=True, separators=(',', ':')).encode
+      - np.ascontiguousarray
+      - np.ascontiguousarray(waveform, dtype=np.float32).view
+      - range
+      - str
+      - str(int(sample_rate)).encode
+      parser: python-ast
+      dependency_targets: []
+    - name: _enhanced_audio_features
+      kind: function
+      line_start: 340
+      line_end: 508
+      signature: '_enhanced_audio_features(audio: dict, fps: int, duration: float, band_count: int, fft_size: int, hop_size:
+        int, frequency_scale: str, minimum_frequency: float, maximum_frequency: float, dynamic_range_db: float, noise_floor_db:
+        float, sensitivity: float, transient_emphasis: float)'
+      inputs:
+      - 'audio: dict'
+      - 'fps: int'
+      - 'duration: float'
+      - 'band_count: int'
+      - 'fft_size: int'
+      - 'hop_size: int'
+      - 'frequency_scale: str'
+      - 'minimum_frequency: float'
+      - 'maximum_frequency: float'
+      - 'dynamic_range_db: float'
+      - 'noise_floor_db: float'
+      - 'sensitivity: float'
+      - 'transient_emphasis: float'
+      output: unspecified
+      dependencies:
+      - (0.5 + 0.5 * np.cos(math.tau * phase)).astype
+      - Path
+      - ValueError
+      - __import__
+      - _asymmetric_smooth
+      - _audio_cache_key
+      - _normalize_feature
+      - _transient_envelope
+      - audio['waveform'].detach
+      - audio['waveform'].detach().to
+      - audio['waveform'].detach().to('cpu', dtype=__import__('torch').float32).numpy
+      - cache_path.exists
+      - cache_path.unlink
+      - cache_path.with_suffix
+      - cache_root.mkdir
+      - features.pop
+      - float
+      - folder_paths.get_temp_directory
+      - int
+      - interpolate
+      - len
+      - masks.items
+      - math.ceil
+      - max
+      parser: python-ast
+      dependency_targets:
+      - *id004
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _audio_cache_key
+      - *id001
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _transient_envelope
     - name: _prepare_layer
       kind: function
-      line_start: 240
-      line_end: 257
+      line_start: 517
+      line_end: 534
       signature: '_prepare_layer(mask, width: int, height: int) -> _Layer'
       inputs:
       - mask
@@ -361,8 +630,8 @@ source_catalog:
       dependency_targets: []
     - name: _blend
       kind: function
-      line_start: 260
-      line_end: 268
+      line_start: 537
+      line_end: 545
       signature: '_blend(frame, changed, layer: _Layer, opacity: float)'
       inputs:
       - frame
@@ -378,8 +647,8 @@ source_catalog:
       dependency_targets: []
     - name: _translate_pixels
       kind: function
-      line_start: 271
-      line_end: 291
+      line_start: 548
+      line_end: 568
       signature: '_translate_pixels(pixels, offset_x: float, offset_y: float)'
       inputs:
       - pixels
@@ -402,8 +671,8 @@ source_catalog:
       dependency_targets: []
     - name: _deform_pixels
       kind: function
-      line_start: 294
-      line_end: 360
+      line_start: 571
+      line_end: 637
       signature: '_deform_pixels(pixels, seconds: float, phase: float, amplitude: float, profile: str)'
       inputs:
       - pixels
@@ -441,8 +710,8 @@ source_catalog:
       - *id003
     - name: _deform_pixels.displacement
       kind: function
-      line_start: 318
-      line_end: 338
+      line_start: 595
+      line_end: 615
       signature: _deform_pixels.displacement(x, y)
       inputs:
       - x
@@ -457,8 +726,8 @@ source_catalog:
       dependency_targets: []
     - name: _motion_interior
       kind: function
-      line_start: 363
-      line_end: 378
+      line_start: 640
+      line_end: 655
       signature: '_motion_interior(mask, radius: int)'
       inputs:
       - mask
@@ -476,10 +745,29 @@ source_catalog:
       - np.clip(mask * 255.0, 0, 255).astype
       parser: python-ast
       dependency_targets: []
+    - name: _procedural_motion_pixels
+      kind: function
+      line_start: 658
+      line_end: 669
+      signature: '_procedural_motion_pixels(motion_type: str, height: int, expansion_radius: int) -> float'
+      inputs:
+      - 'motion_type: str'
+      - 'height: int'
+      - 'expansion_radius: int'
+      output: float
+      dependencies:
+      - float
+      - max
+      - min
+      - str
+      - str(motion_type).casefold
+      - '{''billow'': 11.0, ''sway'': 5.0, ''drift'': 6.0, ''still'': 0.0}.get'
+      parser: python-ast
+      dependency_targets: []
     - name: _phase_correlation_shift
       kind: function
-      line_start: 381
-      line_end: 418
+      line_start: 672
+      line_end: 709
       signature: '_phase_correlation_shift(reference, moving, maximum_fraction: float)'
       inputs:
       - reference
@@ -510,12 +798,16 @@ source_catalog:
       - values.mean
       parser: python-ast
       dependency_targets:
-      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+      - &id005
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: _phase_correlation_shift.proxy
+      - &id006
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _motion_source_similarity.proxy
     - name: _phase_correlation_shift.proxy
       kind: function
-      line_start: 395
-      line_end: 400
+      line_start: 686
+      line_end: 691
       signature: _phase_correlation_shift.proxy(pixels)
       inputs:
       - pixels
@@ -533,8 +825,8 @@ source_catalog:
       dependency_targets: []
     - name: _prepare_generated_motion
       kind: function
-      line_start: 421
-      line_end: 457
+      line_start: 712
+      line_end: 748
       signature: '_prepare_generated_motion(motion_clip, width: int, height: int, base, maximum_fraction: float)'
       inputs:
       - motion_clip
@@ -566,17 +858,162 @@ source_catalog:
       - value[index, ..., :3].numpy
       parser: python-ast
       dependency_targets:
-      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+      - &id007
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: _phase_correlation_shift
-      - &id017
+      - &id008
         path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: _translate_pixels
       - *id002
       - *id003
+    - name: _motion_source_similarity
+      kind: function
+      line_start: 751
+      line_end: 773
+      signature: _motion_source_similarity(reference, candidate) -> float
+      inputs:
+      - reference
+      - candidate
+      output: float
+      dependencies:
+      - Image.fromarray
+      - Image.fromarray(pixels, 'RGB').resize
+      - Image.fromarray(pixels, 'RGB').resize((96, 54), Image.Resampling.BILINEAR).convert
+      - data.mean
+      - float
+      - max
+      - np.asarray
+      - np.clip
+      - np.clip(value, 0, 255).astype
+      - np.mean
+      - np.sqrt
+      - proxy
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+    - name: _motion_source_similarity.proxy
+      kind: function
+      line_start: 763
+      line_end: 769
+      signature: _motion_source_similarity.proxy(value)
+      inputs:
+      - value
+      output: unspecified
+      dependencies:
+      - Image.fromarray
+      - Image.fromarray(pixels, 'RGB').resize
+      - Image.fromarray(pixels, 'RGB').resize((96, 54), Image.Resampling.BILINEAR).convert
+      - data.mean
+      - float
+      - max
+      - np.asarray
+      - np.clip
+      - np.clip(value, 0, 255).astype
+      - np.mean
+      - np.sqrt
+      parser: python-ast
+      dependency_targets: []
+    - name: _resolve_cached_motion_path
+      kind: function
+      line_start: 780
+      line_end: 797
+      signature: '_resolve_cached_motion_path(value: str) -> Path'
+      inputs:
+      - 'value: str'
+      output: Path
+      dependencies:
+      - FileNotFoundError
+      - Path
+      - Path(__file__).resolve
+      - any
+      - candidate.resolve
+      - folder_paths.get_input_directory
+      - folder_paths.get_output_directory
+      - folder_paths.get_temp_directory
+      - requested.is_absolute
+      - resolved.is_file
+      - root.resolve
+      - str
+      - str(value).strip
+      - str(value).strip().replace
+      parser: python-ast
+      dependency_targets: []
+    - name: _load_cached_motion_file
+      kind: function
+      line_start: 800
+      line_end: 849
+      signature: '_load_cached_motion_file(value: str, width: int, height: int, base, maximum_fraction: float, fps: int, maximum_seconds:
+        float)'
+      inputs:
+      - 'value: str'
+      - 'width: int'
+      - 'height: int'
+      - base
+      - 'maximum_fraction: float'
+      - 'fps: int'
+      - 'maximum_seconds: float'
+      output: unspecified
+      dependencies:
+      - RuntimeError
+      - ValueError
+      - _CACHED_MOTION_FILES.get
+      - _CACHED_MOTION_FILES.pop
+      - _CACHED_MOTION_FILE_ORDER.append
+      - _CACHED_MOTION_FILE_ORDER.pop
+      - _motion_source_similarity
+      - _phase_correlation_shift
+      - _resolve_cached_motion_path
+      - _translate_pixels
+      - abs
+      - float
+      - int
+      - len
+      - max
+      - min
+      - np.clip
+      - np.clip(_translate_pixels(pixels, shift_x, shift_y), 0, 255).astype
+      - np.frombuffer
+      - np.frombuffer(run.stdout[index * frame_bytes:(index + 1) * frame_bytes], dtype=np.uint8).reshape
+      - path.stat
+      - prepared.append
+      - range
+      - round
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _motion_source_similarity
+      - *id007
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _resolve_cached_motion_path
+      - *id008
+    - name: _looped_motion_frame
+      kind: function
+      line_start: 852
+      line_end: 873
+      signature: '_looped_motion_frame(frames, frame_index: int, overlap_frames: int)'
+      inputs:
+      - frames
+      - 'frame_index: int'
+      - 'overlap_frames: int'
+      output: unspecified
+      dependencies:
+      - float
+      - head.astype
+      - int
+      - len
+      - max
+      - min
+      - np.clip
+      - tail.astype
+      parser: python-ast
+      dependency_targets: []
     - name: _ping_pong_index
       kind: function
-      line_start: 460
-      line_end: 465
+      line_start: 876
+      line_end: 881
       signature: '_ping_pong_index(frame_index: int, frame_count: int) -> int'
       inputs:
       - 'frame_index: int'
@@ -587,8 +1024,8 @@ source_catalog:
       dependency_targets: []
     - name: _shift_hue_and_saturation
       kind: function
-      line_start: 468
-      line_end: 486
+      line_start: 884
+      line_end: 902
       signature: '_shift_hue_and_saturation(pixels, hue_degrees: float, saturation_delta: float)'
       inputs:
       - pixels
@@ -608,8 +1045,8 @@ source_catalog:
       dependency_targets: []
     - name: _expanded_layer
       kind: function
-      line_start: 489
-      line_end: 502
+      line_start: 905
+      line_end: 918
       signature: '_expanded_layer(layer: _Layer, radius: float) -> _Layer'
       inputs:
       - 'layer: _Layer'
@@ -629,10 +1066,37 @@ source_catalog:
       - selected.min
       parser: python-ast
       dependency_targets: []
+    - name: _emissive_glow_layer
+      kind: function
+      line_start: 921
+      line_end: 943
+      signature: '_emissive_glow_layer(layer: _Layer, radius: float) -> _Layer'
+      inputs:
+      - 'layer: _Layer'
+      - 'radius: float'
+      output: _Layer
+      dependencies:
+      - (source * 255.0).astype
+      - Image.fromarray
+      - Image.fromarray((source * 255.0).astype(np.uint8), 'L').filter
+      - ImageFilter.GaussianBlur
+      - _Layer
+      - blurred.max
+      - float
+      - int
+      - np.argwhere
+      - np.asarray
+      - np.clip
+      - np.maximum
+      - np.zeros_like
+      - selected.max
+      - selected.min
+      parser: python-ast
+      dependency_targets: []
     - name: _dilated_layer
       kind: function
-      line_start: 505
-      line_end: 524
+      line_start: 946
+      line_end: 990
       signature: '_dilated_layer(layer: _Layer, radius: float, feather: float) -> _Layer'
       inputs:
       - 'layer: _Layer'
@@ -640,28 +1104,66 @@ source_catalog:
       - 'feather: float'
       output: _Layer
       dependencies:
+      - (source * 255.0).astype
       - Image.fromarray
       - ImageFilter.GaussianBlur
       - ImageFilter.MaxFilter
       - _Layer
       - expanded.filter
+      - expanded.resize
       - float
+      - gaussian_filter
       - int
       - mask.filter
+      - mask.resize
       - max
+      - maximum_filter1d
+      - min
       - np.argwhere
       - np.asarray
       - np.clip
-      - np.clip(layer.mask * 255.0, 0, 255).astype
+      - np.clip(pixels, 0.0, 1.0).astype
       - round
       - selected.max
       - selected.min
       parser: python-ast
       dependency_targets: []
+    - name: _protected_expansion_layer
+      kind: function
+      line_start: 993
+      line_end: 1018
+      signature: '_protected_expansion_layer(layer: _Layer, radius: float, feather: float, base) -> _Layer'
+      inputs:
+      - 'layer: _Layer'
+      - 'radius: float'
+      - 'feather: float'
+      - base
+      output: _Layer
+      dependencies:
+      - (edge * 255.0).astype
+      - Image.fromarray
+      - Image.fromarray((edge * 255.0).astype(np.uint8), 'L').filter
+      - ImageFilter.GaussianBlur
+      - _Layer
+      - _dilated_layer
+      - int
+      - max
+      - np.abs
+      - np.argwhere
+      - np.asarray
+      - np.clip
+      - np.diff
+      - selected.max
+      - selected.min
+      parser: python-ast
+      dependency_targets:
+      - &id027
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _dilated_layer
     - name: _overlay_pixels
       kind: function
-      line_start: 527
-      line_end: 543
+      line_start: 1021
+      line_end: 1037
       signature: _overlay_pixels(image, mask)
       inputs:
       - image
@@ -679,13 +1181,11 @@ source_catalog:
       - value.numpy
       parser: python-ast
       dependency_targets:
-      - &id005
-        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _image_pixels
+      - *id009
     - name: _prepare_overlay
       kind: function
-      line_start: 546
-      line_end: 562
+      line_start: 1040
+      line_end: 1056
       signature: _prepare_overlay(image, mask, target_width, opacity, x, y)
       inputs:
       - image
@@ -708,13 +1208,13 @@ source_catalog:
       - round
       parser: python-ast
       dependency_targets:
-      - &id007
+      - &id013
         path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: _overlay_pixels
     - name: _apply_overlay
       kind: function
-      line_start: 565
-      line_end: 581
+      line_start: 1059
+      line_end: 1075
       signature: _apply_overlay(frame, overlay)
       inputs:
       - frame
@@ -730,8 +1230,8 @@ source_catalog:
       dependency_targets: []
     - name: _apply_wordmark_sparkle
       kind: function
-      line_start: 584
-      line_end: 625
+      line_start: 1078
+      line_end: 1119
       signature: '_apply_wordmark_sparkle(frame, overlay, seconds: float, strength: float, audio_high: float, phase: float)'
       inputs:
       - frame
@@ -756,8 +1256,8 @@ source_catalog:
       dependency_targets: []
     - name: _halo_overlay
       kind: function
-      line_start: 628
-      line_end: 638
+      line_start: 1122
+      line_end: 1132
       signature: '_halo_overlay(overlay, opacity: float, blur: float)'
       inputs:
       - overlay
@@ -780,8 +1280,8 @@ source_catalog:
       dependency_targets: []
     - name: _title_card_choices
       kind: function
-      line_start: 645
-      line_end: 659
+      line_start: 1139
+      line_end: 1153
       signature: _title_card_choices()
       inputs: []
       output: unspecified
@@ -798,8 +1298,8 @@ source_catalog:
       dependency_targets: []
     - name: _optional_overlay_choices
       kind: function
-      line_start: 662
-      line_end: 663
+      line_start: 1156
+      line_end: 1157
       signature: _optional_overlay_choices()
       inputs: []
       output: unspecified
@@ -807,13 +1307,13 @@ source_catalog:
       - _title_card_choices
       parser: python-ast
       dependency_targets:
-      - &id021
+      - &id033
         path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: _title_card_choices
     - name: _load_title_font
       kind: function
-      line_start: 666
-      line_end: 682
+      line_start: 1160
+      line_end: 1176
       signature: '_load_title_font(size: int, italic: bool)'
       inputs:
       - 'size: int'
@@ -830,8 +1330,8 @@ source_catalog:
       dependency_targets: []
     - name: _wrap_title_lines
       kind: function
-      line_start: 685
-      line_end: 715
+      line_start: 1179
+      line_end: 1209
       signature: '_wrap_title_lines(draw, text: str, font, maximum_width: int, maximum_lines: int)'
       inputs:
       - draw
@@ -854,8 +1354,8 @@ source_catalog:
       - *id003
     - name: _fit_title_text
       kind: function
-      line_start: 718
-      line_end: 733
+      line_start: 1212
+      line_end: 1227
       signature: '_fit_title_text(draw, text: str, maximum_width: int, maximum_height: int, maximum_size: int, minimum_size:
         int, maximum_lines: int, italic: bool)'
       inputs:
@@ -884,25 +1384,27 @@ source_catalog:
         symbol: _load_title_font
       - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: _wrap_title_lines
-    - name: _draw_centered_text_lines
+    - name: _draw_title_text_lines
       kind: function
-      line_start: 736
-      line_end: 744
-      signature: _draw_centered_text_lines(draw, outline_draw, fill_draw, lines, font, center_x, top, line_height, spacing,
-        fill, outline, stroke_width)
+      line_start: 1230
+      line_end: 1251
+      signature: _draw_title_text_lines(draw, outline_draw, fill_draw, lines, font, left, width, top, line_height, spacing,
+        fill, outline, stroke_width, alignment)
       inputs:
       - draw
       - outline_draw
       - fill_draw
       - lines
       - font
-      - center_x
+      - left
+      - width
       - top
       - line_height
       - spacing
       - fill
       - outline
       - stroke_width
+      - alignment
       output: unspecified
       dependencies:
       - draw.text
@@ -910,14 +1412,16 @@ source_catalog:
       - fill_draw.text
       - float
       - outline_draw.text
+      - str
+      - str(alignment or 'center').casefold
       parser: python-ast
       dependency_targets: []
     - name: _render_generated_title_card
       kind: function
-      line_start: 747
-      line_end: 785
+      line_start: 1254
+      line_end: 1307
       signature: '_render_generated_title_card(base, band_name: str, song_title: str, placement: str, reserved_bottom: int,
-        source_visibility: float)'
+        source_visibility: float, text_alignment: str)'
       inputs:
       - base
       - 'band_name: str'
@@ -925,6 +1429,7 @@ source_catalog:
       - 'placement: str'
       - 'reserved_bottom: int'
       - 'source_visibility: float'
+      - 'text_alignment: str'
       output: unspecified
       dependencies:
       - (str(band_name).strip() or 'Infra Choir').upper
@@ -932,7 +1437,7 @@ source_catalog:
       - Image.fromarray
       - Image.new
       - ImageDraw.Draw
-      - _draw_centered_text_lines
+      - _draw_title_text_lines
       - _fit_title_text
       - band_font.getname
       - float
@@ -951,14 +1456,14 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _draw_centered_text_lines
-      - &id004
+        symbol: _draw_title_text_lines
+      - &id010
         path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: _fit_title_text
     - name: _render_generated_wordmark
       kind: function
-      line_start: 788
-      line_end: 840
+      line_start: 1310
+      line_end: 1362
       signature: '_render_generated_wordmark(width: int, height: int, band_name: str, song_title: str, target_width: int,
         opacity: float, margin: int)'
       inputs:
@@ -996,13 +1501,13 @@ source_catalog:
       - title_font.getname
       parser: python-ast
       dependency_targets:
-      - *id004
+      - *id010
       - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: _render_generated_wordmark.draw_left
     - name: _render_generated_wordmark.draw_left
       kind: function
-      line_start: 817
-      line_end: 825
+      line_start: 1339
+      line_end: 1347
       signature: _render_generated_wordmark.draw_left(lines, font, y, line_height, spacing)
       inputs:
       - lines
@@ -1022,8 +1527,8 @@ source_catalog:
       dependency_targets: []
     - name: _load_external_title_card
       kind: function
-      line_start: 843
-      line_end: 868
+      line_start: 1365
+      line_end: 1390
       signature: '_load_external_title_card(selection: str, width: int, height: int)'
       inputs:
       - 'selection: str'
@@ -1052,8 +1557,8 @@ source_catalog:
       dependency_targets: []
     - name: _load_overlay_selection
       kind: function
-      line_start: 871
-      line_end: 883
+      line_start: 1393
+      line_end: 1405
       signature: '_load_overlay_selection(selection: str, target_width: int, opacity: float, x: int, y: int)'
       inputs:
       - 'selection: str'
@@ -1078,8 +1583,8 @@ source_catalog:
       dependency_targets: []
     - name: _title_card_alpha
       kind: function
-      line_start: 886
-      line_end: 894
+      line_start: 1408
+      line_end: 1416
       signature: '_title_card_alpha(seconds: float, start: float, duration: float, fade: float) -> float'
       inputs:
       - 'seconds: float'
@@ -1095,8 +1600,8 @@ source_catalog:
       dependency_targets: []
     - name: _smooth_spectrum_bands
       kind: function
-      line_start: 897
-      line_end: 907
+      line_start: 1419
+      line_end: 1429
       signature: '_smooth_spectrum_bands(values, smoothing: float)'
       inputs:
       - values
@@ -1114,8 +1619,8 @@ source_catalog:
       dependency_targets: []
     - name: _parse_overlay_color
       kind: function
-      line_start: 910
-      line_end: 916
+      line_start: 1432
+      line_end: 1438
       signature: '_parse_overlay_color(value: str)'
       inputs:
       - 'value: str'
@@ -1134,8 +1639,8 @@ source_catalog:
       dependency_targets: []
     - name: _apply_eq_overlay
       kind: function
-      line_start: 919
-      line_end: 956
+      line_start: 1441
+      line_end: 1478
       signature: '_apply_eq_overlay(frame, band_values, mode: str, height_percent: float, opacity: float, color)'
       inputs:
       - frame
@@ -1172,10 +1677,251 @@ source_catalog:
       dependency_targets:
       - *id002
       - *id003
+    - name: _shape_audio_response
+      kind: function
+      line_start: 1481
+      line_end: 1534
+      signature: '_shape_audio_response(values, fps: int, settings: dict)'
+      inputs:
+      - values
+      - 'fps: int'
+      - 'settings: dict'
+      output: unspecified
+      dependencies:
+      - enumerate
+      - float
+      - int
+      - len
+      - max
+      - min
+      - np.arange
+      - np.asarray
+      - np.clip
+      - np.cos
+      - np.empty_like
+      - np.power
+      - np.zeros_like
+      - round
+      - settings.get
+      parser: python-ast
+      dependency_targets: []
+    - name: _lighting_luminance_amount
+      kind: function
+      line_start: 1537
+      line_end: 1557
+      signature: '_lighting_luminance_amount(maximum_change: float, reactive: float, autonomous: float, enhanced: bool) ->
+        float'
+      inputs:
+      - 'maximum_change: float'
+      - 'reactive: float'
+      - 'autonomous: float'
+      - 'enhanced: bool'
+      output: float
+      dependencies:
+      - float
+      - max
+      - min
+      parser: python-ast
+      dependency_targets: []
+    - name: _lighting_glow_amount
+      kind: function
+      line_start: 1560
+      line_end: 1566
+      signature: '_lighting_glow_amount(glow_strength: float, audio_drive: float, autonomous: float, enhanced: bool) -> float'
+      inputs:
+      - 'glow_strength: float'
+      - 'audio_drive: float'
+      - 'autonomous: float'
+      - 'enhanced: bool'
+      output: float
+      dependencies:
+      - float
+      - max
+      - min
+      parser: python-ast
+      dependency_targets: []
+    - name: _non_geometric_atmospheric_billow
+      kind: function
+      line_start: 1569
+      line_end: 1626
+      signature: '_non_geometric_atmospheric_billow(pixels, alpha, rows, columns, seconds: float, phase: float, motion_amount:
+        float, effect_strength: float)'
+      inputs:
+      - pixels
+      - alpha
+      - rows
+      - columns
+      - 'seconds: float'
+      - 'phase: float'
+      - 'motion_amount: float'
+      - 'effect_strength: float'
+      output: unspecified
+      dependencies:
+      - (coverage > 1.0 / 255.0).astype
+      - Image.fromarray
+      - ImageFilter.GaussianBlur
+      - _deform_pixels
+      - _translate_pixels
+      - advect
+      - float
+      - image.filter
+      - math.sin
+      - max
+      - min
+      - np.asarray
+      - np.clip
+      - np.clip(source, 0, 255).astype
+      - np.max
+      - np.mean
+      - np.min
+      parser: python-ast
+      dependency_targets:
+      - &id011
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _deform_pixels
+      - *id008
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _non_geometric_atmospheric_billow.advect
+    - name: _non_geometric_atmospheric_billow.advect
+      kind: function
+      line_start: 1606
+      line_end: 1615
+      signature: '_non_geometric_atmospheric_billow.advect(texture, time_scale: float, local_phase: float, local_amplitude:
+        float)'
+      inputs:
+      - texture
+      - 'time_scale: float'
+      - 'local_phase: float'
+      - 'local_amplitude: float'
+      output: unspecified
+      dependencies:
+      - _deform_pixels
+      - _translate_pixels
+      - math.sin
+      - np.clip
+      parser: python-ast
+      dependency_targets:
+      - *id011
+      - *id008
+    - name: _spectrum_peak_envelope
+      kind: function
+      line_start: 1629
+      line_end: 1644
+      signature: '_spectrum_peak_envelope(values, fps: int, hold_seconds: float, decay_per_second: float)'
+      inputs:
+      - values
+      - 'fps: int'
+      - 'hold_seconds: float'
+      - 'decay_per_second: float'
+      output: unspecified
+      dependencies:
+      - enumerate
+      - float
+      - max
+      - np.asarray
+      - np.empty_like
+      - np.maximum
+      - np.where
+      - np.zeros
+      - round
+      parser: python-ast
+      dependency_targets: []
+    - name: _section_override_curve
+      kind: function
+      line_start: 1647
+      line_end: 1671
+      signature: '_section_override_curve(value: str, frame_count: int, fps: int)'
+      inputs:
+      - 'value: str'
+      - 'frame_count: int'
+      - 'fps: int'
+      output: unspecified
+      dependencies:
+      - ValueError
+      - entry.get
+      - float
+      - isinstance
+      - json.loads
+      - max
+      - min
+      - np.clip
+      - np.ones
+      - round
+      - str
+      - str(value or '').strip
+      parser: python-ast
+      dependency_targets: []
+    - name: _apply_high_resolution_eq
+      kind: function
+      line_start: 1674
+      line_end: 1759
+      signature: '_apply_high_resolution_eq(frame, band_values, peak_values, mode: str, height_percent: float, opacity: float,
+        color, secondary_color, margin_percent: float, density_mode: str)'
+      inputs:
+      - frame
+      - band_values
+      - peak_values
+      - 'mode: str'
+      - 'height_percent: float'
+      - 'opacity: float'
+      - color
+      - secondary_color
+      - 'margin_percent: float'
+      - 'density_mode: str'
+      output: unspecified
+      dependencies:
+      - Image.new
+      - ImageDraw.Draw
+      - ImageFilter.GaussianBlur
+      - draw.line
+      - draw.polygon
+      - draw.rectangle
+      - enumerate
+      - float
+      - frame[y0:].astype
+      - len
+      - mask.filter
+      - max
+      - min
+      - np.asarray
+      - np.clip
+      - np.clip(composed * (1.0 - peak_alpha[..., None]) + accent * peak_alpha[..., None], 0, 255).astype
+      - np.empty_like
+      - np.linspace
+      - np.linspace(0, requested_count, maximum_columns + 1).astype
+      - np.max
+      - np.mean
+      - np.sqrt
+      - peak_draw.line
+      - range
+      parser: python-ast
+      dependency_targets: []
+    - name: _masked_edge_alpha
+      kind: function
+      line_start: 1762
+      line_end: 1773
+      signature: '_masked_edge_alpha(mask, radius: float)'
+      inputs:
+      - mask
+      - 'radius: float'
+      output: unspecified
+      dependencies:
+      - Image.fromarray
+      - ImageFilter.GaussianBlur
+      - float
+      - image.filter
+      - max
+      - np.asarray
+      - np.clip
+      - np.clip(edge * 255.0, 0, 255).astype
+      - np.gradient
+      - np.sqrt
+      parser: python-ast
+      dependency_targets: []
     - name: _apply_title_outline_sparkle
       kind: function
-      line_start: 959
-      line_end: 986
+      line_start: 1776
+      line_end: 1803
       signature: '_apply_title_outline_sparkle(frame, outline_mask, seconds: float, strength: float, audio_response: float,
         pattern_key: int, title_alpha: float)'
       inputs:
@@ -1206,8 +1952,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerCandidateRegions.INPUT_TYPES
       kind: method
-      line_start: 991
-      line_end: 1003
+      line_start: 1808
+      line_end: 1820
       signature: VisualizerCandidateRegions.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -1217,8 +1963,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerCandidateRegions.discover
       kind: method
-      line_start: 1011
-      line_end: 1096
+      line_start: 1828
+      line_end: 1913
       signature: VisualizerCandidateRegions.discover(self, image, candidate_type, sensitivity, max_regions, padding_percent)
       inputs:
       - self
@@ -1255,16 +2001,16 @@ source_catalog:
       - np.max
       parser: python-ast
       dependency_targets:
-      - *id005
-      - &id006
+      - *id009
+      - &id012
         path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: _mask_pixels
       - *id002
       - *id003
     - name: VisualizerRegionMask.INPUT_TYPES
       kind: method
-      line_start: 1101
-      line_end: 1110
+      line_start: 1918
+      line_end: 1927
       signature: VisualizerRegionMask.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -1274,8 +2020,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerRegionMask.build
       kind: method
-      line_start: 1118
-      line_end: 1137
+      line_start: 1935
+      line_end: 1954
       signature: VisualizerRegionMask.build(self, image, regions, color_filter, threshold, feather_px)
       inputs:
       - self
@@ -1299,12 +2045,12 @@ source_catalog:
       - torch.from_numpy
       parser: python-ast
       dependency_targets:
-      - *id005
-      - *id006
+      - *id009
+      - *id012
     - name: BeatAwareLocalVisualizer.INPUT_TYPES
       kind: method
-      line_start: 1142
-      line_end: 1178
+      line_start: 1959
+      line_end: 1995
       signature: BeatAwareLocalVisualizer.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -1314,8 +2060,8 @@ source_catalog:
       dependency_targets: []
     - name: BeatAwareLocalVisualizer.render
       kind: method
-      line_start: 1187
-      line_end: 1396
+      line_start: 2004
+      line_end: 2213
       signature: BeatAwareLocalVisualizer.render(self, image, audio, brand_logo, brand_logo_mask, wordmark, wordmark_mask,
         cloud_mask, candle_mask, red_light_mask, monitor_mask, rain_mask, reflection_mask, fps, delivery_resolution, pattern_key,
         cloud_strength, candle_strength, red_light_strength, monitor_strength, rain_strength, reflection_strength, apply_brand_logo,
@@ -1382,42 +2128,41 @@ source_catalog:
       - bool
       parser: python-ast
       dependency_targets:
-      - &id010
-        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _apply_overlay
-      - &id011
-        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _audio_features
-      - &id012
-        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _blend
-      - &id023
-        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _expanded_layer
-      - &id013
-        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _halo_overlay
-      - *id005
-      - *id007
-      - &id014
-        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _prepare_layer
-      - &id015
-        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _prepare_overlay
       - &id016
         path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _safe_name
+        symbol: _apply_overlay
+      - &id017
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _audio_features
       - &id018
         path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _write_audio_wav
+        symbol: _blend
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _expanded_layer
       - &id019
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _halo_overlay
+      - *id009
+      - *id013
+      - &id020
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _prepare_layer
+      - &id021
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _prepare_overlay
+      - &id022
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _safe_name
+      - &id023
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _write_audio_wav
+      - &id024
         path: custom_nodes/comfyui_audio_duration_plan/motion_poster_nodes.py
         symbol: _write_audio_wav
     - name: _target_candidate_type
       kind: function
-      line_start: 1399
-      line_end: 1409
+      line_start: 2216
+      line_end: 2226
       signature: '_target_candidate_type(target_description: str) -> str'
       inputs:
       - 'target_description: str'
@@ -1429,8 +2174,8 @@ source_catalog:
       dependency_targets: []
     - name: _target_effect_modes
       kind: function
-      line_start: 1412
-      line_end: 1426
+      line_start: 2229
+      line_end: 2243
       signature: '_target_effect_modes(object_name: str, animation_prompt: str) -> tuple[str, ...]'
       inputs:
       - 'object_name: str'
@@ -1447,8 +2192,8 @@ source_catalog:
       - *id003
     - name: VisualizerSemanticObjectDetector.INPUT_TYPES
       kind: method
-      line_start: 1439
-      line_end: 1450
+      line_start: 2256
+      line_end: 2267
       signature: VisualizerSemanticObjectDetector.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -1458,8 +2203,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerSemanticObjectDetector._semantic_model_dir
       kind: method
-      line_start: 1459
-      line_end: 1466
+      line_start: 2276
+      line_end: 2283
       signature: VisualizerSemanticObjectDetector._semantic_model_dir(cls) -> Path
       inputs:
       - cls
@@ -1471,8 +2216,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerSemanticObjectDetector._semantic_assets_available
       kind: method
-      line_start: 1469
-      line_end: 1475
+      line_start: 2286
+      line_end: 2292
       signature: VisualizerSemanticObjectDetector._semantic_assets_available(cls) -> bool
       inputs:
       - cls
@@ -1485,13 +2230,13 @@ source_catalog:
       - cls._semantic_model_dir
       parser: python-ast
       dependency_targets:
-      - &id008
+      - &id014
         path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: VisualizerSemanticObjectDetector._semantic_model_dir
     - name: VisualizerSemanticObjectDetector._load_semantic_model
       kind: method
-      line_start: 1478
-      line_end: 1500
+      line_start: 2295
+      line_end: 2317
       signature: VisualizerSemanticObjectDetector._load_semantic_model(cls)
       inputs:
       - cls
@@ -1509,13 +2254,14 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+      - &id030
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: VisualizerSemanticObjectDetector._semantic_assets_available
-      - *id008
+      - *id014
     - name: VisualizerSemanticObjectDetector._semantic_score
       kind: method
-      line_start: 1503
-      line_end: 1551
+      line_start: 2320
+      line_end: 2381
       signature: VisualizerSemanticObjectDetector._semantic_score(cls, pixels, target, area)
       inputs:
       - cls
@@ -1533,33 +2279,31 @@ source_catalog:
       - eligible.min
       - float
       - len
+      - max
       - model
+      - normalized.append
       - np.argwhere
       - np.clip
       - np.clip(crop_score, 0.0, 1.0).astype
+      - np.max
+      - np.quantile
       - np.zeros
       - processor
-      - queries.extend
       - re.findall
+      - resized.to
+      - resized.to('cpu').numpy
       - set
       - target.casefold
-      - target_words.intersection
-      - torch.amax
-      - torch.amax(resized, dim=0).to
-      - torch.amax(resized, dim=0).to('cpu').numpy
-      - torch.inference_mode
       parser: python-ast
       dependency_targets:
       - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: VisualizerSemanticObjectDetector._load_semantic_model
       - *id002
       - *id003
-      - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
-        symbol: WanSoundImageToVideoExtendState.extend
     - name: VisualizerSemanticObjectDetector._heuristic_score
       kind: method
-      line_start: 1554
-      line_end: 1570
+      line_start: 2384
+      line_end: 2400
       signature: VisualizerSemanticObjectDetector._heuristic_score(rgb, candidate_type)
       inputs:
       - rgb
@@ -1576,8 +2320,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerSemanticObjectDetector._guided_sun_disk_score
       kind: method
-      line_start: 1573
-      line_end: 1603
+      line_start: 2403
+      line_end: 2433
       signature: VisualizerSemanticObjectDetector._guided_sun_disk_score(rgb, area)
       inputs:
       - rgb
@@ -1607,8 +2351,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerSemanticObjectDetector.detect
       kind: method
-      line_start: 1605
-      line_end: 1777
+      line_start: 2435
+      line_end: 2613
       signature: VisualizerSemanticObjectDetector.detect(self, image, find, search_area, sensitivity, max_regions, padding_percent,
         detection_provider)
       inputs:
@@ -1648,17 +2392,17 @@ source_catalog:
       - mask.astype
       parser: python-ast
       dependency_targets:
-      - *id005
-      - *id006
       - *id009
+      - *id012
+      - *id015
       - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: _target_candidate_type
       - *id002
       - *id003
     - name: VisualizerObjectDetector.INPUT_TYPES
       kind: method
-      line_start: 1784
-      line_end: 1788
+      line_start: 2620
+      line_end: 2624
       signature: VisualizerObjectDetector.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -1671,8 +2415,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerObjectDetector.detect
       kind: method
-      line_start: 1792
-      line_end: 1801
+      line_start: 2628
+      line_end: 2637
       signature: VisualizerObjectDetector.detect(self, image, find, search_area, sensitivity, max_regions, padding_percent)
       inputs:
       - self
@@ -1687,10 +2431,45 @@ source_catalog:
       - super
       parser: python-ast
       dependency_targets: []
+    - name: VisualizerManualTargetDetector.INPUT_TYPES
+      kind: method
+      line_start: 2644
+      line_end: 2656
+      signature: VisualizerManualTargetDetector.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies:
+      - dict
+      - super
+      parser: python-ast
+      dependency_targets: []
+    - name: VisualizerManualTargetDetector.detect
+      kind: method
+      line_start: 2662
+      line_end: 2670
+      signature: VisualizerManualTargetDetector.detect(self, image, find, search_area, sensitivity, max_regions, padding_percent,
+        detection_provider, use_in_render)
+      inputs:
+      - self
+      - image
+      - find
+      - search_area
+      - sensitivity
+      - max_regions
+      - padding_percent
+      - detection_provider
+      - use_in_render
+      output: unspecified
+      dependencies:
+      - bool
+      - super
+      parser: python-ast
+      dependency_targets: []
     - name: VisualizerMaskReview.INPUT_TYPES
       kind: method
-      line_start: 1806
-      line_end: 1820
+      line_start: 2675
+      line_end: 2689
       signature: VisualizerMaskReview.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -1700,8 +2479,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerMaskReview._saved_correction
       kind: method
-      line_start: 1830
-      line_end: 1856
+      line_start: 2699
+      line_end: 2725
       signature: VisualizerMaskReview._saved_correction(image_name, detected_mask)
       inputs:
       - image_name
@@ -1728,8 +2507,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerMaskReview._source_fingerprint
       kind: method
-      line_start: 1859
-      line_end: 1866
+      line_start: 2728
+      line_end: 2735
       signature: VisualizerMaskReview._source_fingerprint(source_image)
       inputs:
       - source_image
@@ -1744,11 +2523,11 @@ source_catalog:
       - str(pixels.shape).encode
       parser: python-ast
       dependency_targets:
-      - *id005
+      - *id009
     - name: VisualizerMaskReview._saved_preview_matches
       kind: method
-      line_start: 1869
-      line_end: 1876
+      line_start: 2738
+      line_end: 2745
       signature: VisualizerMaskReview._saved_preview_matches(saved_rgb, verification_preview)
       inputs:
       - saved_rgb
@@ -1764,11 +2543,11 @@ source_catalog:
       - saved_rgb.astype
       parser: python-ast
       dependency_targets:
-      - *id005
+      - *id009
     - name: VisualizerMaskReview._saved_image_reference
       kind: method
-      line_start: 1879
-      line_end: 1886
+      line_start: 2748
+      line_end: 2755
       signature: VisualizerMaskReview._saved_image_reference(image_name)
       inputs:
       - image_name
@@ -1786,8 +2565,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerMaskReview.review
       kind: method
-      line_start: 1888
-      line_end: 1919
+      line_start: 2757
+      line_end: 2788
       signature: VisualizerMaskReview.review(self, verification_preview, detected_mask, source_image, image, source_fingerprint)
       inputs:
       - self
@@ -1820,8 +2599,8 @@ source_catalog:
         symbol: VisualizerMaskReview._source_fingerprint
     - name: VisualizerAnimationTarget.INPUT_TYPES
       kind: method
-      line_start: 1924
-      line_end: 1941
+      line_start: 2793
+      line_end: 2810
       signature: VisualizerAnimationTarget.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -1831,8 +2610,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerAnimationTarget.configure
       kind: method
-      line_start: 1949
-      line_end: 2015
+      line_start: 2818
+      line_end: 2884
       signature: VisualizerAnimationTarget.configure(self, mask, object_name, animation_prompt, mask_verified, approved_mask_mode,
         motion_type, on_beat_flicker, off_beat_flicker, on_beat_motion, off_beat_motion, approved_mask)
       inputs:
@@ -1874,13 +2653,13 @@ source_catalog:
       - value.numel
       parser: python-ast
       dependency_targets:
-      - &id020
+      - &id025
         path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: _target_effect_modes
     - name: VisualizerTargetStack.INPUT_TYPES
       kind: method
-      line_start: 2020
-      line_end: 2024
+      line_start: 2889
+      line_end: 2893
       signature: VisualizerTargetStack.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -1890,8 +2669,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerTargetStack.append
       kind: method
-      line_start: 2032
-      line_end: 2033
+      line_start: 2901
+      line_end: 2902
       signature: VisualizerTargetStack.append(self, target, previous_targets)
       inputs:
       - self
@@ -1904,8 +2683,8 @@ source_catalog:
       dependency_targets: []
     - name: GenericBeatAwareLocalVisualizer.INPUT_TYPES
       kind: method
-      line_start: 2038
-      line_end: 2060
+      line_start: 2907
+      line_end: 2929
       signature: GenericBeatAwareLocalVisualizer.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -1915,8 +2694,8 @@ source_catalog:
       dependency_targets: []
     - name: GenericBeatAwareLocalVisualizer.render
       kind: method
-      line_start: 2069
-      line_end: 2258
+      line_start: 2938
+      line_end: 3127
       signature: GenericBeatAwareLocalVisualizer.render(self, image, audio, targets, brand_logo, brand_logo_mask, wordmark,
         wordmark_mask, fps, delivery_resolution, pattern_key, apply_brand_logo, brand_logo_width_percent, brand_logo_opacity,
         apply_wordmark, wordmark_width_percent, wordmark_opacity, overlay_margin_px, wordmark_halo_opacity, wordmark_halo_blur_px,
@@ -1972,30 +2751,27 @@ source_catalog:
       - bool
       parser: python-ast
       dependency_targets:
-      - *id010
+      - *id016
       - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: _apply_wordmark_sparkle
-      - *id011
-      - *id012
-      - &id022
-        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _deform_pixels
-      - *id013
-      - *id005
-      - &id024
-        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _motion_interior
-      - *id007
-      - *id014
-      - *id015
-      - *id016
       - *id017
       - *id018
+      - *id011
       - *id019
+      - *id009
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _motion_interior
+      - *id013
+      - *id020
+      - *id021
+      - *id022
+      - *id008
+      - *id023
+      - *id024
     - name: InfraChoirAnimationTarget.INPUT_TYPES
       kind: method
-      line_start: 2265
-      line_end: 2295
+      line_start: 3134
+      line_end: 3164
       signature: InfraChoirAnimationTarget.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2005,12 +2781,12 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirAnimationTarget.configure
       kind: method
-      line_start: 2303
-      line_end: 2389
+      line_start: 3172
+      line_end: 3296
       signature: InfraChoirAnimationTarget.configure(self, enabled, target_id, object_name, animation_prompt, mask_verified,
         target_role, envelope_group, audio_driver, motion_source, motion_type, on_beat_flicker, off_beat_flicker, on_beat_motion,
         off_beat_motion, generated_motion_strength, max_luminance_change, glow_strength, glow_radius_px, saturation_variation,
-        hue_variation_degrees, approved_mask_mode, mask, approved_mask, generated_motion)
+        hue_variation_degrees, approved_mask_mode, mask, approved_mask, generated_motion, **enhancement_values)
       inputs:
       - self
       - enabled
@@ -2037,6 +2813,7 @@ source_catalog:
       - mask
       - approved_mask
       - generated_motion
+      - '**enhancement_values'
       output: unspecified
       dependencies:
       - (base + correction).clamp
@@ -2047,26 +2824,605 @@ source_catalog:
       - approved_mask.detach
       - approved_mask.detach().to
       - bool
+      - enhancement_values.get
       - f'{name} {prompt}'.casefold
       - float
       - functional.interpolate
+      - int
       - json.dumps
       - selected_mask.detach
       - selected_mask.detach().to
+      - serializable.update
       - str
       - str(animation_prompt).strip
       - str(approved_mask_mode).casefold
+      - str(enhancement_values.get('generated_clip_path', '')).strip
       - str(envelope_group).strip
       - str(motion_type).casefold
       - str(object_name).strip
+      parser: python-ast
+      dependency_targets:
+      - *id025
+    - name: InfraChoirAnimationTargetEnhanced.INPUT_TYPES
+      kind: method
+      line_start: 3303
+      line_end: 3335
+      signature: InfraChoirAnimationTargetEnhanced.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies:
+      - dict
+      - required.update
+      parser: python-ast
+      dependency_targets: []
+    - name: InfraChoirAtmosphericTargetEnhanced.INPUT_TYPES
+      kind: method
+      line_start: 3344
+      line_end: 3378
+      signature: InfraChoirAtmosphericTargetEnhanced.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies:
+      - dict
+      - required.update
+      parser: python-ast
+      dependency_targets: []
+    - name: InfraChoirAtmosphericTargetEnhanced.configure
+      kind: method
+      line_start: 3380
+      line_end: 3383
+      signature: InfraChoirAtmosphericTargetEnhanced.configure(self, smoke_intensity, smoke_boundary_expansion_percent, **kwargs)
+      inputs:
+      - self
+      - smoke_intensity
+      - smoke_boundary_expansion_percent
+      - '**kwargs'
+      output: unspecified
+      dependencies:
+      - super
+      parser: python-ast
+      dependency_targets: []
+    - name: _manual_advanced_settings
+      kind: function
+      line_start: 3388
+      line_end: 3401
+      signature: _manual_advanced_settings(value) -> dict
+      inputs:
+      - value
+      output: dict
+      dependencies:
+      - ValueError
+      - dict
+      - isinstance
+      - json.loads
+      - str
+      - str(value or '').strip
+      parser: python-ast
+      dependency_targets: []
+    - name: InfraChoirManualAtmosphereTarget.INPUT_TYPES
+      kind: method
+      line_start: 3408
+      line_end: 3432
+      signature: InfraChoirManualAtmosphereTarget.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: InfraChoirManualAtmosphereTarget.configure
+      kind: method
+      line_start: 3440
+      line_end: 3498
+      signature: InfraChoirManualAtmosphereTarget.configure(self, mask, use_in_render, target_id, object_name, animation_prompt,
+        smoke_intensity, smoke_boundary_expansion_percent, billow_amount, foreground_protection, advanced_settings_json)
+      inputs:
+      - self
+      - mask
+      - use_in_render
+      - target_id
+      - object_name
+      - animation_prompt
+      - smoke_intensity
+      - smoke_boundary_expansion_percent
+      - billow_amount
+      - foreground_protection
+      - advanced_settings_json
+      output: unspecified
+      dependencies:
+      - InfraChoirAtmosphericTargetEnhanced
+      - _manual_advanced_settings
+      - advanced.get
+      - bool
+      - float
+      - int
+      - re.sub
+      - re.sub('[^a-z0-9]+', '_', str(object_name).casefold()).strip
+      - str
+      - str(advanced.get('target_id', '')).strip
+      - str(object_name).casefold
       - str(target_id).strip
       parser: python-ast
       dependency_targets:
-      - *id020
+      - &id026
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _manual_advanced_settings
+    - name: InfraChoirManualTargetCompact.INPUT_TYPES
+      kind: method
+      line_start: 3505
+      line_end: 3534
+      signature: InfraChoirManualTargetCompact.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: InfraChoirManualTargetCompact.configure
+      kind: method
+      line_start: 3542
+      line_end: 3599
+      signature: InfraChoirManualTargetCompact.configure(self, mask, use_in_render, target_id, object_name, animation_prompt,
+        target_role, linked_group, motion_type, beat_flicker, ambient_flicker, motion_amount, max_luminance_change, glow_strength,
+        glow_radius_px, saturation_variation, hue_variation_degrees, advanced_settings_json)
+      inputs:
+      - self
+      - mask
+      - use_in_render
+      - target_id
+      - object_name
+      - animation_prompt
+      - target_role
+      - linked_group
+      - motion_type
+      - beat_flicker
+      - ambient_flicker
+      - motion_amount
+      - max_luminance_change
+      - glow_strength
+      - glow_radius_px
+      - saturation_variation
+      - hue_variation_degrees
+      - advanced_settings_json
+      output: unspecified
+      dependencies:
+      - InfraChoirAnimationTargetEnhanced
+      - _manual_advanced_settings
+      - advanced.get
+      - bool
+      - float
+      - int
+      - re.sub
+      - re.sub('[^a-z0-9]+', '_', str(object_name).casefold()).strip
+      - str
+      - str(advanced.get('target_id', '')).strip
+      - str(linked_group).strip
+      - str(object_name).casefold
+      - str(target_id).strip
+      parser: python-ast
+      dependency_targets:
+      - *id026
+    - name: _auto_target_settings
+      kind: function
+      line_start: 3602
+      line_end: 3675
+      signature: '_auto_target_settings(object_class: str) -> dict'
+      inputs:
+      - 'object_class: str'
+      output: dict
+      dependencies:
+      - common.update
+      parser: python-ast
+      dependency_targets: []
+    - name: _enforce_auto_target_behavior
+      kind: function
+      line_start: 3678
+      line_end: 3729
+      signature: '_enforce_auto_target_behavior(target: dict) -> dict'
+      inputs:
+      - 'target: dict'
+      output: dict
+      dependencies:
+      - constrained.get
+      - constrained.update
+      - dict
+      - float
+      - max
+      - min
+      - str
+      - str(constrained.get('object_class', '')).casefold
+      - str(constrained.get('provenance', '')).casefold
+      parser: python-ast
+      dependency_targets: []
+    - name: _protect_auto_motion_overlaps
+      kind: function
+      line_start: 3732
+      line_end: 3776
+      signature: '_protect_auto_motion_overlaps(plans: list[dict]) -> list[str]'
+      inputs:
+      - 'plans: list[dict]'
+      output: list[str]
+      dependencies:
+      - _Layer
+      - _dilated_layer
+      - float
+      - hard_guard.astype
+      - int
+      - max
+      - min
+      - np.argwhere
+      - np.asarray
+      - np.clip
+      - np.maximum
+      - np.maximum.reduce
+      - np.maximum.reduce(protected_masks).astype
+      - np.sum
+      - plan.get
+      - reports.append
+      - round
+      - selected.max
+      - selected.min
+      - str
+      - str(plan.get('motion_type', 'still')).casefold
+      - str(plan.get('object_class', '')).casefold
+      - str(plan.get('provenance', '')).casefold
+      parser: python-ast
+      dependency_targets:
+      - *id027
+      - *id002
+      - *id003
+    - name: _subtract_protected_mask
+      kind: function
+      line_start: 3779
+      line_end: 3805
+      signature: '_subtract_protected_mask(mask, protected, dilation_percent: float)'
+      inputs:
+      - mask
+      - protected
+      - 'dilation_percent: float'
+      output: unspecified
+      dependencies:
+      - Image.fromarray
+      - Image.fromarray(np.clip(guard.numpy() * 255.0, 0, 255).astype(np.uint8), 'L').filter
+      - ImageFilter.MaxFilter
+      - float
+      - functional.interpolate
+      - guard.numpy
+      - mask.detach
+      - mask.detach().to
+      - max
+      - min
+      - np.asarray
+      - np.clip
+      - np.clip(guard.numpy() * 255.0, 0, 255).astype
+      - protected.detach
+      - protected.detach().to
+      - round
+      - torch.from_numpy
+      parser: python-ast
+      dependency_targets: []
+    - name: _manifest_preview
+      kind: function
+      line_start: 3808
+      line_end: 3838
+      signature: _manifest_preview(image, targets)
+      inputs:
+      - image
+      - targets
+      output: unspecified
+      dependencies:
+      - (mask * 255).astype
+      - Image.alpha_composite
+      - Image.fromarray
+      - Image.fromarray((mask * 255).astype(np.uint8), 'L').resize
+      - Image.fromarray(pixels, 'RGB').convert
+      - Image.new
+      - ImageDraw.Draw
+      - _image_pixels
+      - _mask_from_png_base64
+      - _mask_from_png_base64(encoded).numpy
+      - draw.rectangle
+      - draw.text
+      - enumerate
+      - int
+      - len
+      - max
+      - np.argwhere
+      - np.asarray
+      - np.clip
+      - np.clip(mask * 88.0, 0, 88).astype
+      - overlay.putalpha
+      - preview.convert
+      - selected.max
+      - selected.min
+      parser: python-ast
+      dependency_targets:
+      - *id009
+      - &id028
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _mask_from_png_base64
+    - name: _auto_discover_response
+      kind: function
+      line_start: 3841
+      line_end: 3871
+      signature: '_auto_discover_response(manifest_text: str, preview, report: str, action: str, show_preview: bool)'
+      inputs:
+      - 'manifest_text: str'
+      - preview
+      - 'report: str'
+      - 'action: str'
+      - 'show_preview: bool'
+      output: unspecified
+      dependencies:
+      - Image.fromarray
+      - Image.fromarray(pixels, 'RGB').save
+      - Path
+      - _image_pixels
+      - folder_paths.get_save_image_path
+      - folder_paths.get_temp_directory
+      - output_folder.mkdir
+      - str
+      - tempfile.gettempdir
+      parser: python-ast
+      dependency_targets:
+      - *id009
+    - name: approve_infra_choir_discovery
+      kind: function
+      line_start: 3874
+      line_end: 3928
+      signature: 'approve_infra_choir_discovery(manifest_text: str, manifest_path: str, preserve_reviewed_targets: bool, approve_all:
+        bool)'
+      inputs:
+      - 'manifest_text: str'
+      - 'manifest_path: str'
+      - 'preserve_reviewed_targets: bool'
+      - 'approve_all: bool'
+      output: unspecified
+      dependencies:
+      - (prior.get('image') or {}).get
+      - ValueError
+      - _manifest_path
+      - _mask_from_png_base64
+      - approved.append
+      - approved.extend
+      - bool
+      - destination.is_file
+      - destination.parent.mkdir
+      - destination.read_text
+      - destination.with_suffix
+      - dict
+      - identity.get
+      - isinstance
+      - item.get
+      - json.dumps
+      - json.loads
+      - manifest.get
+      - prior.get
+      - str
+      - str(item.get('review_state', '')).casefold
+      - str(manifest_text or '').strip
+      - temporary.replace
+      - temporary.write_text
+      parser: python-ast
+      dependency_targets:
+      - &id029
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _manifest_path
+      - *id028
+      - *id002
+      - *id003
+      - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
+        symbol: WanSoundImageToVideoExtendState.extend
+    - name: InfraChoirAutoDiscover.INPUT_TYPES
+      kind: method
+      line_start: 3935
+      line_end: 3947
+      signature: InfraChoirAutoDiscover.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: InfraChoirAutoDiscover.run
+      kind: method
+      line_start: 3956
+      line_end: 4059
+      signature: InfraChoirAutoDiscover.run(self, image, discovery_profile, max_candidates, action, manifest_path, reviewed_manifest_json,
+        preserve_reviewed_targets)
+      inputs:
+      - self
+      - image
+      - discovery_profile
+      - max_candidates
+      - action
+      - manifest_path
+      - reviewed_manifest_json
+      - preserve_reviewed_targets
+      output: unspecified
+      dependencies:
+      - ''' | ''.join'
+      - '''\n''.join'
+      - (identity['sha256'] + object_class + encoded).encode
+      - ValueError
+      - VisualizerSemanticObjectDetector
+      - __import__
+      - __import__('torch').maximum
+      - _auto_discover_response
+      - _auto_target_settings
+      - _enforce_auto_target_behavior
+      - _image_identity
+      - _manifest_path
+      - _manifest_preview
+      - _mask_png_base64
+      - _subtract_protected_mask
+      - approve_infra_choir_discovery
+      - destination.exists
+      - destination.unlink
+      - detector._semantic_assets_available
+      - detector.detect
+      - float
+      - hashlib.sha256
+      - hashlib.sha256((identity['sha256'] + object_class + encoded).encode('utf-8')).hexdigest
+      - int
+      parser: python-ast
+      dependency_targets:
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _auto_discover_response
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _auto_target_settings
+      - &id031
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _enforce_auto_target_behavior
+      - &id032
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _image_identity
+      - *id029
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _manifest_preview
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _mask_png_base64
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _subtract_protected_mask
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: approve_infra_choir_discovery
+      - *id030
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: VisualizerSemanticObjectDetector.detect
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: VisualizerObjectDetector.detect
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: VisualizerManualTargetDetector.detect
+    - name: InfraChoirApprovedTargets.INPUT_TYPES
+      kind: method
+      line_start: 4064
+      line_end: 4069
+      signature: InfraChoirApprovedTargets.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: InfraChoirApprovedTargets.load
+      kind: method
+      line_start: 4077
+      line_end: 4114
+      signature: InfraChoirApprovedTargets.load(self, image, manifest_path, enabled, stale_image_policy)
+      inputs:
+      - self
+      - image
+      - manifest_path
+      - enabled
+      - stale_image_policy
+      output: unspecified
+      dependencies:
+      - (manifest.get('image') or {}).get
+      - ValueError
+      - _enforce_auto_target_behavior
+      - _image_identity
+      - _manifest_path
+      - _mask_from_png_base64
+      - _target_effect_modes
+      - bool
+      - dict
+      - isinstance
+      - item.get
+      - json.loads
+      - len
+      - loaded.append
+      - manifest.get
+      - path.is_file
+      - path.read_text
+      - str
+      - str(item.get('review_state', '')).casefold
+      - target.update
+      - tuple
+      parser: python-ast
+      dependency_targets:
+      - *id031
+      - *id032
+      - *id029
+      - *id028
+      - *id025
+      - *id002
+      - *id003
+    - name: _target_masks_overlap
+      kind: function
+      line_start: 4117
+      line_end: 4134
+      signature: _target_masks_overlap(left, right) -> float
+      inputs:
+      - left
+      - right
+      output: float
+      dependencies:
+      - first.detach
+      - first.detach().to
+      - float
+      - functional.interpolate
+      - left.get
+      - right.get
+      - second.detach
+      - second.detach().to
+      - torch.logical_and
+      - torch.logical_and(first, second).sum
+      - torch.logical_and(first, second).sum().item
+      - torch.logical_or
+      - torch.logical_or(first, second).sum
+      - torch.logical_or(first, second).sum().item
+      parser: python-ast
+      dependency_targets: []
+    - name: InfraChoirTargetMerge.INPUT_TYPES
+      kind: method
+      line_start: 4139
+      line_end: 4144
+      signature: InfraChoirTargetMerge.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: InfraChoirTargetMerge.merge
+      kind: method
+      line_start: 4152
+      line_end: 4178
+      signature: InfraChoirTargetMerge.merge(self, manual_targets, auto_targets, merge_policy, overlap_threshold)
+      inputs:
+      - self
+      - manual_targets
+      - auto_targets
+      - merge_policy
+      - overlap_threshold
+      output: unspecified
+      dependencies:
+      - ''', ''.join'
+      - _target_masks_overlap
+      - candidate.get
+      - dropped.append
+      - float
+      - item.get
+      - len
+      - list
+      - result.append
+      - str
+      - str(candidate.get('object_class') or candidate.get('target_role') or '').casefold
+      - str(winner.get('object_class') or winner.get('target_role') or '').casefold
+      - tuple
+      - winner.get
+      parser: python-ast
+      dependency_targets:
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _target_masks_overlap
+      - *id002
+      - *id003
     - name: InfraChoirVisualizer.INPUT_TYPES
       kind: method
-      line_start: 2394
-      line_end: 2439
+      line_start: 4183
+      line_end: 4228
       signature: InfraChoirVisualizer.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2078,11 +3434,11 @@ source_catalog:
       dependency_targets:
       - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: _optional_overlay_choices
-      - *id021
+      - *id033
     - name: InfraChoirVisualizer._audio_drive
       kind: method
-      line_start: 2449
-      line_end: 2452
+      line_start: 4238
+      line_end: 4241
       signature: 'InfraChoirVisualizer._audio_drive(features, frame_index: int, driver: str) -> float'
       inputs:
       - features
@@ -2096,14 +3452,14 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirVisualizer.render
       kind: method
-      line_start: 2454
-      line_end: 2795
+      line_start: 4243
+      line_end: 4789
       signature: InfraChoirVisualizer.render(self, image, audio, targets, fps, delivery_resolution, pattern_key, maximum_stabilization_percent,
         apply_brand_logo, brand_logo_width_percent, brand_logo_opacity, apply_wordmark, wordmark_width_percent, wordmark_opacity,
         overlay_margin_px, title_card_enabled, band_name, song_title, title_card_image, title_card_placement, title_card_start_seconds,
         title_card_duration_seconds, title_card_fade_seconds, title_sparkle_enabled, title_sparkle_strength, title_sparkle_audio_response,
         eq_enabled, eq_mode, eq_height_percent, eq_opacity, eq_color, eq_smoothing, organic_motion_expansion_percent, title_card_source_visibility,
-        brand_logo_image, output_prefix, brand_logo, brand_logo_mask, wordmark, wordmark_mask)
+        brand_logo_image, output_prefix, brand_logo, brand_logo_mask, wordmark, wordmark_mask, **enhancements)
       inputs:
       - self
       - image
@@ -2145,8 +3501,12 @@ source_catalog:
       - brand_logo_mask
       - wordmark
       - wordmark_mask
+      - '**enhancements'
       output: unspecified
       dependencies:
+      - ''' ''.join'
+      - ''' ''.join((str(target.get(''object_class'', '''')), str(target.get(''object_name'', '''')), str(target.get(''animation_prompt'',
+        '''')))).casefold'
       - '''\n''.join'
       - Image.fromarray
       - Path
@@ -2155,46 +3515,125 @@ source_catalog:
       - RuntimeError
       - ValueError
       - _apply_eq_overlay
+      - _apply_high_resolution_eq
       - _apply_overlay
       - _apply_title_outline_sparkle
+      - _asymmetric_smooth
       - _audio_features
       - _blend
       - _deform_pixels
       - _dilated_layer
-      - _expanded_layer
+      - _emissive_glow_layer
+      - _enforce_auto_target_behavior
+      - _enhanced_audio_features
       - _image_pixels
-      - _load_external_title_card
-      - _load_overlay_selection
-      - _motion_interior
-      - _overlay_pixels
-      - _parse_overlay_color
-      - _ping_pong_index
-      - _prepare_generated_motion
-      - _prepare_layer
+      - _lighting_glow_amount
+      - _lighting_luminance_amount
       parser: python-ast
       dependency_targets:
       - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: _apply_eq_overlay
-      - *id010
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _apply_high_resolution_eq
+      - *id016
       - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: _apply_title_outline_sparkle
+      - *id004
+      - *id017
+      - *id018
       - *id011
-      - *id012
-      - *id022
+      - *id027
       - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _dilated_layer
-      - *id023
-      - *id005
+        symbol: _emissive_glow_layer
+      - *id031
       - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _load_external_title_card
+        symbol: _enhanced_audio_features
+      - *id009
       - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _load_overlay_selection
-      - *id024
-      - *id007
+        symbol: _lighting_glow_amount
       - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _parse_overlay_color
-      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _ping_pong_index
-      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
-        symbol: _prepare_generated_motion
-      - *id014
+        symbol: _lighting_luminance_amount
+    - name: InfraChoirVisualizerEnhanced.INPUT_TYPES
+      kind: method
+      line_start: 4796
+      line_end: 4831
+      signature: InfraChoirVisualizerEnhanced.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies:
+      - dict
+      - required.update
+      parser: python-ast
+      dependency_targets: []
+    - name: InfraChoirVisualizerDualTrack.INPUT_TYPES
+      kind: method
+      line_start: 4840
+      line_end: 4851
+      signature: InfraChoirVisualizerDualTrack.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies:
+      - dict
+      - required.update
+      parser: python-ast
+      dependency_targets: []
+  - path: scripts/build_infra_choir_raise_neon_black_candidate.py
+    analysis_version: 1
+    language: python
+    content_hash: 7833cdeeca9aff6fff1b1a13d9eedc78af4769bc
+    dependencies:
+    - __future__
+    - hashlib
+    - json
+    - pathlib
+    - uuid
+    provides:
+    - _set_widget
+    - build
+    symbols:
+    - name: _set_widget
+      kind: function
+      line_start: 44
+      line_end: 46
+      signature: '_set_widget(node: dict, index: int, name: str, value) -> None'
+      inputs:
+      - 'node: dict'
+      - 'index: int'
+      - 'name: str'
+      - value
+      output: None
+      dependencies:
+      - node.setdefault
+      parser: python-ast
+      dependency_targets: []
+    - name: build
+      kind: function
+      line_start: 49
+      line_end: 97
+      signature: build() -> Path
+      inputs: []
+      output: Path
+      dependencies:
+      - SOURCE.read_bytes
+      - TARGET.write_text
+      - _set_widget
+      - all
+      - hashlib.sha256
+      - hashlib.sha256(source_bytes).hexdigest
+      - int
+      - json.dumps
+      - json.loads
+      - source_bytes.decode
+      - str
+      - uuid.uuid5
+      - workflow.setdefault
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/build_infra_choir_raise_neon_black_candidate.py
+        symbol: _set_widget
+      - path: scripts/build_infra_choir_raise_neon_black_cloud_test.py
+        symbol: _set_widget
+      - path: scripts/build_infra_choir_wan_atmosphere_candidate.py
+        symbol: _set_widget

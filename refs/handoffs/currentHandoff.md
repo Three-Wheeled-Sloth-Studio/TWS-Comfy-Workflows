@@ -7,6 +7,496 @@ tags: [handoff, comfyui, music-video, compositing, visualizer, wan]
 ---
 # Current Handoff
 
+## 2026-10-20 Next Video Quality Priorities
+
+Raise the Neon Black v2 is accepted, but review found a loop jump and fuzz.
+The old overlap reset caused 9.44 median boundary change versus 1.49 normally.
+Correct `N-overlap` indexing plus a regression reduced a real probe boundary to
+1.55. Continue visual/numeric seam gates and lossless stage comparisons.
+
+Next, test Wan 2.1 VACE 1.3B separately at 832x480/~81 frames on the next
+user-selected art. No checkpoint is installed. Gate runtime/VRAM, source and
+static-region fidelity, intended motion, and seam quality before an 8-second
+compositor probe. Details are in
+`refs/evaluations/2026-10-20-next-video-motion-quality-plan.md`.
+
+## Fast-Moving Production State
+
+Production inputs change frequently. Never infer the current base image, song,
+target boxes, prompts, effect settings, branding, or output prefix from this
+handoff, an older workflow, file timestamps, or a previously prepared
+candidate. At the start of every production task, inspect the user-designated
+live workflow and treat its saved values as authoritative. Historical image and
+song names below describe the state observed during a specific audit only; they
+are not defaults and must not be written back into a workflow unless the user
+explicitly selects them for the current production.
+
+## 2026-10-20 Raise the Neon Black Motion Test
+
+The user explicitly selected the Raise the Neon Black `Banner.png` and FLAC for
+one fixed-seed environmental-motion test. A separate 1024x576 candidate was
+built and queued without modifying the dual-track scaffold. Both Wan segments
+generated successfully, but the first final save failed because the 192 kHz
+source master is unsupported by AAC. A save-only retry reused every generated
+node from cache and produced a 9.9375-second review clip; an audible copy was
+then muxed at 48 kHz without regeneration. The candidate workflow now uses a
+lossless 48 kHz working FLAC while the production master remains untouched.
+
+Hair, the large flag, waves, and underwater tentacles move visibly; the face,
+pose, buildings, and cranes remain comparatively stable. Storm clouds and
+waterline fog move, but the fog is moderate rather than ample. The extension
+join is clean, while the end-to-start boundary still needs deterministic loop
+assembly. The stable composition remains suitable for later music-synchronized
+procedural lighting/glow and title-card layers. See
+`refs/evaluations/2026-10-20-raise-neon-black-motion-test.md` for runtime and
+measurement evidence.
+
+## 2026-10-19 Hybrid Atmosphere Candidate Gate
+
+The shortest path to the requested organic-quality improvement is candidate C:
+one contextual full-scene Wan clip, confined to the reviewed smoke masks, with
+the established procedural renderer retaining lights, reflections, audio
+envelopes, title, wordmark, EQ, and exact-duration assembly. No new diffusion
+model or full compositor rewrite is required for this first quality gate.
+
+Cached-clip handling now fails closed when `cached_clip` is explicitly selected:
+a blank path, missing/undecodable file, or first frame that does not structurally
+match the selected artwork raises an actionable error. Automatic and
+`cached_clip_then_procedural` modes retain intentional fallback behavior. The
+QA report includes the clip/source similarity score.
+
+A separate, snapshot-specific workflow,
+`user/default/workflows/video_wan2_2_14B_s2v_infra_choir_atmosphere_candidate_v1.json`,
+is reproducibly built from the retained motion-loop workflow. It selects the
+image/audio observed during the recovery audit, fixed seeds, the installed four-step Wan path, and
+prompts for independently billowing cigarette/piano smoke while strongly
+protecting people, faces, geometry, exposure, and camera position. It saves to
+`output/infra_choir/motion_assets/`. The expensive generation has not been
+queued and this candidate must not be treated as production-ready or queued
+until its image, audio, prompts, and output prefix are rebound to the
+user-designated live production state. The handoff stop rule requires human
+approval before this materially different visual path consumes GPU time. The dual-track scaffold remains
+byte-identical to its recovered hash. The focused renderer test exercises the
+strict missing-clip path directly, a known older wrong-artwork clip is rejected
+at 0.048 similarity, and every command in `validationCommands.yaml` passes in
+the isolated validation worktree.
+
+## 2026-10-19 Priority-0 Live-State Recovery
+
+The live workflow directory and Git working tree were audited before any new
+implementation work. The authoritative scaffold remains
+`user/default/workflows/music_visualizer_infra_choir_dual_track_scaffold.json`
+with SHA-256
+`A7EE372E260DA42B609E068D38443F092C62B92351C8809CF77A0CF61FB93E7E`.
+It is an untracked live workflow and therefore has no direct committed version;
+the comparison baseline is the October 12 production commit
+`e774788fe6e73e099ad1da7590163eeaee02c343`. A byte-for-byte recovery snapshot
+of all 107 workflow-directory files plus the project-owned custom node was
+created at
+`C:\Users\sloth\Documents\ComfyUI-recovery-snapshots\2026-10-19_priority0_pre_recovery`;
+all source/snapshot workflow hashes matched.
+
+The scaffold state observed during the recovery audit was `Photo.png` with
+`Static in the Champagne Room.mp3`, title and wordmark enabled, custom EQ colour
+`#f58e87`, 512 regular bands plus 2048 ultra bands, and output prefix
+`infra_choir/TWS_`. Five manual detector lanes are enabled and two are disabled.
+The four-mask approved discovery manifest is image-fingerprint current, but the
+merge policy is intentionally `manual_only`, so those auto masks are preserved
+without affecting the render. Both smoke lanes currently select procedural
+motion and have blank cached/generated clip paths.
+
+Focused discovery/merge, generated-clip decode and looping, title/EQ, schema,
+and enhanced-analysis tests passed. An 8-second real-image/audio render also
+passed and left the scaffold hash unchanged. The complete repository validation
+list, including every workflow builder, was run only inside an isolated Git
+worktree beneath the recovery snapshot; all commands passed and no live
+workflow was regenerated. No scaffold value, target mask, media selection,
+box, prompt, link, or graph position changed during recovery.
+
+## 2026-10-15 Manual Effect Cards and Advanced Settings Popout
+
+The authoritative live workflow is
+`user/default/workflows/music_visualizer_infra_choir_dual_track_scaffold.json`.
+There is intentionally no TWS/Video duplicate. The saved workflow uses
+`Photo.png` and `Static in the Champagne Room.mp3` at the time of that work; its manual boxes,
+prompts, include choices, node positions, and links are user state and must not
+be regenerated from the earlier Bella Ciao baseline.
+
+All seven manual effect cards now keep only likely day-to-day controls on the
+graph and provide one **Advanced Settings…** button. The button opens a modal
+editor rather than creating graph nodes or wires. Per-target audio drivers,
+ADSHR response, grouping, detailed glow/shimmer, generated-motion, and cached
+atmosphere-clip controls serialize into a hidden per-card JSON field. Existing
+visible controls and the detector-side inclusion toggle retain their current
+behavior. The migration modified only the seven effect nodes by adding that
+field and shortening their heights; a structural guard verified every other
+saved value was unchanged. Focused backend and workflow regression tests pass;
+a Desktop reload is still required to load the new frontend extension and node
+schema before visual popout QA.
+
+The first post-reload save exposed a frontend serialization defect: changing a
+hidden widget's type caused ComfyUI to omit `target_id`, shift every following
+value one field left, clamp some values to the wrong numeric ranges, and drop
+the advanced input declaration. The popout now hides rows only through zero
+layout height while retaining each widget's original serialization type. The
+seven affected cards were repaired from their last known-good values in the
+root workflow; jazz media, boxes, links, positions, and all unrelated nodes
+were preserved. The light and lamp lane names were retained explicitly rather
+than restoring the older sun-specific labels.
+
+A subsequent visual review found that technically active effects were still
+perceptually muted: the latest full-song output showed roughly 7–9 luma levels
+of smoke-region variation but only 1.5–1.6 levels in the light regions. The
+non-geometric smoke safety path had removed source-pixel translation without
+replacing it with sufficiently legible density transport, and the enhanced
+lighting transfer remained too conservative after soft-mask compositing.
+
+Procedural smoke now advects a stronger multi-scale synthetic density field
+while source pixels remain fixed. Enhanced luminance and glow transfers are
+stronger but remain bounded by each card's explicit caps. The active smoke
+lanes now use intensity 2.2/2.0 and billow 1.15/0.95; the active light,
+illumination, and reflection lanes use stronger flicker/luminance settings,
+with reflection shimmer at 0.35. The modal no longer exposes generated-motion,
+shimmer, lighting, or motion controls on roles where they do not drive the
+renderer. Its role-specific help explicitly names the primary on-card controls.
+No media, masks, box coordinates, links, node positions, or prompts changed.
+
+A later load/save was performed by a still-running frontend instance that had
+the older hidden-widget serialization behavior. It omitted `target_id` from all
+seven compact manual cards and shifted every subsequent value left: advanced
+JSON appeared in `hue_variation_degrees`, atmosphere boundary values appeared
+as smoke intensity, and light radius/hue values appeared as glow/saturation.
+The authoritative scaffold was repaired by restoring the seven cards' widget
+prefixes and named values only. Current user media, boxes, prompts, inclusion
+choices, role/motion selections, renderer settings, positions, and links were
+left unchanged. The focused dual-track regression passes. The running ComfyUI
+frontend must be fully refreshed before this workflow is loaded and saved
+again so it uses the corrected `computeSize`-only hiding extension.
+
+The server history payload subsequently proved the inverse compatibility
+problem: the live frontend still declared the legacy leading `target_id`
+widget while the backend and saved scaffold did not. It therefore dropped the
+first saved value and submitted every remaining value under the field name to
+its left, producing the exact 21 role/type/range errors. The durable contract
+now restores `target_id` as the first hidden-but-serialized widget in both
+compact node schemas; the Advanced Settings modal edits that real widget, and
+the root scaffold contains matching IDs in its inputs, positional values, and
+named values. The migration touched only the seven manual effect nodes and
+preserved the user's media, boxes, prompts, role/motion selections, renderer
+settings, layout, and links. The focused dual-track regression passes.
+
+The remaining 21 validation errors were traced to a connected `forceInput`
+Boolean consuming a hidden positional widget slot during frontend load. The
+authoritative root scaffold now carries that slot on all seven effect cards,
+and the frontend extension restores and saves those cards through
+`widgets_values_named` so future frontend serialization cannot shift role,
+motion, numeric, or advanced-JSON values again. A live Desktop refresh loaded
+all seven IDs, roles, motion types, and numeric controls in their intended
+fields with no validation issues listed. The repair did not change the user's
+media, detector boxes, prompts, effect values, layout, links, or any other
+workflow.
+
+Two detector cards (`lights` and `lamp`) still carried an extra leading
+Boolean in their positional arrays, shifting `find` through
+`detection_provider` and producing six additional validation errors. Those
+two surplus values were removed without changing either detector's named
+settings. Named-field load/save recovery now also covers all manual detector
+cards, and the regression test verifies exact positional-to-named alignment
+for all seven detector/effect pairs. A live Desktop refresh showed sensitivity
+0.58/0.40, max regions 6, provider `semantic_or_heuristic`, and no validation
+errors.
+
+The next valid full-song render (`TWS_00002_.mp4`) proved that correct values
+were reaching the renderer but the enhanced transfer functions still muted
+them below practical visibility. Decoded upper-frame motion averaged only
+0.01-0.08 luma between adjacent frames; lighting was especially weak because
+the linear envelope occupied a narrow middle range and Gaussian glow diluted
+small source masks. Enhanced lighting now uses a smooth high-contrast gate
+bounded by each card's existing luminance cap, and emissive glow preserves the
+source mask while adding a normalized halo. Procedural smoke now uses stronger
+non-geometric density transport with no source-pixel displacement. An 8-second
+actual-image/audio diagnostic with EQ, titles, and branding disabled measured
+60-68 luma of smoke excursion, 27 for the light source, 13 for illumination,
+and 9 for reflection inside their verified masks. The user's workflow values,
+boxes, prompts, layout, and media were not changed. ComfyUI must be restarted
+before the live backend uses this renderer update.
+
+Visual inspection then rejected that stronger procedural-smoke treatment: it
+made the masks read as glowing translucent haze rather than flowing smoke. The
+fallback no longer introduces a pale synthetic layer. It now advects fine and
+broad texture extracted from the source image and applies only the transported
+texture difference, keeping the region's mean colour stable. On the same
+8-second jazz-image probe, per-pixel temporal ranges inside the two smoke masks
+were 51.3 and 19.3 luma while whole-frame mean drift was only 0.53. Contact
+frames showed no white veil, and the authoritative workflow SHA-256 was
+identical before and after the probe. Wan/cached clips remain the production
+route for genuinely generated smoke detail; the procedural path is explicitly
+the model-free fallback. The live backend must reload the project node before
+using this correction.
+
+## 2026-10-14 Infra Choir Dual-Track Scaffold Implementation
+
+The requested dual-track candidate is now wired to project-owned backend node
+classes at
+`user/default/workflows/TWS/Video/music_visualizer_infra_choir_dual_track_scaffold.json`.
+The enhanced workflow remains the rollback baseline. Setup actions are explicit
+and idle by default; manifests are image-bound, merge modes deterministic, and
+stale data loads empty. Titles stay bounded, ultra EQ uses distinct FFT bins,
+and atmosphere supports protected expansion or offline clips without diffusion.
+
+Automated regression and dual-track tests pass. The candidate still requires a
+Desktop restart/import, manual-only/auto-only/both full-song visual QA, and a
+separate RTX 4070 12 GB Wan-clip benchmark before promotion. Details are in
+`refs/architecture/infraChoirDualTrack.md`.
+
+Setup feedback is now visible: discover/apply show a preview, actions show node
+status/toasts, and the primary label explicitly lists lights, reflections,
+smoke/fog, and flame. Idle is the render-safe no-op.
+
+Live dual-track rendering exposed a backend-starvation failure: the 28%-radius
+smoke expansion reached a 605x605 Pillow `MaxFilter` at 1080p, held the Python
+backend on one CPU core before FFmpeg started, and made `/queue` and frontend
+requests report `Fetch Timeout` even though the process remained alive. Large
+mask expansion now uses equivalent separable SciPy maximum filters with a
+bounded downsampled Pillow fallback. The active queue was not interrupted and
+the visually arranged scaffold JSON was not rewritten; the fix takes effect
+after ComfyUI next reloads the project node.
+
+Review of `discovery_00002_.mp4` and its saved masks then identified why lights
+still appeared to slide despite correct `motion_type: still` JSON: the smoke
+detector had also selected chandelier and foreground-detail regions, so the
+later smoke layer spatially warped pixels owned by static classes. Rendering
+now gives auto-discovered light, illumination, reflection, flame, and human
+classes priority over smoke/atmosphere masks, including a small safety margin,
+and reports the protected overlap percentage in QA. Auto lighting classes also
+receive minimum visible flicker/luminance contracts, while flame is spatially
+still. Future discovery combines person and face protection with a larger
+margin. This is node-code-only; the user's arranged scaffold layout remains
+untouched.
+
+The next reviewed render showed this was still insufficient: CLIPSeg continued
+to label the small piano player's head as smoke, class-overlap protection made
+real smoke too subtle, and measured light-mask variation was only 0.6-1.4 luma
+levels. Auto smoke/atmosphere therefore no longer resamples neighboring source
+pixels at all. It now uses a stronger moving haze-opacity field, which can show
+billow without translating a falsely included head or fixture. Lighting classes
+now have materially higher but bounded flicker and luminance floors. The
+semantic exclusions remain useful, but visual safety no longer depends on the
+human detector finding every small background face.
+
+A six-second 1280x720 direct QA against the audit-time `Photo.png` manifest then
+verified the revised transfer: illumination varied across an 11.9-luma 1st-to-
+99th-percentile range, reflections 8.7, and smoke 5.1. Phase correlation over
+the piano-player crop measured 0.001 px median and 0.009 px maximum apparent
+shift, effectively codec noise rather than source-pixel motion.
+
+Subsequent mask review rejected CLIPSeg discovery as the production path for
+this dense scene: it grouped separate plumes into giant boxes, missed the large
+couch-to-piano smoke cloud, selected a piano-player head, and favored weak or
+unlit chandelier regions over obvious lamps, sconces, and building lights.
+Threshold tuning cannot make a coarse semantic heatmap behave like referring
+instance segmentation. The arranged scaffold now defaults to `manual_only` and
+keeps every node position and size unchanged. Its two atmospheric lanes replace
+the ambiguous cached-loop/expansion widget labels with `smoke_intensity` (0-3)
+and `smoke_boundary_expansion_percent` (0-50). Manually boxed smoke/clouds use
+non-geometric haze billow across the expanded support, so high intensity does
+not drag source objects inside the box. Boundary percentage is relative to the
+manual mask's own larger dimension rather than the full frame.
+
+The manual-only retest found lighting correct but smoke visually static. Initial
+saved-file inspection incorrectly blamed verification; ComfyUI run history then
+proved both submitted `mask_verified` values were true. The actual defect was
+double application of each soft smoke mask inside billow and again at final
+composite, reducing piano-smoke variation to the level of a static control
+region. Billow now uses binary support internally and the soft mask exactly once
+at composite, with a stronger intensity range. The two atmosphere lanes now use
+compact effect cards; `include this mask` lives on and is linked from each
+box/detection card, and no second verification widget appears on the effect
+card. A follow-up corrected the incomplete first UI pass: all seven lanes now
+use the same detector-side inclusion control and compact effect cards, arranged
+as aligned detector → review → effect rows. The two legacy hair/fabric lanes
+default excluded; smoke and lighting lanes default included. Existing manual
+box coordinates are retained.
+
+Follow-up usability work removes manifest editing from the normal path. After
+Discover, **Push this discovery into flow** directly approves and atomically
+saves the visible image-bound candidates without queuing a full-song render;
+the next normal run loads them automatically, and setup returns itself to
+`idle`. The large JSON editor is hidden
+unless advanced editing is requested. Smoke is now its own first-class target
+with an independently normalized thin-plume/broad-fog semantic ensemble, a
+finer spatial grid, up to eight disconnected regions, and a dedicated slow
+billow preset. A real `input/Photo.png` check now produces a smoke target where
+the previous combined atmosphere phrase produced none; final mask precision
+still requires visual review of the annotated discovery preview.
+
+Runtime feedback exposed that the scaffold's inherited Bella Ciao manual lanes
+were still active under `manual_wins`; on unrelated artwork, `red_hair` and
+`red_fabric` could reinterpret heads or clothes and apply sway. The scaffold and
+merge-node default are now `auto_only`, with manual modes retained as explicit
+fallbacks. Auto-discovered light/illumination/reflection targets are hard-locked
+to spatially still luminance/glow/shimmer behavior. Auto people, faces, hair,
+and fabric are spatially still because the procedural compositor cannot create
+credible articulated human motion. Discovery also subtracts a dilated semantic
+person mask from environmental effects. Smoke billow response is stronger, but
+deformation amplitude is now capped independently from mask expansion so large
+atmospheric support cannot drag neighboring heads or fixtures.
+
+## 2026-10-13 Infra Choir Enhanced Production Visualizer
+
+The new non-destructive production entry point is
+`user/default/workflows/music_visualizer_infra_choir_enhanced.json`. It keeps
+the original seven reviewed semantic-mask lanes, target stack, title treatment,
+streamed full-song renderer, and output contract. The existing
+`music_visualizer_infra_choir_production.json` remains the baseline and was not
+replaced.
+
+The project-owned nodes now provide one cached, frame-aligned STFT analysis
+with RMS, low/mid/high energy, kick/snare/hi-hat transient accents, onset,
+beat confidence/phase, slow and phrase envelopes, and lightweight
+vocal/instrument spectral proxies. The enhanced target node adds independent
+driver mixing and ADSR-style shaping. The enhanced renderer adds genuine
+32-512-band log/linear spectra (256 bands by default), four fine-spectrum
+styles, peak hold, masked edge glow, reflection shimmer, atmospheric treatment,
+and optional section gain overrides. Every enhancement is switchable, and the
+master-off output is byte-identical after decoding to the baseline smoke test.
+
+Fill-Nodes was audited at source level. Its Apache-2.0 drum-envelope and edge
+effect concepts were adapted inside the project node because its native
+`FL_AUDIO_ENVELOPE` and full-image-batch nodes do not fit this renderer's
+target JSON or bounded streaming contract. No third-party node code was edited,
+and no cloud service, diffusion model, or source-separation model was added.
+
+A complete Bella Ciao A/B rendered at 1920x1080, 16 fps, 4,598 frames, and
+287.375 seconds. Baseline/enhanced times were 843.93/860.76 seconds; enhanced
+peak process-plus-FFmpeg RSS was about 2.41 GiB and total observed GPU memory
+was 3,310 MiB. Fresh enhanced analysis took 9.52 seconds; a disk-cache hit took
+0.14 seconds. Both outputs carry identical decoded audio, and representative
+early/middle/late frames plus the EQ region were visually inspected. Details,
+paths, limitations, and Fill-Nodes integration decisions are in
+`refs/evaluations/2026-10-13-infra-choir-enhanced-visualizer.md` and
+`refs/architecture/infraChoirVisualizerEnhanced.md`.
+
+## 2026-10-13 Audio-Reactive Loop LTX 2.3 Q2 Evaluation
+
+A new, non-destructive workflow is saved at
+`user/default/workflows/audio_reactive_loop_LTX23_Q2_8GB.json`. It restores
+the upstream LTX 2.3 architecture while preserving AudioLoopHelper's
+TensorLoopOpen/TensorLoopClose, AudioLoopController, full-song audio latent,
+and automatic stop wiring. Its test plan is 704x416, 97 frames, and 24 fps.
+The existing `audio_reactive_loop_LTX25.json` remains unchanged.
+
+The workflow uses the Video Studio fast-tier Q2_K GGUF transformer, its Gemma
+3 12B FP4 mixed text encoder, separate BF16 text projection, and LTX 2.3 video
+and audio VAEs. `ComfyUI-GGUF` was added at commit
+`6ea2651f3266613034c67221f84f979c58de87db`, with `gguf==0.19.0` installed in
+Desktop's `.venv`. All five model files live under
+`D:\comfyDesktop\models\local`; the larger Q3 model was not downloaded.
+
+A real four-second audio-conditioned run completed eight sampler steps and
+produced a 704x416, 24 fps, 97-frame video plus a four-second AAC stereo mux.
+The best tested configuration completed in 127.53 seconds and peaked at
+10,834 MiB (10.58 GiB) total GPU memory. Dynamic VRAM was slower and peaked
+higher. The user accepted this 10.58 GiB result as the current RTX 4070 12 GB
+baseline. For future experiments, the target remains below 10 GiB, while the
+acceptance gate is that active generation remains GPU-resident without model
+or layer offloading to CPU. A lower reported VRAM peak achieved through CPU
+offloading is not an improvement. Do not describe the Studio "8GB" tier as
+validated on an 8 GB card; the upstream documentation itself warns that the
+tier was tested on a 16 GB GPU and offloads aggressively on lower VRAM.
+
+The retained configuration uses PyTorch attention, four FFN chunks, bypassed
+NAG, explicit pre-decode model cleanup, and 2x2 tiled decode. Audio
+conditioning was verified through the LTX 2.3 audio-VAE-to-AV-latent path and
+an output audio stream; subjective beat responsiveness was not independently
+A/B scored. Detailed evidence is in
+`refs/evaluations/2026-10-13-ltx23-q2-audio-loop-benchmark.md`.
+
+## 2026-10-12 Audio-Reactive Loop LTX 2.5 Repair
+
+The user workflow at
+`user/default/workflows/ComfyUI-AudioLoopHelper/audio_reactive_loop.json` was
+adapted from its unavailable LTX 2.3 selectors to the installed LTX 2.5 model
+set under `D:\comfyDesktop\models\local`. The active transformer, combined
+Gemma 4 text encoder/projection, video VAE, and audio VAE selectors now match
+the installed INT8 ConvRot/BF16 files. The loader changed from the obsolete
+two-file `DualCLIPLoader` arrangement to the official LTX 2.5 single-file
+`CLIPLoader` arrangement. All nine workflow timing sites now agree at the
+official LTX 2.5 rate of 24 fps.
+
+Four unavailable LTX 2.3-only optional selectors (vocal separation, spatial
+upscaler, IC-LoRA, and base-model distill LoRA) remain bypassed and were cleared
+so they are not presented as required models. No model was downloaded.
+`colour-science` 0.4.7 was added to the live `.venv`, satisfying the declared
+`ComfyUI-LTXVideo` dependency and restoring that node pack's registration.
+
+Validation parsed the 100-node/138-link workflow, confirmed all four active
+model names through the same D-drive model-path configuration used by Desktop,
+and completed ComfyUI 0.39.2's import-only startup check with both
+`ComfyUI-AudioLoopHelper` and `ComfyUI-LTXVideo` registered. The upstream
+AudioLoopHelper audit reports 44 passing topology checks; its two remaining
+errors are the expected hard-coded LTX 2.3 assertion that frame rate must be 25,
+while its independent coherence check confirms all nine adapted sites are 24.
+No render was queued and no ComfyUI service was started, stopped, or restarted.
+
+On 2026-10-13, Desktop's session LevelDB showed that the visible tab was an
+unsaved temporary workflow at `workflows/audio_reactive_loop.json`. Reloading
+that tab therefore restored its old LTX 2.3 graph from browser session state
+instead of rereading the corrected workflow file. An identical corrected copy
+is now saved at the collision-free root path
+`user/default/workflows/audio_reactive_loop_LTX25.json`. Close the stale
+temporary tab and open `audio_reactive_loop_LTX25.json` from the Workflows
+panel; do not reopen the AudioLoopHelper bundled template, which remains an
+upstream LTX 2.3 artifact.
+
+The 2026-10-13 user reload then exposed a second setup-scanner mismatch:
+`VAELoaderKJ` found the D-drive files at runtime but advertised both selectors
+as unknown models. Nodes 1537 and 1538 now use the official core `VAELoader`
+shape and basename selectors from the LTX 2.5 reference workflows, with their
+existing VAE output links preserved. The only remaining setup requirements are
+the intentional user-selected image and audio inputs.
+
+## 2026-10-12 Comfy Desktop D-Drive Storage Migration
+
+Comfy Desktop's persistent settings, installation record, shared model-path
+file, and instance model-path file now point to `D:\comfyDesktop`. The 44.4
+GiB shared and 80.1 GiB local model stores were moved to
+`D:\comfyDesktop\models\shared` and `D:\comfyDesktop\models\local`; input,
+output, and temp storage were moved alongside them. The former C-drive paths
+are compatibility junctions, while Desktop launches with D-drive input,
+output, and temp arguments directly. All 669 migrated files matched by path
+and byte length, and all 102 model files matched SHA-256 before the C-drive
+copies were removed.
+
+A live ComfyUI 0.39.2 smoke test loaded both D-drive model roots, registered
+the YuE2 nodes, and discovered the YuE2 checkpoint, SheetSage2 encoder,
+instrumental LoRA, Wan S2V, LTX, and ACE-Step assets. Existing unrelated
+KJNodes Triton and VRGDG LTX-submodule warnings remain. The smoke-test backend
+was stopped and port 8000 was released.
+
+## 2026-10-12 Music Generation Candidate Spike
+
+`pytraveler/YuE2-ComfyUI` is linked from
+`custom_nodes/YuE2-ComfyUI` to the maintenance checkout at
+`D:\Apps\Tools\YuE2-ComfyUI`. Its 13 nodes and 12 templates load in ComfyUI
+0.39.2. Live API runs validated ABC planning, edited-ABC override, a short new
+song, SheetSage2 transcription plus cover render, and the instrumental LoRA.
+The existing shared INT8 YuE2 checkpoint and SheetSage2 encoder were reused;
+only the 266 MiB instrumental adapter was added. Peak sampled GPU use was
+7,927 MiB on the RTX 4070. The recommendation is BUILD AROUND for
+non-commercial work; YuE2, SheetSage2, and the adapter are CC BY-NC 4.0.
+
+Remiqora is a standalone Electron/Vue/FastAPI orchestrator, not a Comfy custom
+node. Its source checkout, dedicated backend venv, frontend build, and desktop
+dependencies are installed at `D:\Apps\Tools\remiqora`; nothing was put in
+Comfy's node or workflow directories. It reused the existing standalone
+ACE-Step venv/checkpoints, launched ACE through its orchestrator, and generated
+a ten-second FLAC through the Remiqora proxy. Its YuE2 path remains deliberately
+uninstalled because it requires a separate `audio.cpp` CUDA binary and roughly
+10 GiB of GGUF weights that cannot reuse Comfy's safetensors. Recommendation:
+MINE FOR IDEAS. Full evidence is in
+`refs/evaluations/infraChoirMusicGenerationCandidates.md`.
+
 ## 2026-10-12 User Acceptance
 
 The user reviewed the corrected production treatment and explicitly reported
@@ -587,20 +1077,58 @@ A private local manifest assembled a complete song into 3,905 frames at
 delta. The closed-cycle boundary luma-difference average was 5.23/255. The
 manifest and its media-specific paths are not retained in the repository.
 
+## Raise the Neon Black Full-Song Result (2026-10-20)
+
+The production input for this run was explicitly supplied by the user:
+`Banner.png` and `Raise the Neon Black.flac`. Do not infer that future runs use
+this artwork, the earlier jazz image, or any other prior song configuration;
+production inputs change quickly and must be read from the current request or
+workflow.
+
+The accepted 1024x576 Wan motion clip was preserved. A proposed 640x360
+49-frame cloud/smoke gate failed after 95:45 at KSampler because that height
+produced incompatible latent tensor widths (23 versus 22). It also demonstrated
+that small Wan passes are not cheap on the current 12 GB/offload path because
+fixed conditioning and model movement dominate runtime.
+
+The useful cheap path is deterministic temporal amplification of motion already
+present in the accepted clip. `scripts/build_atmospheric_motion_boost_preview.py`
+produced `raise_the_neon_black_atmosphere_boost_preview_v3.mp4`, increasing
+measured cloud motion about 18% and waterline-fog motion about 72% without
+spatial warping; the protected face-region measurement remained unchanged.
+
+`scripts/build_infra_choir_raise_neon_black_full_video.py` builds
+`video_raise_the_neon_black_full_visualizer_v2.json`, a separate
+full-song workflow, API prompt, and conservative source-derived light mask. It
+does not overwrite `music_visualizer_infra_choir_dual_track_scaffold.json`.
+The first full output was rejected because the compact target adapter dropped
+the cached-motion fields and rendered the overlays over a still image. The
+adapter now forwards the cached clip mode, path, duration, overlap, expansion,
+strength, and foreground-protection fields. A regression test covers that
+contract, and the separate production workflow was rebuilt with the corrected
+settings. The accepted output is:
+
+`D:\comfyDesktop\output\infra_choir\final\raise_the_neon_black_full_v2_00001_.mp4`
+
+It is 1920x1080 H.264, 16 fps, 3,332 frames, 208.25 seconds, with 48 kHz stereo
+AAC. It includes the opening title card, persistent wordmark, cyan 2048-band
+EQ, localized music-synchronized practical-light glow, and the approved
+cloud/fog-boosted motion loop. Loop-boundary median change is below the normal
+adjacent-frame median. Motion measurements at five points from 8 through 200
+seconds confirm the moving layer persists throughout the final file. The
+scaffold remained byte-identical to its recovered hash. Detailed evidence is in
+`refs/evaluations/2026-10-20-raise-neon-black-full-render.md`.
+
 ## Current Usage
 
-Restart Comfy Desktop once so it discovers the new project-owned nodes, then
-open `video_wan2_2_14B_s2v_motion_poster_guided.json` from the workflow menu:
+After installing node changes, restart Comfy Desktop and open
+`video_wan2_2_14B_s2v_motion_poster_guided.json`:
 
 1. Select the cover art in `Load Image` and the song in `Load Song`.
-2. Edit the positive and negative text in `Motion Poster Guidance`; leave lip
-   motion disabled. In `motion_targets`, name exact existing regions and their
-   physical motion, separated by semicolons. Optional lyrics or theme text can
-   guide the atmosphere.
-3. Set `variant_count` in `Motion Poster Variant Seeds`. The base seed defaults
-   to `randomize` after each queued run; switch it to `fixed` to reproduce a
-   known run. Keep one variant for normal quality; two or three remain
-   experimental until their transition blur is fixed.
+2. Edit `Motion Poster Guidance`; keep lip motion off. In `motion_targets`, name
+   exact existing regions and physical motion, separated by semicolons.
+3. Set `variant_count`; use one normally, and `fixed` seed mode to reproduce a
+   run. Two or three variants remain experimental due to transition blur.
 4. Set optional crossfade/camera controls in `Assemble Full Motion Poster`.
    Zoom `1.0` means no zoom and drift defaults to zero. Update the song-title
    field when changing audio; it is prepended to the output filename.

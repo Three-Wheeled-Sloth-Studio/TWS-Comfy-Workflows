@@ -37,14 +37,16 @@ source_catalog:
   - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
     analysis_version: 1
     language: python
-    content_hash: bc484b1849071d764e00535a19e61c6a721566b5
+    content_hash: 8cdffc78087c8f62d2539bf43264a8b6f073089f
     dependencies:
     - .local_visualizer_nodes
     - .motion_poster_nodes
+    - aiohttp
     - comfy.model_management
     - comfy_extras.nodes_wan
     - math
     - node_helpers
+    - server
     - torch
     provides:
     - AudioDurationToWanChunks.INPUT_TYPES
@@ -57,6 +59,7 @@ source_catalog:
     - WanS2VStateAppend.append
     - WanS2VStateToLatent.INPUT_TYPES
     - WanS2VStateToLatent.combine
+    - apply_infra_choir_discovery
     symbols:
     - name: AudioDurationToWanChunks.INPUT_TYPES
       kind: method
@@ -207,3 +210,23 @@ source_catalog:
       - torch.cat
       parser: python-ast
       dependency_targets: []
+    - name: apply_infra_choir_discovery
+      kind: function
+      line_start: 265
+      line_end: 280
+      signature: apply_infra_choir_discovery(request)
+      inputs:
+      - request
+      output: unspecified
+      dependencies:
+      - PromptServer.instance.routes.post
+      - approve_infra_choir_discovery
+      - len
+      - payload.get
+      - request.json
+      - str
+      - web.json_response
+      parser: python-ast
+      dependency_targets:
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: approve_infra_choir_discovery

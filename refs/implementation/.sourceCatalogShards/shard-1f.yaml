@@ -4,6 +4,124 @@ source_catalog:
   format_version: 1
   bucket: 1f
   files:
+  - path: scripts/build_atmospheric_motion_boost_preview.py
+    analysis_version: 1
+    language: python
+    content_hash: 53c7809c7c412a63e3bd49a3743243dddb6d8828
+    dependencies:
+    - __future__
+    - argparse
+    - cv2
+    - numpy
+    - pathlib
+    - subprocess
+    provides:
+    - _soft_region_masks
+    - _advect
+    - build_preview
+    - main
+    symbols:
+    - name: _soft_region_masks
+      kind: function
+      line_start: 11
+      line_end: 46
+      signature: '_soft_region_masks(width: int, height: int, reference: np.ndarray) -> tuple[np.ndarray, np.ndarray]'
+      inputs:
+      - 'width: int'
+      - 'height: int'
+      - 'reference: np.ndarray'
+      output: tuple[np.ndarray, np.ndarray]
+      dependencies:
+      - cv2.GaussianBlur
+      - cv2.cvtColor
+      - cv2.ellipse
+      - cv2.fillPoly
+      - max
+      - np.asarray
+      - np.ones_like
+      - np.zeros
+      - np.zeros_like
+      - round
+      parser: python-ast
+      dependency_targets: []
+    - name: _advect
+      kind: function
+      line_start: 49
+      line_end: 78
+      signature: '_advect(frame: np.ndarray, seconds: float, cloud_mask: np.ndarray, fog_mask: np.ndarray) -> np.ndarray'
+      inputs:
+      - 'frame: np.ndarray'
+      - 'seconds: float'
+      - 'cloud_mask: np.ndarray'
+      - 'fog_mask: np.ndarray'
+      output: np.ndarray
+      dependencies:
+      - cv2.remap
+      - cv2.remap(frame, xx + cloud_dx, yy + cloud_dy, cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT_101).astype
+      - cv2.remap(frame, xx + fog_dx, yy + fog_dy, cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT_101).astype
+      - frame.astype
+      - np.clip
+      - np.cos
+      - np.mgrid[0:height, 0:width].astype
+      - np.sin
+      parser: python-ast
+      dependency_targets: []
+    - name: build_preview
+      kind: function
+      line_start: 81
+      line_end: 136
+      signature: 'build_preview(source: Path, output: Path) -> None'
+      inputs:
+      - 'source: Path'
+      - 'output: Path'
+      output: None
+      dependencies:
+      - RuntimeError
+      - _soft_region_masks
+      - capture.get
+      - capture.isOpened
+      - capture.read
+      - capture.release
+      - cv2.VideoCapture
+      - first.astype
+      - frame.astype
+      - int
+      - np.ascontiguousarray
+      - np.ascontiguousarray(moved).tobytes
+      - np.clip
+      - np.clip(moved + detail * atmosphere_mask * 1.65, 0, 255).astype
+      - output.parent.mkdir
+      - output.with_suffix
+      - partial.replace
+      - print
+      - process.kill
+      - process.stderr.read
+      - process.stderr.read().decode
+      - process.stderr.read().decode('utf-8', errors='replace').strip
+      - process.stdin.close
+      - process.stdin.write
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/build_atmospheric_motion_boost_preview.py
+        symbol: _soft_region_masks
+    - name: main
+      kind: function
+      line_start: 139
+      line_end: 144
+      signature: main() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - argparse.ArgumentParser
+      - args.output.resolve
+      - args.source.resolve
+      - build_preview
+      - parser.add_argument
+      - parser.parse_args
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/build_atmospheric_motion_boost_preview.py
+        symbol: build_preview
   - path: scripts/build_generic_music_visualizer_workflow.py
     analysis_version: 1
     language: python

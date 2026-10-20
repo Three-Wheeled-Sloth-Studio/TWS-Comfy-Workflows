@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/validate_repository.py
     analysis_version: 1
     language: python
-    content_hash: dbc1b00ee6f323ae2eefb05fe3684ded9054820e
+    content_hash: 51386f720c338cee007b1c7bf1de9a99a31690dc
     dependencies:
     - __future__
     - pathlib
@@ -19,8 +19,8 @@ source_catalog:
     symbols:
     - name: tracked_paths
       kind: function
-      line_start: 46
-      line_end: 50
+      line_start: 48
+      line_end: 52
       signature: tracked_paths() -> list[str]
       inputs: []
       output: list[str]
@@ -29,11 +29,13 @@ source_catalog:
       - result.stdout.split
       - subprocess.run
       parser: python-ast
-      dependency_targets: []
+      dependency_targets:
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: InfraChoirAutoDiscover.run
     - name: main
       kind: function
-      line_start: 53
-      line_end: 82
+      line_start: 55
+      line_end: 84
       signature: main() -> int
       inputs: []
       output: int

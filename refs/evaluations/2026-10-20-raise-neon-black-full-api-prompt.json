@@ -1,0 +1,200 @@
+{
+  "1": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "infra_choir/raise_the_neon_black/Banner.png"
+    }
+  },
+  "2": {
+    "class_type": "LoadAudio",
+    "inputs": {
+      "audio": "infra_choir/raise_the_neon_black/Raise the Neon Black_48k.flac"
+    }
+  },
+  "3": {
+    "class_type": "SolidMask",
+    "inputs": {
+      "value": 1.0,
+      "width": 1672,
+      "height": 941
+    }
+  },
+  "4": {
+    "class_type": "PrimitiveBoolean",
+    "inputs": {
+      "value": true
+    }
+  },
+  "5": {
+    "class_type": "InfraChoirManualTargetCompact",
+    "inputs": {
+      "mask": [
+        "3",
+        0
+      ],
+      "use_in_render": [
+        "4",
+        0
+      ],
+      "target_id": "approved_full_scene_motion",
+      "object_name": "approved full-scene Wan motion",
+      "animation_prompt": "Loop the reviewed motion clip; do not add procedural geometry motion.",
+      "target_role": "organic",
+      "linked_group": "environment",
+      "motion_type": "still",
+      "beat_flicker": 0.0,
+      "ambient_flicker": 0.0,
+      "motion_amount": 0.0,
+      "max_luminance_change": 0.0,
+      "glow_strength": 0.0,
+      "glow_radius_px": 0.0,
+      "saturation_variation": 0.0,
+      "hue_variation_degrees": 0.0,
+      "advanced_settings_json": "{\"motion_source\":\"generated_clip\",\"generated_motion_strength\":1.0,\"atmospheric_motion_mode\":\"cached_clip\",\"generated_clip_path\":\"infra_choir/motion_assets/raise_the_neon_black_atmosphere_boost_preview_v3.mp4\",\"generated_clip_max_seconds\":10.0,\"generated_clip_overlap_seconds\":0.8,\"audio_driver\":\"slow\",\"secondary_audio_driver\":\"none\",\"secondary_driver_mix\":0.0,\"on_beat_motion\":0.0,\"response_min\":0.0,\"response_max\":1.0,\"foreground_protection\":false,\"target_id\":\"approved_full_scene_motion\"}"
+    }
+  },
+  "6": {
+    "class_type": "VisualizerTargetStack",
+    "inputs": {
+      "target": [
+        "5",
+        0
+      ]
+    }
+  },
+  "7": {
+    "class_type": "LoadImageMask",
+    "inputs": {
+      "image": "infra_choir/raise_the_neon_black/lighting_mask_v1.png",
+      "channel": "red"
+    }
+  },
+  "8": {
+    "class_type": "PrimitiveBoolean",
+    "inputs": {
+      "value": true
+    }
+  },
+  "9": {
+    "class_type": "InfraChoirManualTargetCompact",
+    "inputs": {
+      "mask": [
+        "7",
+        0
+      ],
+      "use_in_render": [
+        "8",
+        0
+      ],
+      "target_id": "practical_lights",
+      "object_name": "practical lights and emissive reflections",
+      "animation_prompt": "Pulse and glow in place with the music.",
+      "target_role": "light_source",
+      "linked_group": "lighting",
+      "motion_type": "still",
+      "beat_flicker": 1.2,
+      "ambient_flicker": 0.14,
+      "motion_amount": 0.0,
+      "max_luminance_change": 0.11,
+      "glow_strength": 0.38,
+      "glow_radius_px": 24.0,
+      "saturation_variation": 0.06,
+      "hue_variation_degrees": 0.0,
+      "advanced_settings_json": "{\"motion_source\":\"procedural\",\"generated_motion_strength\":0.0,\"audio_driver\":\"beat\",\"secondary_audio_driver\":\"high\",\"secondary_driver_mix\":0.22,\"on_beat_motion\":0.0,\"response_attack_ms\":32.0,\"response_decay_ms\":150.0,\"response_release_ms\":240.0,\"response_smoothing\":0.1,\"response_min\":0.0,\"response_max\":1.0,\"response_sensitivity\":1.15,\"lighting_gain\":1.1,\"target_id\":\"practical_lights\"}"
+    }
+  },
+  "10": {
+    "class_type": "VisualizerTargetStack",
+    "inputs": {
+      "target": [
+        "9",
+        0
+      ],
+      "previous_targets": [
+        "6",
+        0
+      ]
+    }
+  },
+  "11": {
+    "class_type": "InfraChoirVisualizerDualTrack",
+    "inputs": {
+      "image": [
+        "1",
+        0
+      ],
+      "audio": [
+        "2",
+        0
+      ],
+      "targets": [
+        "10",
+        0
+      ],
+      "fps": 16,
+      "delivery_resolution": "1080p",
+      "pattern_key": 20261020,
+      "maximum_stabilization_percent": 4.0,
+      "apply_brand_logo": false,
+      "brand_logo_width_percent": 10.0,
+      "brand_logo_opacity": 0.68,
+      "apply_wordmark": true,
+      "wordmark_width_percent": 30.0,
+      "wordmark_opacity": 0.92,
+      "overlay_margin_px": 24,
+      "title_card_enabled": true,
+      "band_name": "Infra Choir",
+      "song_title": "Raise the Neon Black",
+      "title_card_image": "(generate from text)",
+      "title_card_placement": "center",
+      "title_card_start_seconds": 0.0,
+      "title_card_duration_seconds": 5.0,
+      "title_card_fade_seconds": 0.65,
+      "title_sparkle_enabled": true,
+      "title_sparkle_strength": 0.45,
+      "title_sparkle_audio_response": 0.3,
+      "eq_enabled": true,
+      "eq_mode": "fine_spectrum_bars",
+      "eq_height_percent": 10.5,
+      "eq_opacity": 0.42,
+      "eq_color": "#35D8D2",
+      "eq_smoothing": 0.72,
+      "organic_motion_expansion_percent": 0.0,
+      "title_card_source_visibility": 0.2,
+      "brand_logo_image": "(none)",
+      "output_prefix": "infra_choir/final/raise_the_neon_black_full_v2",
+      "enhancements_enabled": true,
+      "target_envelopes_enabled": true,
+      "high_resolution_eq_enabled": true,
+      "eq_band_count": 512,
+      "eq_fft_size": 8192,
+      "eq_hop_size": 2048,
+      "eq_frequency_scale": "log",
+      "eq_min_frequency": 20.0,
+      "eq_max_frequency": 20000.0,
+      "eq_attack_ms": 35.0,
+      "eq_release_ms": 220.0,
+      "eq_peak_enabled": true,
+      "eq_peak_hold_seconds": 0.16,
+      "eq_peak_decay_per_second": 1.6,
+      "eq_peak_color": "#F4D7C3",
+      "eq_gain": 1.0,
+      "eq_dynamic_range_db": 66.0,
+      "eq_noise_floor_db": -72.0,
+      "eq_margin_percent": 2.0,
+      "analysis_sensitivity": 1.0,
+      "transient_emphasis": 0.22,
+      "edge_glow_effects_enabled": true,
+      "shimmer_effects_enabled": true,
+      "atmospheric_effects_enabled": true,
+      "section_dynamics_enabled": true,
+      "section_override_json": "[]",
+      "title_text_alignment": "center",
+      "auto_targets_enabled": false,
+      "eq_ultra_band_count": 2048,
+      "eq_density_render_mode": "auto",
+      "generated_clip_cache_enabled": true,
+      "expansive_atmosphere_enabled": false
+    }
+  }
+}

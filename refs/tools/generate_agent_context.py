@@ -202,7 +202,7 @@ def build_packet(repo: Path, focus: str = "", issue: int | None = None, base_ref
     if hints:
         lines += ["", "## File-map hints"]
         for label, paths in hints: lines.append(f"- **{label}:** " + ", ".join(f"`{p}`" for p in paths) if paths else f"- **{label}**")
-    if validation: lines += ["", "## Validation commands"] + [f"- `{k}` - `{v}`" for k, v in validation]
+    if validation: lines += ["", "## Validation commands"] + [f"- `{k}` - `{truncate(v, 240)}`" for k, v in validation]
     lines += ["", "## Context discipline", "- Start with required reads and source-catalog matches. Expand context only for a concrete dependency, ambiguity, failing test, system boundary, or authoritative reference.", "- Query `python refs/tools/generate_source_catalog.py --query \"<task or symbol>\"` before broad repository search when the packet is insufficient.", "- Prefer symbol-level or targeted line-range reads. Do not open a whole source file when the relevant symbol or range is enough.", "- Continue diff-first from the accepted checkpoint instead of reconstructing unchanged repository state.", "- Treat accepted decisions as inputs; reopen them only when new runtime/test evidence contradicts them.", "- When the environment supports sub-agents, delegate bounded independent work when that reduces parent context or enables useful parallel work; use the least expensive capable model and keep the parent responsible for integration and validation."]
     return "\n".join(lines).rstrip() + "\n"
 

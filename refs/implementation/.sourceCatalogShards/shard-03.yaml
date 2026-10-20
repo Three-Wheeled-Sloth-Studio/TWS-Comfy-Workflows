@@ -1,0 +1,277 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '03'
+  files:
+  - path: scripts/benchmark_infra_choir_enhanced.py
+    analysis_version: 1
+    language: python
+    content_hash: a170041ef02de502a3f296b1ba11544cf524cb97
+    dependencies:
+    - PIL
+    - __future__
+    - argparse
+    - custom_nodes.comfyui_audio_duration_plan.local_visualizer_nodes
+    - folder_paths
+    - json
+    - numpy
+    - os
+    - pathlib
+    - psutil
+    - subprocess
+    - sys
+    - threading
+    - time
+    - torch
+    provides:
+    - _load_runtime
+    - _load_image
+    - _load_audio
+    - _widget_kwargs
+    - _monitor
+    - _detect_masks
+    - _targets
+    - _render
+    - main
+    symbols:
+    - name: _load_runtime
+      kind: function
+      line_start: 22
+      line_end: 44
+      signature: _load_runtime()
+      inputs: []
+      output: unspecified
+      dependencies:
+      - folder_paths.set_input_directory
+      - folder_paths.set_output_directory
+      - folder_paths.set_temp_directory
+      - str
+      - sys.path.insert
+      parser: python-ast
+      dependency_targets: []
+    - name: _load_image
+      kind: function
+      line_start: 47
+      line_end: 54
+      signature: '_load_image(path: Path)'
+      inputs:
+      - 'path: Path'
+      output: unspecified
+      dependencies:
+      - Image.open
+      - ImageOps.exif_transpose
+      - ImageOps.exif_transpose(opened).convert
+      - np.asarray
+      - torch.from_numpy
+      parser: python-ast
+      dependency_targets: []
+    - name: _load_audio
+      kind: function
+      line_start: 57
+      line_end: 67
+      signature: '_load_audio(path: Path, limit_seconds: float | None)'
+      inputs:
+      - 'path: Path'
+      - 'limit_seconds: float | None'
+      output: unspecified
+      dependencies:
+      - command.extend
+      - np.frombuffer
+      - np.frombuffer(result.stdout, dtype='<f4').copy
+      - np.frombuffer(result.stdout, dtype='<f4').copy().reshape
+      - str
+      - subprocess.run
+      - torch.from_numpy
+      parser: python-ast
+      dependency_targets:
+      - path: custom_nodes/comfyui_audio_duration_plan/__init__.py
+        symbol: WanSoundImageToVideoExtendState.extend
+      - &id001
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: InfraChoirAutoDiscover.run
+    - name: _widget_kwargs
+      kind: function
+      line_start: 70
+      line_end: 75
+      signature: '_widget_kwargs(node: dict) -> dict'
+      inputs:
+      - 'node: dict'
+      output: dict
+      dependencies:
+      - ValueError
+      - dict
+      - len
+      - node.get
+      - value.get
+      - zip
+      parser: python-ast
+      dependency_targets: []
+    - name: _monitor
+      kind: function
+      line_start: 78
+      line_end: 99
+      signature: '_monitor(stop: threading.Event, result: dict) -> None'
+      inputs:
+      - 'stop: threading.Event'
+      - 'result: dict'
+      output: None
+      dependencies:
+      - child.memory_info
+      - int
+      - max
+      - os.getpid
+      - part.strip
+      - process.children
+      - process.memory_info
+      - psutil.Process
+      - query.split
+      - result.get
+      - stop.wait
+      - subprocess.run
+      - subprocess.run(['nvidia-smi', '--query-gpu=memory.used,utilization.gpu', '--format=csv,noheader,nounits'], capture_output=True,
+        text=True, timeout=2, check=True).stdout.splitlines
+      parser: python-ast
+      dependency_targets:
+      - *id001
+    - name: _detect_masks
+      kind: function
+      line_start: 102
+      line_end: 119
+      signature: '_detect_masks(image, workflow: dict, detector_class) -> dict[int, object]'
+      inputs:
+      - image
+      - 'workflow: dict'
+      - detector_class
+      output: dict[int, object]
+      dependencies:
+      - _widget_kwargs
+      - detector.detect
+      - detector_class
+      - next
+      - print
+      - range
+      - torch.cuda.empty_cache
+      - torch.cuda.is_available
+      parser: python-ast
+      dependency_targets:
+      - &id002
+        path: scripts/benchmark_infra_choir_enhanced.py
+        symbol: _widget_kwargs
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: VisualizerSemanticObjectDetector.detect
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: VisualizerObjectDetector.detect
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: VisualizerManualTargetDetector.detect
+    - name: _targets
+      kind: function
+      line_start: 122
+      line_end: 134
+      signature: '_targets(workflow: dict, masks: dict, target_class) -> tuple'
+      inputs:
+      - 'workflow: dict'
+      - 'masks: dict'
+      - target_class
+      output: tuple
+      dependencies:
+      - RuntimeError
+      - _widget_kwargs
+      - diagnostic.endswith
+      - node['type'].startswith
+      - outputs.append
+      - target_class
+      - target_class().configure
+      - tuple
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - &id003
+        path: custom_nodes/comfyui_audio_duration_plan/__init__.py
+        symbol: WanS2VStateAppend.append
+      - &id004
+        path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: VisualizerTargetStack.append
+    - name: _render
+      kind: function
+      line_start: 137
+      line_end: 159
+      signature: '_render(label: str, workflow: dict, image, audio, masks: dict, target_class, renderer_class, smoke: bool,
+        disable_enhancements: bool) -> dict'
+      inputs:
+      - 'label: str'
+      - 'workflow: dict'
+      - image
+      - audio
+      - 'masks: dict'
+      - target_class
+      - renderer_class
+      - 'smoke: bool'
+      - 'disable_enhancements: bool'
+      output: dict
+      dependencies:
+      - _targets
+      - _widget_kwargs
+      - next
+      - node['type'].startswith
+      - renderer_class
+      - renderer_class().render
+      - stop.set
+      - thread.join
+      - thread.start
+      - threading.Event
+      - threading.Thread
+      - time.perf_counter
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/benchmark_infra_choir_enhanced.py
+        symbol: _targets
+      - *id002
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: BeatAwareLocalVisualizer.render
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: GenericBeatAwareLocalVisualizer.render
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: InfraChoirVisualizer.render
+      - path: scripts/render_motion_poster.py
+        symbol: render
+    - name: main
+      kind: function
+      line_start: 162
+      line_end: 186
+      signature: main() -> int
+      inputs: []
+      output: int
+      dependencies:
+      - BASE_WORKFLOW.read_text
+      - ENHANCED_WORKFLOW.read_text
+      - _detect_masks
+      - _load_audio
+      - _load_image
+      - _load_runtime
+      - _render
+      - argparse.ArgumentParser
+      - args.report.parent.mkdir
+      - args.report.write_text
+      - json.dumps
+      - json.loads
+      - parser.add_argument
+      - parser.parse_args
+      - print
+      - results.append
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/benchmark_infra_choir_enhanced.py
+        symbol: _detect_masks
+      - path: scripts/benchmark_infra_choir_enhanced.py
+        symbol: _load_audio
+      - path: scripts/benchmark_infra_choir_enhanced.py
+        symbol: _load_image
+      - path: scripts/benchmark_infra_choir_enhanced.py
+        symbol: _load_runtime
+      - path: scripts/render_infra_choir_raise_neon_black_full_video.py
+        symbol: _load_runtime
+      - path: scripts/benchmark_infra_choir_enhanced.py
+        symbol: _render
+      - *id003
+      - *id004

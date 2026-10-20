@@ -1,0 +1,85 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: 0e
+  files:
+  - path: scripts/test_infra_choir_enhanced.py
+    analysis_version: 1
+    language: python
+    content_hash: 00e66950e444c58431be3d9f7868a3bc056cbbcb
+    dependencies:
+    - __future__
+    - importlib.util
+    - math
+    - numpy
+    - pathlib
+    - sys
+    - torch
+    provides:
+    - _module
+    - main
+    symbols:
+    - name: _module
+      kind: function
+      line_start: 13
+      line_end: 18
+      signature: _module()
+      inputs: []
+      output: unspecified
+      dependencies:
+      - importlib.util.module_from_spec
+      - importlib.util.spec_from_file_location
+      - specification.loader.exec_module
+      parser: python-ast
+      dependency_targets: []
+    - name: main
+      kind: function
+      line_start: 21
+      line_end: 77
+      signature: main() -> int
+      inputs: []
+      output: int
+      dependencies:
+      - (torch.sin(math.tau * 2.0 * time) > 0.92).float
+      - _module
+      - changed[-100:].any
+      - changed[:-100].any
+      - float
+      - frame.copy
+      - module._apply_high_resolution_eq
+      - module._enhanced_audio_features
+      - module._lighting_glow_amount
+      - module._lighting_luminance_amount
+      - module._section_override_curve
+      - module._shape_audio_response
+      - np.allclose
+      - np.any
+      - np.isfinite
+      - np.isfinite(shaped).all
+      - np.isfinite(values).all
+      - np.zeros
+      - print
+      - round
+      - torch.arange
+      - torch.sin
+      - values.max
+      - values.min
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/test_infra_choir_dual_track.py
+        symbol: _module
+      - path: scripts/test_infra_choir_enhanced.py
+        symbol: _module
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _apply_high_resolution_eq
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _enhanced_audio_features
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _lighting_glow_amount
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _lighting_luminance_amount
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _section_override_curve
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: _shape_audio_response

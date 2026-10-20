@@ -9,7 +9,7 @@ roadmap:
   - id: lightweight-local-visualizer
     horizon: now
     status: in_progress
-    summary: Validate the generic detect/verify/prompt/beat-mix target-stack fork across multiple images while retaining the accepted fixed six-slot prototype as a reference baseline.
+    summary: Validate the generic target stack across multiple images while retaining the fixed six-slot baseline.
   - id: stabilize-long-wan-s2v
     horizon: later
     status: deferred
@@ -21,7 +21,7 @@ roadmap:
   - id: durable-chunk-checkpoints
     horizon: next
     status: planned
-    summary: Persist completed chunks or latent checkpoints so interrupted overnight runs can resume without losing prior work.
+    summary: Persist chunks or latent checkpoints so interrupted runs can resume.
   - id: streaming-assembly
     horizon: next
     status: complete

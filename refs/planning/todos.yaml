@@ -1,7 +1,23 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: 2026-10-12
+updated: 2026-10-20
 todos:
+  - id: evaluate-wan21-vace-13b-motion-loop
+    status: in_progress
+    area: generation-fidelity
+    summary: Benchmark uninstalled Wan 2.1 VACE 1.3B separately at fixed-seed 832x480/~81 frames on the next selected image; compare lossless processing stages, protect static content, measure runtime/VRAM/motion/seams, and require a clean loop plus 8-second compositor probe before any full song.
+  - id: validate-infra-choir-dual-track-runtime
+    status: in_progress
+    area: lightweight-visualizer
+    summary: Recovery preserved live workflows and verified the scaffold hash, current masks/merge settings, generated clips, title/EQ, and a real-media probe. Treat audited media as historical, re-read the user-designated workflow, and run builders only in isolation.
+  - id: benchmark-offline-wan-atmosphere-clips
+    status: done
+    area: generation-fidelity
+    summary: The user-selected Raise the Neon Black image/audio completed one accepted 1024x576 motion test and a corrected 208.25-second 1080p hybrid render with protected temporal atmosphere amplification, localized music-synced lighting, title/wordmark, 2048-band EQ, and 48 kHz AAC. The compact target adapter now preserves cached-motion settings, and five checkpoints verify motion throughout the v2 delivery. The nominal 640x360 cheap Wan gate failed after 95 minutes on incompatible latent dimensions, so future cheap review uses cached/procedural previews instead of reduced Wan inference.
+  - id: add-infra-choir-enhanced-visualizer
+    status: done
+    area: lightweight-visualizer
+    summary: Added a separate enhanced production workflow with one cached high-resolution audio analysis, independently shaped target drivers, selective masked effects, musical-section gains, a genuine 256-band default spectrum, full-song A/B evidence, and exact master-off decoded-media regression.
   - id: add-infra-choir-production-polish
     status: done
     area: lightweight-visualizer
@@ -25,7 +41,7 @@ todos:
   - id: validate-generic-target-workflow
     status: in_progress
     area: lightweight-visualizer
-    summary: Validate crop-first neutral-smoke expansion across more artwork, and evaluate a box-plus-mask or stronger referring-segmentation provider for the unresolved sun-disk and flag-versus-scarf cases before accepting semantic detection quality.
+    summary: Test smoke expansion and stronger box/mask segmentation across more artwork before accepting semantic detection quality.
   - id: add-mask-review-reset
     status: done
     area: lightweight-visualizer

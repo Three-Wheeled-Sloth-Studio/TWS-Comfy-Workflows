@@ -58,7 +58,9 @@ source_catalog:
       - completed.stdout.strip
       - subprocess.run
       parser: python-ast
-      dependency_targets: []
+      dependency_targets:
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: InfraChoirAutoDiscover.run
     - name: _scalar
       kind: function
       line_start: 45

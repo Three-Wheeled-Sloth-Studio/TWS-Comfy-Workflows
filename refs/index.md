@@ -10,6 +10,7 @@ Generated OKF discovery index. Do not edit manually.
 
 * [Architecture](architecture/) - Browse Architecture knowledge and resources.
 * [Data](data/) - Browse Data knowledge and resources.
+* [Evaluations](evaluations/) - Browse Evaluations knowledge and resources.
 * [Examples](examples/) - Browse Examples knowledge and resources.
 * [Handoffs](handoffs/) - Browse Handoffs knowledge and resources.
 * [Implementation](implementation/) - Browse Implementation knowledge and resources.
