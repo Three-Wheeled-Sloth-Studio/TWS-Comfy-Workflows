@@ -676,6 +676,9 @@ def _phase_correlation_shift(reference, moving, maximum_fraction: float = 0.08):
     stabilization guard for short generated clips; the final compositor still
     applies generated pixels exclusively inside a verified mask.
     """
+    if float(maximum_fraction) <= 0.0:
+        return 0.0, 0.0, False
+
     import numpy as np
     from PIL import Image
 
@@ -4189,7 +4192,7 @@ class InfraChoirVisualizer:
                 "fps": ("INT", {"default": 16, "min": 8, "max": 30}),
                 "delivery_resolution": (["720p", "1080p", "source"], {"default": "1080p"}),
                 "pattern_key": ("INT", {"default": 20261009, "min": 0, "max": 0x7FFFFFFF}),
-                "maximum_stabilization_percent": ("FLOAT", {"default": 4.0, "min": 0.5, "max": 10.0, "step": 0.5}),
+                "maximum_stabilization_percent": ("FLOAT", {"default": 4.0, "min": 0.0, "max": 10.0, "step": 0.5, "tooltip": "Maximum per-frame translation correction. Set to 0 to preserve the generated clip exactly and disable stabilization."}),
                 "apply_brand_logo": ("BOOLEAN", {"default": False}),
                 "brand_logo_width_percent": ("FLOAT", {"default": 10.0, "min": 2.0, "max": 40.0, "step": 1.0}),
                 "brand_logo_opacity": ("FLOAT", {"default": 0.68, "min": 0.05, "max": 1.0, "step": 0.01}),

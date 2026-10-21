@@ -1,0 +1,15 @@
+{
+  "1": {"class_type": "LoadImage", "inputs": {"image": "infra_choir/raise_the_neon_black/Banner.png"}},
+  "2": {"class_type": "UNETLoader", "inputs": {"unet_name": "wan2.1_vace_1.3B_fp16.safetensors", "weight_dtype": "default"}},
+  "3": {"class_type": "ModelSamplingSD3", "inputs": {"model": ["2", 0], "shift": 8.0}},
+  "4": {"class_type": "CLIPLoader", "inputs": {"clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors", "type": "wan", "device": "default"}},
+  "5": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["4", 0], "text": "Locked static camera and stable composition. Preserve the exact illustrated lead character, face, body, ship, cranes, buildings, signs, and horizon. Strong dynamic storm clouds roll and billow continuously across the sky. Dense fog banks and smoke curl, expand, fold, and stream dramatically through the scene with clearly visible volumetric motion. The lead character's hair flows naturally in a steady sea breeze. Flags wave in the breeze. Ocean waves ripple and undulate. Submerged tentacles wriggle slowly under the water. Cinematic natural motion, crisp detailed illustration, coherent objects, no camera motion."}},
+  "6": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["4", 0], "text": "camera movement, pan, tilt, zoom, dolly, handheld, frame shift, screen jump, vertical movement, horizontal movement, image translation, unstable horizon, scene drift, warping architecture, moving buildings, moving cranes, moving text, distorted face, distorted hands, character sliding, geometry wobble, blur, softness, haze overlay, glowing fog overlay, static clouds, still smoke, weak atmosphere, flicker, jitter, duplicate objects"}},
+  "7": {"class_type": "VAELoader", "inputs": {"vae_name": "wan_2.1_vae.safetensors"}},
+  "8": {"class_type": "WanVaceToVideo", "inputs": {"positive": ["5", 0], "negative": ["6", 0], "vae": ["7", 0], "width": 832, "height": 480, "length": 17, "batch_size": 1, "strength": 1.0, "reference_image": ["1", 0]}},
+  "9": {"class_type": "KSampler", "inputs": {"model": ["3", 0], "seed": 20261020, "steps": 12, "cfg": 6.0, "sampler_name": "uni_pc", "scheduler": "simple", "positive": ["8", 0], "negative": ["8", 1], "latent_image": ["8", 2], "denoise": 1.0}},
+  "10": {"class_type": "TrimVideoLatent", "inputs": {"samples": ["9", 0], "trim_amount": ["8", 3]}},
+  "11": {"class_type": "VAEDecode", "inputs": {"samples": ["10", 0], "vae": ["7", 0]}},
+  "12": {"class_type": "CreateVideo", "inputs": {"images": ["11", 0], "fps": 16.0, "bit_depth": 8, "color_space": "sRGB", "codec": "h264"}},
+  "13": {"class_type": "SaveVideo", "inputs": {"video": ["12", 0], "filename_prefix": "infra_choir/tests/raise_the_neon_black_vace_13b_atmosphere_short_gate", "format": "auto", "codec": "auto"}}
+}

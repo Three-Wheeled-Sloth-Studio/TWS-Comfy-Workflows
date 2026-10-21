@@ -1121,6 +1121,25 @@ seconds confirm the moving layer persists throughout the final file. The
 scaffold remained byte-identical to its recovered hash. Detailed evidence is in
 `refs/evaluations/2026-10-20-raise-neon-black-full-render.md`.
 
+Later review found a second jump defect: per-frame phase-correlation against
+the static cover applied translations up to 7.5 pixels. The separate v2 workflow
+now sets `maximum_stabilization_percent=0.0`, which explicitly bypasses that
+translation; the reusable scaffold remains byte-identical.
+
+The official Comfy Wan 2.1 VACE 1.3B checkpoint is installed and SHA-256
+verified (`640ccc0577e6a5d4bb15cd91b11b699ef914fc55f126c5a1c544e152130784f2`).
+Its 832x480 gate uses this image only by explicit authorization. Dynamic offload
+makes UMT5 and VACE control encoding costly; start future gates at 17 or 33
+frames before an 81-frame pass, and never assume prior production artwork.
+
+The 17-frame VACE gate eventually completed at
+`D:\comfyDesktop\output\infra_choir\tests\raise_the_neon_black_vace_13b_atmosphere_short_gate_00001_.mp4`.
+It is only 1.061 seconds at 832x480/16 fps and required 45 minutes 31 seconds.
+Visual review confirms real cloud, water, flag, and subtle hair motion, but the
+clip cannot validate the multi-second screen jump, a loop, tentacles, or final
+lighting/title/EQ composition. Treat VACE 1.3B as visually viable but currently
+impractical at this offload cost; the interrupted 81-frame run produced no file.
+
 ## Current Usage
 
 After installing node changes, restart Comfy Desktop and open

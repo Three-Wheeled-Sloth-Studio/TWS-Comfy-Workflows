@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/test_infra_choir_dual_track.py
     analysis_version: 1
     language: python
-    content_hash: 3db5af539edb2cf6ba16af856f79fbb8b6a0e981
+    content_hash: 8a209d02e7ebfec6515375053707b7dc6b361c86
     dependencies:
     - __future__
     - importlib.util
@@ -77,7 +77,7 @@ source_catalog:
     - name: main
       kind: function
       line_start: 140
-      line_end: 495
+      line_end: 499
       signature: main() -> int
       inputs: []
       output: int

@@ -15,3 +15,4 @@ Generated OKF discovery index. Do not edit manually.
 ## Supporting Files
 
 * [2026-10-20-raise-neon-black-full-api-prompt.json](2026-10-20-raise-neon-black-full-api-prompt.json) - Agent Academy supporting resource.
+* [2026-10-20-raise-neon-black-vace-13b-atmosphere-api-prompt.json](2026-10-20-raise-neon-black-vace-13b-atmosphere-api-prompt.json) - Agent Academy supporting resource.

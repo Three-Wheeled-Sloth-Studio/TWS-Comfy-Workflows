@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/build_infra_choir_raise_neon_black_full_video.py
     analysis_version: 1
     language: python
-    content_hash: 6fff08901f81f4401881175575498e96b7cd0aca
+    content_hash: 393d91f8f97459ac423245dfe879a5a5cac686cf
     dependencies:
     - PIL
     - __future__

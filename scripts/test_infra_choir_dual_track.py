@@ -142,6 +142,10 @@ def main() -> int:
     import torch
 
     module = _module()
+    reference = np.zeros((24, 32, 3), dtype=np.uint8)
+    shifted = np.roll(reference, 6, axis=0)
+    assert module._phase_correlation_shift(reference, shifted, 0.0) == (0.0, 0.0, False)
+
     ramp = tuple(np.full((2, 2, 3), value, dtype=np.uint8) for value in range(12))
     looped = [module._looped_motion_frame(ramp, index, 3) for index in range(10)]
     loop_differences = [float(np.abs(a.astype(np.float32) - b.astype(np.float32)).mean()) for a, b in zip(looped, looped[1:])]

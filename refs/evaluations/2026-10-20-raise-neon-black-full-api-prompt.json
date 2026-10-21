@@ -134,7 +134,7 @@
       "fps": 16,
       "delivery_resolution": "1080p",
       "pattern_key": 20261020,
-      "maximum_stabilization_percent": 4.0,
+      "maximum_stabilization_percent": 0.0,
       "apply_brand_logo": false,
       "brand_logo_width_percent": 10.0,
       "brand_logo_opacity": 0.68,

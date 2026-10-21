@@ -7,7 +7,7 @@ source_catalog:
   - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
     analysis_version: 1
     language: python
-    content_hash: 5b017e4aeff085a7d794a3d06eb0352b3272d08b
+    content_hash: bffe9f8885245284a80f27b9f903d3c6b2748c11
     dependencies:
     - PIL
     - __future__
@@ -767,7 +767,7 @@ source_catalog:
     - name: _phase_correlation_shift
       kind: function
       line_start: 672
-      line_end: 709
+      line_end: 712
       signature: '_phase_correlation_shift(reference, moving, maximum_fraction: float)'
       inputs:
       - reference
@@ -806,8 +806,8 @@ source_catalog:
         symbol: _motion_source_similarity.proxy
     - name: _phase_correlation_shift.proxy
       kind: function
-      line_start: 686
-      line_end: 691
+      line_start: 689
+      line_end: 694
       signature: _phase_correlation_shift.proxy(pixels)
       inputs:
       - pixels
@@ -825,8 +825,8 @@ source_catalog:
       dependency_targets: []
     - name: _prepare_generated_motion
       kind: function
-      line_start: 712
-      line_end: 748
+      line_start: 715
+      line_end: 751
       signature: '_prepare_generated_motion(motion_clip, width: int, height: int, base, maximum_fraction: float)'
       inputs:
       - motion_clip
@@ -868,8 +868,8 @@ source_catalog:
       - *id003
     - name: _motion_source_similarity
       kind: function
-      line_start: 751
-      line_end: 773
+      line_start: 754
+      line_end: 776
       signature: _motion_source_similarity(reference, candidate) -> float
       inputs:
       - reference
@@ -894,8 +894,8 @@ source_catalog:
       - *id006
     - name: _motion_source_similarity.proxy
       kind: function
-      line_start: 763
-      line_end: 769
+      line_start: 766
+      line_end: 772
       signature: _motion_source_similarity.proxy(value)
       inputs:
       - value
@@ -916,8 +916,8 @@ source_catalog:
       dependency_targets: []
     - name: _resolve_cached_motion_path
       kind: function
-      line_start: 780
-      line_end: 797
+      line_start: 783
+      line_end: 800
       signature: '_resolve_cached_motion_path(value: str) -> Path'
       inputs:
       - 'value: str'
@@ -941,8 +941,8 @@ source_catalog:
       dependency_targets: []
     - name: _load_cached_motion_file
       kind: function
-      line_start: 800
-      line_end: 849
+      line_start: 803
+      line_end: 852
       signature: '_load_cached_motion_file(value: str, width: int, height: int, base, maximum_fraction: float, fps: int, maximum_seconds:
         float)'
       inputs:
@@ -991,8 +991,8 @@ source_catalog:
       - *id008
     - name: _looped_motion_frame
       kind: function
-      line_start: 852
-      line_end: 873
+      line_start: 855
+      line_end: 876
       signature: '_looped_motion_frame(frames, frame_index: int, overlap_frames: int)'
       inputs:
       - frames
@@ -1012,8 +1012,8 @@ source_catalog:
       dependency_targets: []
     - name: _ping_pong_index
       kind: function
-      line_start: 876
-      line_end: 881
+      line_start: 879
+      line_end: 884
       signature: '_ping_pong_index(frame_index: int, frame_count: int) -> int'
       inputs:
       - 'frame_index: int'
@@ -1024,8 +1024,8 @@ source_catalog:
       dependency_targets: []
     - name: _shift_hue_and_saturation
       kind: function
-      line_start: 884
-      line_end: 902
+      line_start: 887
+      line_end: 905
       signature: '_shift_hue_and_saturation(pixels, hue_degrees: float, saturation_delta: float)'
       inputs:
       - pixels
@@ -1045,8 +1045,8 @@ source_catalog:
       dependency_targets: []
     - name: _expanded_layer
       kind: function
-      line_start: 905
-      line_end: 918
+      line_start: 908
+      line_end: 921
       signature: '_expanded_layer(layer: _Layer, radius: float) -> _Layer'
       inputs:
       - 'layer: _Layer'
@@ -1068,8 +1068,8 @@ source_catalog:
       dependency_targets: []
     - name: _emissive_glow_layer
       kind: function
-      line_start: 921
-      line_end: 943
+      line_start: 924
+      line_end: 946
       signature: '_emissive_glow_layer(layer: _Layer, radius: float) -> _Layer'
       inputs:
       - 'layer: _Layer'
@@ -1095,8 +1095,8 @@ source_catalog:
       dependency_targets: []
     - name: _dilated_layer
       kind: function
-      line_start: 946
-      line_end: 990
+      line_start: 949
+      line_end: 993
       signature: '_dilated_layer(layer: _Layer, radius: float, feather: float) -> _Layer'
       inputs:
       - 'layer: _Layer'
@@ -1130,8 +1130,8 @@ source_catalog:
       dependency_targets: []
     - name: _protected_expansion_layer
       kind: function
-      line_start: 993
-      line_end: 1018
+      line_start: 996
+      line_end: 1021
       signature: '_protected_expansion_layer(layer: _Layer, radius: float, feather: float, base) -> _Layer'
       inputs:
       - 'layer: _Layer'
@@ -1162,8 +1162,8 @@ source_catalog:
         symbol: _dilated_layer
     - name: _overlay_pixels
       kind: function
-      line_start: 1021
-      line_end: 1037
+      line_start: 1024
+      line_end: 1040
       signature: _overlay_pixels(image, mask)
       inputs:
       - image
@@ -1184,8 +1184,8 @@ source_catalog:
       - *id009
     - name: _prepare_overlay
       kind: function
-      line_start: 1040
-      line_end: 1056
+      line_start: 1043
+      line_end: 1059
       signature: _prepare_overlay(image, mask, target_width, opacity, x, y)
       inputs:
       - image
@@ -1213,8 +1213,8 @@ source_catalog:
         symbol: _overlay_pixels
     - name: _apply_overlay
       kind: function
-      line_start: 1059
-      line_end: 1075
+      line_start: 1062
+      line_end: 1078
       signature: _apply_overlay(frame, overlay)
       inputs:
       - frame
@@ -1230,8 +1230,8 @@ source_catalog:
       dependency_targets: []
     - name: _apply_wordmark_sparkle
       kind: function
-      line_start: 1078
-      line_end: 1119
+      line_start: 1081
+      line_end: 1122
       signature: '_apply_wordmark_sparkle(frame, overlay, seconds: float, strength: float, audio_high: float, phase: float)'
       inputs:
       - frame
@@ -1256,8 +1256,8 @@ source_catalog:
       dependency_targets: []
     - name: _halo_overlay
       kind: function
-      line_start: 1122
-      line_end: 1132
+      line_start: 1125
+      line_end: 1135
       signature: '_halo_overlay(overlay, opacity: float, blur: float)'
       inputs:
       - overlay
@@ -1280,8 +1280,8 @@ source_catalog:
       dependency_targets: []
     - name: _title_card_choices
       kind: function
-      line_start: 1139
-      line_end: 1153
+      line_start: 1142
+      line_end: 1156
       signature: _title_card_choices()
       inputs: []
       output: unspecified
@@ -1298,8 +1298,8 @@ source_catalog:
       dependency_targets: []
     - name: _optional_overlay_choices
       kind: function
-      line_start: 1156
-      line_end: 1157
+      line_start: 1159
+      line_end: 1160
       signature: _optional_overlay_choices()
       inputs: []
       output: unspecified
@@ -1312,8 +1312,8 @@ source_catalog:
         symbol: _title_card_choices
     - name: _load_title_font
       kind: function
-      line_start: 1160
-      line_end: 1176
+      line_start: 1163
+      line_end: 1179
       signature: '_load_title_font(size: int, italic: bool)'
       inputs:
       - 'size: int'
@@ -1330,8 +1330,8 @@ source_catalog:
       dependency_targets: []
     - name: _wrap_title_lines
       kind: function
-      line_start: 1179
-      line_end: 1209
+      line_start: 1182
+      line_end: 1212
       signature: '_wrap_title_lines(draw, text: str, font, maximum_width: int, maximum_lines: int)'
       inputs:
       - draw
@@ -1354,8 +1354,8 @@ source_catalog:
       - *id003
     - name: _fit_title_text
       kind: function
-      line_start: 1212
-      line_end: 1227
+      line_start: 1215
+      line_end: 1230
       signature: '_fit_title_text(draw, text: str, maximum_width: int, maximum_height: int, maximum_size: int, minimum_size:
         int, maximum_lines: int, italic: bool)'
       inputs:
@@ -1386,8 +1386,8 @@ source_catalog:
         symbol: _wrap_title_lines
     - name: _draw_title_text_lines
       kind: function
-      line_start: 1230
-      line_end: 1251
+      line_start: 1233
+      line_end: 1254
       signature: _draw_title_text_lines(draw, outline_draw, fill_draw, lines, font, left, width, top, line_height, spacing,
         fill, outline, stroke_width, alignment)
       inputs:
@@ -1418,8 +1418,8 @@ source_catalog:
       dependency_targets: []
     - name: _render_generated_title_card
       kind: function
-      line_start: 1254
-      line_end: 1307
+      line_start: 1257
+      line_end: 1310
       signature: '_render_generated_title_card(base, band_name: str, song_title: str, placement: str, reserved_bottom: int,
         source_visibility: float, text_alignment: str)'
       inputs:
@@ -1462,8 +1462,8 @@ source_catalog:
         symbol: _fit_title_text
     - name: _render_generated_wordmark
       kind: function
-      line_start: 1310
-      line_end: 1362
+      line_start: 1313
+      line_end: 1365
       signature: '_render_generated_wordmark(width: int, height: int, band_name: str, song_title: str, target_width: int,
         opacity: float, margin: int)'
       inputs:
@@ -1506,8 +1506,8 @@ source_catalog:
         symbol: _render_generated_wordmark.draw_left
     - name: _render_generated_wordmark.draw_left
       kind: function
-      line_start: 1339
-      line_end: 1347
+      line_start: 1342
+      line_end: 1350
       signature: _render_generated_wordmark.draw_left(lines, font, y, line_height, spacing)
       inputs:
       - lines
@@ -1527,8 +1527,8 @@ source_catalog:
       dependency_targets: []
     - name: _load_external_title_card
       kind: function
-      line_start: 1365
-      line_end: 1390
+      line_start: 1368
+      line_end: 1393
       signature: '_load_external_title_card(selection: str, width: int, height: int)'
       inputs:
       - 'selection: str'
@@ -1557,8 +1557,8 @@ source_catalog:
       dependency_targets: []
     - name: _load_overlay_selection
       kind: function
-      line_start: 1393
-      line_end: 1405
+      line_start: 1396
+      line_end: 1408
       signature: '_load_overlay_selection(selection: str, target_width: int, opacity: float, x: int, y: int)'
       inputs:
       - 'selection: str'
@@ -1583,8 +1583,8 @@ source_catalog:
       dependency_targets: []
     - name: _title_card_alpha
       kind: function
-      line_start: 1408
-      line_end: 1416
+      line_start: 1411
+      line_end: 1419
       signature: '_title_card_alpha(seconds: float, start: float, duration: float, fade: float) -> float'
       inputs:
       - 'seconds: float'
@@ -1600,8 +1600,8 @@ source_catalog:
       dependency_targets: []
     - name: _smooth_spectrum_bands
       kind: function
-      line_start: 1419
-      line_end: 1429
+      line_start: 1422
+      line_end: 1432
       signature: '_smooth_spectrum_bands(values, smoothing: float)'
       inputs:
       - values
@@ -1619,8 +1619,8 @@ source_catalog:
       dependency_targets: []
     - name: _parse_overlay_color
       kind: function
-      line_start: 1432
-      line_end: 1438
+      line_start: 1435
+      line_end: 1441
       signature: '_parse_overlay_color(value: str)'
       inputs:
       - 'value: str'
@@ -1639,8 +1639,8 @@ source_catalog:
       dependency_targets: []
     - name: _apply_eq_overlay
       kind: function
-      line_start: 1441
-      line_end: 1478
+      line_start: 1444
+      line_end: 1481
       signature: '_apply_eq_overlay(frame, band_values, mode: str, height_percent: float, opacity: float, color)'
       inputs:
       - frame
@@ -1679,8 +1679,8 @@ source_catalog:
       - *id003
     - name: _shape_audio_response
       kind: function
-      line_start: 1481
-      line_end: 1534
+      line_start: 1484
+      line_end: 1537
       signature: '_shape_audio_response(values, fps: int, settings: dict)'
       inputs:
       - values
@@ -1707,8 +1707,8 @@ source_catalog:
       dependency_targets: []
     - name: _lighting_luminance_amount
       kind: function
-      line_start: 1537
-      line_end: 1557
+      line_start: 1540
+      line_end: 1560
       signature: '_lighting_luminance_amount(maximum_change: float, reactive: float, autonomous: float, enhanced: bool) ->
         float'
       inputs:
@@ -1725,8 +1725,8 @@ source_catalog:
       dependency_targets: []
     - name: _lighting_glow_amount
       kind: function
-      line_start: 1560
-      line_end: 1566
+      line_start: 1563
+      line_end: 1569
       signature: '_lighting_glow_amount(glow_strength: float, audio_drive: float, autonomous: float, enhanced: bool) -> float'
       inputs:
       - 'glow_strength: float'
@@ -1742,8 +1742,8 @@ source_catalog:
       dependency_targets: []
     - name: _non_geometric_atmospheric_billow
       kind: function
-      line_start: 1569
-      line_end: 1626
+      line_start: 1572
+      line_end: 1629
       signature: '_non_geometric_atmospheric_billow(pixels, alpha, rows, columns, seconds: float, phase: float, motion_amount:
         float, effect_strength: float)'
       inputs:
@@ -1784,8 +1784,8 @@ source_catalog:
         symbol: _non_geometric_atmospheric_billow.advect
     - name: _non_geometric_atmospheric_billow.advect
       kind: function
-      line_start: 1606
-      line_end: 1615
+      line_start: 1609
+      line_end: 1618
       signature: '_non_geometric_atmospheric_billow.advect(texture, time_scale: float, local_phase: float, local_amplitude:
         float)'
       inputs:
@@ -1805,8 +1805,8 @@ source_catalog:
       - *id008
     - name: _spectrum_peak_envelope
       kind: function
-      line_start: 1629
-      line_end: 1644
+      line_start: 1632
+      line_end: 1647
       signature: '_spectrum_peak_envelope(values, fps: int, hold_seconds: float, decay_per_second: float)'
       inputs:
       - values
@@ -1828,8 +1828,8 @@ source_catalog:
       dependency_targets: []
     - name: _section_override_curve
       kind: function
-      line_start: 1647
-      line_end: 1671
+      line_start: 1650
+      line_end: 1674
       signature: '_section_override_curve(value: str, frame_count: int, fps: int)'
       inputs:
       - 'value: str'
@@ -1853,8 +1853,8 @@ source_catalog:
       dependency_targets: []
     - name: _apply_high_resolution_eq
       kind: function
-      line_start: 1674
-      line_end: 1759
+      line_start: 1677
+      line_end: 1762
       signature: '_apply_high_resolution_eq(frame, band_values, peak_values, mode: str, height_percent: float, opacity: float,
         color, secondary_color, margin_percent: float, density_mode: str)'
       inputs:
@@ -1898,8 +1898,8 @@ source_catalog:
       dependency_targets: []
     - name: _masked_edge_alpha
       kind: function
-      line_start: 1762
-      line_end: 1773
+      line_start: 1765
+      line_end: 1776
       signature: '_masked_edge_alpha(mask, radius: float)'
       inputs:
       - mask
@@ -1920,8 +1920,8 @@ source_catalog:
       dependency_targets: []
     - name: _apply_title_outline_sparkle
       kind: function
-      line_start: 1776
-      line_end: 1803
+      line_start: 1779
+      line_end: 1806
       signature: '_apply_title_outline_sparkle(frame, outline_mask, seconds: float, strength: float, audio_response: float,
         pattern_key: int, title_alpha: float)'
       inputs:
@@ -1952,8 +1952,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerCandidateRegions.INPUT_TYPES
       kind: method
-      line_start: 1808
-      line_end: 1820
+      line_start: 1811
+      line_end: 1823
       signature: VisualizerCandidateRegions.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -1963,8 +1963,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerCandidateRegions.discover
       kind: method
-      line_start: 1828
-      line_end: 1913
+      line_start: 1831
+      line_end: 1916
       signature: VisualizerCandidateRegions.discover(self, image, candidate_type, sensitivity, max_regions, padding_percent)
       inputs:
       - self
@@ -2009,8 +2009,8 @@ source_catalog:
       - *id003
     - name: VisualizerRegionMask.INPUT_TYPES
       kind: method
-      line_start: 1918
-      line_end: 1927
+      line_start: 1921
+      line_end: 1930
       signature: VisualizerRegionMask.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2020,8 +2020,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerRegionMask.build
       kind: method
-      line_start: 1935
-      line_end: 1954
+      line_start: 1938
+      line_end: 1957
       signature: VisualizerRegionMask.build(self, image, regions, color_filter, threshold, feather_px)
       inputs:
       - self
@@ -2049,8 +2049,8 @@ source_catalog:
       - *id012
     - name: BeatAwareLocalVisualizer.INPUT_TYPES
       kind: method
-      line_start: 1959
-      line_end: 1995
+      line_start: 1962
+      line_end: 1998
       signature: BeatAwareLocalVisualizer.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2060,8 +2060,8 @@ source_catalog:
       dependency_targets: []
     - name: BeatAwareLocalVisualizer.render
       kind: method
-      line_start: 2004
-      line_end: 2213
+      line_start: 2007
+      line_end: 2216
       signature: BeatAwareLocalVisualizer.render(self, image, audio, brand_logo, brand_logo_mask, wordmark, wordmark_mask,
         cloud_mask, candle_mask, red_light_mask, monitor_mask, rain_mask, reflection_mask, fps, delivery_resolution, pattern_key,
         cloud_strength, candle_strength, red_light_strength, monitor_strength, rain_strength, reflection_strength, apply_brand_logo,
@@ -2161,8 +2161,8 @@ source_catalog:
         symbol: _write_audio_wav
     - name: _target_candidate_type
       kind: function
-      line_start: 2216
-      line_end: 2226
+      line_start: 2219
+      line_end: 2229
       signature: '_target_candidate_type(target_description: str) -> str'
       inputs:
       - 'target_description: str'
@@ -2174,8 +2174,8 @@ source_catalog:
       dependency_targets: []
     - name: _target_effect_modes
       kind: function
-      line_start: 2229
-      line_end: 2243
+      line_start: 2232
+      line_end: 2246
       signature: '_target_effect_modes(object_name: str, animation_prompt: str) -> tuple[str, ...]'
       inputs:
       - 'object_name: str'
@@ -2192,8 +2192,8 @@ source_catalog:
       - *id003
     - name: VisualizerSemanticObjectDetector.INPUT_TYPES
       kind: method
-      line_start: 2256
-      line_end: 2267
+      line_start: 2259
+      line_end: 2270
       signature: VisualizerSemanticObjectDetector.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2203,8 +2203,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerSemanticObjectDetector._semantic_model_dir
       kind: method
-      line_start: 2276
-      line_end: 2283
+      line_start: 2279
+      line_end: 2286
       signature: VisualizerSemanticObjectDetector._semantic_model_dir(cls) -> Path
       inputs:
       - cls
@@ -2216,8 +2216,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerSemanticObjectDetector._semantic_assets_available
       kind: method
-      line_start: 2286
-      line_end: 2292
+      line_start: 2289
+      line_end: 2295
       signature: VisualizerSemanticObjectDetector._semantic_assets_available(cls) -> bool
       inputs:
       - cls
@@ -2235,8 +2235,8 @@ source_catalog:
         symbol: VisualizerSemanticObjectDetector._semantic_model_dir
     - name: VisualizerSemanticObjectDetector._load_semantic_model
       kind: method
-      line_start: 2295
-      line_end: 2317
+      line_start: 2298
+      line_end: 2320
       signature: VisualizerSemanticObjectDetector._load_semantic_model(cls)
       inputs:
       - cls
@@ -2260,8 +2260,8 @@ source_catalog:
       - *id014
     - name: VisualizerSemanticObjectDetector._semantic_score
       kind: method
-      line_start: 2320
-      line_end: 2381
+      line_start: 2323
+      line_end: 2384
       signature: VisualizerSemanticObjectDetector._semantic_score(cls, pixels, target, area)
       inputs:
       - cls
@@ -2302,8 +2302,8 @@ source_catalog:
       - *id003
     - name: VisualizerSemanticObjectDetector._heuristic_score
       kind: method
-      line_start: 2384
-      line_end: 2400
+      line_start: 2387
+      line_end: 2403
       signature: VisualizerSemanticObjectDetector._heuristic_score(rgb, candidate_type)
       inputs:
       - rgb
@@ -2320,8 +2320,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerSemanticObjectDetector._guided_sun_disk_score
       kind: method
-      line_start: 2403
-      line_end: 2433
+      line_start: 2406
+      line_end: 2436
       signature: VisualizerSemanticObjectDetector._guided_sun_disk_score(rgb, area)
       inputs:
       - rgb
@@ -2351,8 +2351,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerSemanticObjectDetector.detect
       kind: method
-      line_start: 2435
-      line_end: 2613
+      line_start: 2438
+      line_end: 2616
       signature: VisualizerSemanticObjectDetector.detect(self, image, find, search_area, sensitivity, max_regions, padding_percent,
         detection_provider)
       inputs:
@@ -2401,8 +2401,8 @@ source_catalog:
       - *id003
     - name: VisualizerObjectDetector.INPUT_TYPES
       kind: method
-      line_start: 2620
-      line_end: 2624
+      line_start: 2623
+      line_end: 2627
       signature: VisualizerObjectDetector.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2415,8 +2415,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerObjectDetector.detect
       kind: method
-      line_start: 2628
-      line_end: 2637
+      line_start: 2631
+      line_end: 2640
       signature: VisualizerObjectDetector.detect(self, image, find, search_area, sensitivity, max_regions, padding_percent)
       inputs:
       - self
@@ -2433,8 +2433,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerManualTargetDetector.INPUT_TYPES
       kind: method
-      line_start: 2644
-      line_end: 2656
+      line_start: 2647
+      line_end: 2659
       signature: VisualizerManualTargetDetector.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2446,8 +2446,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerManualTargetDetector.detect
       kind: method
-      line_start: 2662
-      line_end: 2670
+      line_start: 2665
+      line_end: 2673
       signature: VisualizerManualTargetDetector.detect(self, image, find, search_area, sensitivity, max_regions, padding_percent,
         detection_provider, use_in_render)
       inputs:
@@ -2468,8 +2468,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerMaskReview.INPUT_TYPES
       kind: method
-      line_start: 2675
-      line_end: 2689
+      line_start: 2678
+      line_end: 2692
       signature: VisualizerMaskReview.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2479,8 +2479,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerMaskReview._saved_correction
       kind: method
-      line_start: 2699
-      line_end: 2725
+      line_start: 2702
+      line_end: 2728
       signature: VisualizerMaskReview._saved_correction(image_name, detected_mask)
       inputs:
       - image_name
@@ -2507,8 +2507,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerMaskReview._source_fingerprint
       kind: method
-      line_start: 2728
-      line_end: 2735
+      line_start: 2731
+      line_end: 2738
       signature: VisualizerMaskReview._source_fingerprint(source_image)
       inputs:
       - source_image
@@ -2526,8 +2526,8 @@ source_catalog:
       - *id009
     - name: VisualizerMaskReview._saved_preview_matches
       kind: method
-      line_start: 2738
-      line_end: 2745
+      line_start: 2741
+      line_end: 2748
       signature: VisualizerMaskReview._saved_preview_matches(saved_rgb, verification_preview)
       inputs:
       - saved_rgb
@@ -2546,8 +2546,8 @@ source_catalog:
       - *id009
     - name: VisualizerMaskReview._saved_image_reference
       kind: method
-      line_start: 2748
-      line_end: 2755
+      line_start: 2751
+      line_end: 2758
       signature: VisualizerMaskReview._saved_image_reference(image_name)
       inputs:
       - image_name
@@ -2565,8 +2565,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerMaskReview.review
       kind: method
-      line_start: 2757
-      line_end: 2788
+      line_start: 2760
+      line_end: 2791
       signature: VisualizerMaskReview.review(self, verification_preview, detected_mask, source_image, image, source_fingerprint)
       inputs:
       - self
@@ -2599,8 +2599,8 @@ source_catalog:
         symbol: VisualizerMaskReview._source_fingerprint
     - name: VisualizerAnimationTarget.INPUT_TYPES
       kind: method
-      line_start: 2793
-      line_end: 2810
+      line_start: 2796
+      line_end: 2813
       signature: VisualizerAnimationTarget.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2610,8 +2610,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerAnimationTarget.configure
       kind: method
-      line_start: 2818
-      line_end: 2884
+      line_start: 2821
+      line_end: 2887
       signature: VisualizerAnimationTarget.configure(self, mask, object_name, animation_prompt, mask_verified, approved_mask_mode,
         motion_type, on_beat_flicker, off_beat_flicker, on_beat_motion, off_beat_motion, approved_mask)
       inputs:
@@ -2658,8 +2658,8 @@ source_catalog:
         symbol: _target_effect_modes
     - name: VisualizerTargetStack.INPUT_TYPES
       kind: method
-      line_start: 2889
-      line_end: 2893
+      line_start: 2892
+      line_end: 2896
       signature: VisualizerTargetStack.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2669,8 +2669,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerTargetStack.append
       kind: method
-      line_start: 2901
-      line_end: 2902
+      line_start: 2904
+      line_end: 2905
       signature: VisualizerTargetStack.append(self, target, previous_targets)
       inputs:
       - self
@@ -2683,8 +2683,8 @@ source_catalog:
       dependency_targets: []
     - name: GenericBeatAwareLocalVisualizer.INPUT_TYPES
       kind: method
-      line_start: 2907
-      line_end: 2929
+      line_start: 2910
+      line_end: 2932
       signature: GenericBeatAwareLocalVisualizer.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2694,8 +2694,8 @@ source_catalog:
       dependency_targets: []
     - name: GenericBeatAwareLocalVisualizer.render
       kind: method
-      line_start: 2938
-      line_end: 3127
+      line_start: 2941
+      line_end: 3130
       signature: GenericBeatAwareLocalVisualizer.render(self, image, audio, targets, brand_logo, brand_logo_mask, wordmark,
         wordmark_mask, fps, delivery_resolution, pattern_key, apply_brand_logo, brand_logo_width_percent, brand_logo_opacity,
         apply_wordmark, wordmark_width_percent, wordmark_opacity, overlay_margin_px, wordmark_halo_opacity, wordmark_halo_blur_px,
@@ -2770,8 +2770,8 @@ source_catalog:
       - *id024
     - name: InfraChoirAnimationTarget.INPUT_TYPES
       kind: method
-      line_start: 3134
-      line_end: 3164
+      line_start: 3137
+      line_end: 3167
       signature: InfraChoirAnimationTarget.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2781,8 +2781,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirAnimationTarget.configure
       kind: method
-      line_start: 3172
-      line_end: 3296
+      line_start: 3175
+      line_end: 3299
       signature: InfraChoirAnimationTarget.configure(self, enabled, target_id, object_name, animation_prompt, mask_verified,
         target_role, envelope_group, audio_driver, motion_source, motion_type, on_beat_flicker, off_beat_flicker, on_beat_motion,
         off_beat_motion, generated_motion_strength, max_luminance_change, glow_strength, glow_radius_px, saturation_variation,
@@ -2845,8 +2845,8 @@ source_catalog:
       - *id025
     - name: InfraChoirAnimationTargetEnhanced.INPUT_TYPES
       kind: method
-      line_start: 3303
-      line_end: 3335
+      line_start: 3306
+      line_end: 3338
       signature: InfraChoirAnimationTargetEnhanced.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2858,8 +2858,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirAtmosphericTargetEnhanced.INPUT_TYPES
       kind: method
-      line_start: 3344
-      line_end: 3378
+      line_start: 3347
+      line_end: 3381
       signature: InfraChoirAtmosphericTargetEnhanced.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2871,8 +2871,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirAtmosphericTargetEnhanced.configure
       kind: method
-      line_start: 3380
-      line_end: 3383
+      line_start: 3383
+      line_end: 3386
       signature: InfraChoirAtmosphericTargetEnhanced.configure(self, smoke_intensity, smoke_boundary_expansion_percent, **kwargs)
       inputs:
       - self
@@ -2886,8 +2886,8 @@ source_catalog:
       dependency_targets: []
     - name: _manual_advanced_settings
       kind: function
-      line_start: 3388
-      line_end: 3401
+      line_start: 3391
+      line_end: 3404
       signature: _manual_advanced_settings(value) -> dict
       inputs:
       - value
@@ -2903,8 +2903,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirManualAtmosphereTarget.INPUT_TYPES
       kind: method
-      line_start: 3408
-      line_end: 3432
+      line_start: 3411
+      line_end: 3435
       signature: InfraChoirManualAtmosphereTarget.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2914,8 +2914,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirManualAtmosphereTarget.configure
       kind: method
-      line_start: 3440
-      line_end: 3498
+      line_start: 3443
+      line_end: 3501
       signature: InfraChoirManualAtmosphereTarget.configure(self, mask, use_in_render, target_id, object_name, animation_prompt,
         smoke_intensity, smoke_boundary_expansion_percent, billow_amount, foreground_protection, advanced_settings_json)
       inputs:
@@ -2951,8 +2951,8 @@ source_catalog:
         symbol: _manual_advanced_settings
     - name: InfraChoirManualTargetCompact.INPUT_TYPES
       kind: method
-      line_start: 3505
-      line_end: 3534
+      line_start: 3508
+      line_end: 3537
       signature: InfraChoirManualTargetCompact.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2962,8 +2962,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirManualTargetCompact.configure
       kind: method
-      line_start: 3542
-      line_end: 3599
+      line_start: 3545
+      line_end: 3602
       signature: InfraChoirManualTargetCompact.configure(self, mask, use_in_render, target_id, object_name, animation_prompt,
         target_role, linked_group, motion_type, beat_flicker, ambient_flicker, motion_amount, max_luminance_change, glow_strength,
         glow_radius_px, saturation_variation, hue_variation_degrees, advanced_settings_json)
@@ -3006,8 +3006,8 @@ source_catalog:
       - *id026
     - name: _auto_target_settings
       kind: function
-      line_start: 3602
-      line_end: 3675
+      line_start: 3605
+      line_end: 3678
       signature: '_auto_target_settings(object_class: str) -> dict'
       inputs:
       - 'object_class: str'
@@ -3018,8 +3018,8 @@ source_catalog:
       dependency_targets: []
     - name: _enforce_auto_target_behavior
       kind: function
-      line_start: 3678
-      line_end: 3729
+      line_start: 3681
+      line_end: 3732
       signature: '_enforce_auto_target_behavior(target: dict) -> dict'
       inputs:
       - 'target: dict'
@@ -3038,8 +3038,8 @@ source_catalog:
       dependency_targets: []
     - name: _protect_auto_motion_overlaps
       kind: function
-      line_start: 3732
-      line_end: 3776
+      line_start: 3735
+      line_end: 3779
       signature: '_protect_auto_motion_overlaps(plans: list[dict]) -> list[str]'
       inputs:
       - 'plans: list[dict]'
@@ -3075,8 +3075,8 @@ source_catalog:
       - *id003
     - name: _subtract_protected_mask
       kind: function
-      line_start: 3779
-      line_end: 3805
+      line_start: 3782
+      line_end: 3808
       signature: '_subtract_protected_mask(mask, protected, dilation_percent: float)'
       inputs:
       - mask
@@ -3105,8 +3105,8 @@ source_catalog:
       dependency_targets: []
     - name: _manifest_preview
       kind: function
-      line_start: 3808
-      line_end: 3838
+      line_start: 3811
+      line_end: 3841
       signature: _manifest_preview(image, targets)
       inputs:
       - image
@@ -3145,8 +3145,8 @@ source_catalog:
         symbol: _mask_from_png_base64
     - name: _auto_discover_response
       kind: function
-      line_start: 3841
-      line_end: 3871
+      line_start: 3844
+      line_end: 3874
       signature: '_auto_discover_response(manifest_text: str, preview, report: str, action: str, show_preview: bool)'
       inputs:
       - 'manifest_text: str'
@@ -3170,8 +3170,8 @@ source_catalog:
       - *id009
     - name: approve_infra_choir_discovery
       kind: function
-      line_start: 3874
-      line_end: 3928
+      line_start: 3877
+      line_end: 3931
       signature: 'approve_infra_choir_discovery(manifest_text: str, manifest_path: str, preserve_reviewed_targets: bool, approve_all:
         bool)'
       inputs:
@@ -3217,8 +3217,8 @@ source_catalog:
         symbol: WanSoundImageToVideoExtendState.extend
     - name: InfraChoirAutoDiscover.INPUT_TYPES
       kind: method
-      line_start: 3935
-      line_end: 3947
+      line_start: 3938
+      line_end: 3950
       signature: InfraChoirAutoDiscover.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -3228,8 +3228,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirAutoDiscover.run
       kind: method
-      line_start: 3956
-      line_end: 4059
+      line_start: 3959
+      line_end: 4062
       signature: InfraChoirAutoDiscover.run(self, image, discovery_profile, max_candidates, action, manifest_path, reviewed_manifest_json,
         preserve_reviewed_targets)
       inputs:
@@ -3297,8 +3297,8 @@ source_catalog:
         symbol: VisualizerManualTargetDetector.detect
     - name: InfraChoirApprovedTargets.INPUT_TYPES
       kind: method
-      line_start: 4064
-      line_end: 4069
+      line_start: 4067
+      line_end: 4072
       signature: InfraChoirApprovedTargets.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -3308,8 +3308,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirApprovedTargets.load
       kind: method
-      line_start: 4077
-      line_end: 4114
+      line_start: 4080
+      line_end: 4117
       signature: InfraChoirApprovedTargets.load(self, image, manifest_path, enabled, stale_image_policy)
       inputs:
       - self
@@ -3351,8 +3351,8 @@ source_catalog:
       - *id003
     - name: _target_masks_overlap
       kind: function
-      line_start: 4117
-      line_end: 4134
+      line_start: 4120
+      line_end: 4137
       signature: _target_masks_overlap(left, right) -> float
       inputs:
       - left
@@ -3377,8 +3377,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirTargetMerge.INPUT_TYPES
       kind: method
-      line_start: 4139
-      line_end: 4144
+      line_start: 4142
+      line_end: 4147
       signature: InfraChoirTargetMerge.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -3388,8 +3388,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirTargetMerge.merge
       kind: method
-      line_start: 4152
-      line_end: 4178
+      line_start: 4155
+      line_end: 4181
       signature: InfraChoirTargetMerge.merge(self, manual_targets, auto_targets, merge_policy, overlap_threshold)
       inputs:
       - self
@@ -3421,8 +3421,8 @@ source_catalog:
       - *id003
     - name: InfraChoirVisualizer.INPUT_TYPES
       kind: method
-      line_start: 4183
-      line_end: 4228
+      line_start: 4186
+      line_end: 4231
       signature: InfraChoirVisualizer.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -3437,8 +3437,8 @@ source_catalog:
       - *id033
     - name: InfraChoirVisualizer._audio_drive
       kind: method
-      line_start: 4238
-      line_end: 4241
+      line_start: 4241
+      line_end: 4244
       signature: 'InfraChoirVisualizer._audio_drive(features, frame_index: int, driver: str) -> float'
       inputs:
       - features
@@ -3452,8 +3452,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirVisualizer.render
       kind: method
-      line_start: 4243
-      line_end: 4789
+      line_start: 4246
+      line_end: 4792
       signature: InfraChoirVisualizer.render(self, image, audio, targets, fps, delivery_resolution, pattern_key, maximum_stabilization_percent,
         apply_brand_logo, brand_logo_width_percent, brand_logo_opacity, apply_wordmark, wordmark_width_percent, wordmark_opacity,
         overlay_margin_px, title_card_enabled, band_name, song_title, title_card_image, title_card_placement, title_card_start_seconds,
@@ -3555,8 +3555,8 @@ source_catalog:
         symbol: _lighting_luminance_amount
     - name: InfraChoirVisualizerEnhanced.INPUT_TYPES
       kind: method
-      line_start: 4796
-      line_end: 4831
+      line_start: 4799
+      line_end: 4834
       signature: InfraChoirVisualizerEnhanced.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -3568,8 +3568,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirVisualizerDualTrack.INPUT_TYPES
       kind: method
-      line_start: 4840
-      line_end: 4851
+      line_start: 4843
+      line_end: 4854
       signature: InfraChoirVisualizerDualTrack.INPUT_TYPES(cls)
       inputs:
       - cls

@@ -158,7 +158,7 @@ def build() -> tuple[Path, Path, Path]:
     renderer["inputs"][2]["link"] = 10
     settings = {
         "fps": 16, "delivery_resolution": "1080p", "pattern_key": 20261020,
-        "maximum_stabilization_percent": 4.0, "apply_brand_logo": False,
+        "maximum_stabilization_percent": 0.0, "apply_brand_logo": False,
         "brand_logo_width_percent": 10.0, "brand_logo_opacity": 0.68,
         "apply_wordmark": True, "wordmark_width_percent": 30.0, "wordmark_opacity": 0.92,
         "overlay_margin_px": 24, "title_card_enabled": True, "band_name": "Infra Choir",

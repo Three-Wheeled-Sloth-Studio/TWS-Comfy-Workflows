@@ -45,6 +45,16 @@ deterministic indexing defect, but the next candidate must still pass visual and
 a cross-dissolve cannot correct incompatible camera position, large subject
 displacement, or motion phase and can still create doubled/soft frames.
 
+Subsequent visual review found a second, independent jump inside the loop: the
+cached-motion loader phase-correlated every generated frame against the static
+cover and translated each frame by the resulting integer-scale estimate. The
+accepted render reported corrections up to 7.5 pixels, matching the observed
+roughly 10-pixel down-and-back snap. The production workflow now sets
+`maximum_stabilization_percent` to `0.0`; zero is an explicit disable path and
+does not retain the former one-pixel minimum. This preserves the generated
+motion frames exactly while keeping nonzero stabilization available for future
+diagnostic workflows.
+
 Before the next full-song render, measure the candidate clip itself and the
 assembled probe at every cycle boundary. Report ordinary adjacent-frame change,
 boundary change, phase-correlation shift, and protected-subject change. Reject
@@ -79,9 +89,11 @@ is identified before tuning.
 
 ## Wan 2.1 VACE 1.3B exploration
 
-No VACE or 1.3B checkpoint is installed in the current Comfy model tree. Do not
-silently substitute another Wan model and do not download weights during normal
-validation.
+The official Comfy-packaged `wan2.1_vace_1.3B_fp16.safetensors` checkpoint is
+installed in the shared diffusion-model directory. Its SHA-256 was verified as
+`640ccc0577e6a5d4bb15cd91b11b699ef914fc55f126c5a1c544e152130784f2` before use.
+Do not silently substitute another Wan model and do not download weights during
+normal validation.
 
 The official VACE project supports reference-to-video, video-to-video, and
 masked video-to-video workflows. Its Wan 2.1 VACE 1.3B release targets roughly
@@ -90,12 +102,34 @@ for the 1.3B model because it received limited training at that resolution.
 This makes 832x480 the first fair quality/runtime gate on the 12 GB RTX 4070,
 followed by deterministic upscaling only if the source-resolution result passes.
 
-The first benchmark should be a separate workflow and output prefix, with one
-fixed seed and no full-song assembly. Use the next user-selected artwork, not
-the Raise the Neon Black image by assumption. Test a reference/masked animation
+The first benchmark uses the explicitly approved Raise the Neon Black inputs,
+a separate API prompt and output prefix, one fixed seed, and no full-song
+assembly. This is run-specific authorization, not a future default: use the next
+user-selected artwork rather than assuming this image. Test a reference/masked animation
 configuration that protects the lead face, body, architecture, and other static
 geometry while allowing independently specified motion for atmosphere, hair,
 waves, flags, and tentacles when those elements exist in the selected artwork.
+
+The initial 81-frame gate also exposed a large fixed-cost trap in the current
+12 GB dynamic-offload setup: UMT5 prompt encoding takes minutes, and VACE
+encodes two full control streams even when only a reference image is supplied.
+Future cheap feasibility gates should start at 17 or 33 frames; advance to the
+official 81-frame comparison only after the short gate passes.
+
+The 17-frame gate completed after the client wait timed out. Its artifact is
+`D:\comfyDesktop\output\infra_choir\tests\raise_the_neon_black_vace_13b_atmosphere_short_gate_00001_.mp4`:
+832x480 H.264, 17 frames at 16 fps, and 1.061 seconds. Total wall time was
+45 minutes 31 seconds. The 12 sampling steps consumed about 15 minutes 52
+seconds, followed by about 14 minutes 45 seconds of VAE decode. A five-frame
+contact-sheet review shows real cloud deformation, water rippling, flag motion,
+and subtle hair motion while retaining the main composition. The one-second
+sample is too short to assess the recurring multi-second screen jump, looping,
+tentacle motion, or downstream title/EQ/lighting composition.
+
+This is a visual feasibility pass but a runtime failure for the intended cheap
+gate on this machine. Do not launch an 81-frame or full-song VACE render until
+the fixed encoding/decode cost is reduced or a deliberately long unattended
+runtime is accepted. The interrupted 81-frame attempt produced no artifact.
 
 Record wall time, peak VRAM, CPU offload, source similarity, static-region
 temporal variance, target-region optical flow, seam measurements, and a visual
