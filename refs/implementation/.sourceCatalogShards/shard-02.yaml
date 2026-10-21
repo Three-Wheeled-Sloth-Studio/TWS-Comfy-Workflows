@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/test_infra_choir_dual_track.py
     analysis_version: 1
     language: python
-    content_hash: 8a209d02e7ebfec6515375053707b7dc6b361c86
+    content_hash: 5333b7c65fbd29e43072faae912a3e8de143e110
     dependencies:
     - __future__
     - importlib.util
@@ -22,12 +22,13 @@ source_catalog:
     provides:
     - _module
     - _assert_workflow_schema
+    - _assert_generic_cached_motion_workflow
     - main
     symbols:
     - name: _module
       kind: function
-      line_start: 18
-      line_end: 23
+      line_start: 19
+      line_end: 24
       signature: _module()
       inputs: []
       output: unspecified
@@ -39,8 +40,8 @@ source_catalog:
       dependency_targets: []
     - name: _assert_workflow_schema
       kind: function
-      line_start: 26
-      line_end: 137
+      line_start: 27
+      line_end: 138
       signature: _assert_workflow_schema(module) -> None
       inputs:
       - module
@@ -74,16 +75,29 @@ source_catalog:
         symbol: WanS2VStateAppend.append
       - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: VisualizerTargetStack.append
+    - name: _assert_generic_cached_motion_workflow
+      kind: function
+      line_start: 141
+      line_end: 165
+      signature: _assert_generic_cached_motion_workflow() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - GENERIC_CACHED_WORKFLOW_PATH.read_text
+      - json.loads
+      parser: python-ast
+      dependency_targets: []
     - name: main
       kind: function
-      line_start: 140
-      line_end: 499
+      line_start: 168
+      line_end: 528
       signature: main() -> int
       inputs: []
       output: int
       dependencies:
       - AssertionError
       - MODULE_PATH.read_text
+      - _assert_generic_cached_motion_workflow
       - _assert_workflow_schema
       - _module
       - a.astype
@@ -105,9 +119,10 @@ source_catalog:
       - guarded[9:14, 13:18].max
       - image.clone
       - isinstance
-      - json.dumps
       parser: python-ast
       dependency_targets:
+      - path: scripts/test_infra_choir_dual_track.py
+        symbol: _assert_generic_cached_motion_workflow
       - path: scripts/test_infra_choir_dual_track.py
         symbol: _assert_workflow_schema
       - path: scripts/test_infra_choir_dual_track.py

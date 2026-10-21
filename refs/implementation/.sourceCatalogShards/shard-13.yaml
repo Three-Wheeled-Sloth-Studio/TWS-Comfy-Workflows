@@ -92,5 +92,7 @@ source_catalog:
       dependency_targets:
       - path: scripts/build_infra_choir_raise_neon_black_full_video.py
         symbol: _lighting_mask
+      - path: scripts/build_generic_cached_motion_visualizer_workflow.py
+        symbol: _link
       - path: scripts/build_infra_choir_raise_neon_black_full_video.py
         symbol: _link

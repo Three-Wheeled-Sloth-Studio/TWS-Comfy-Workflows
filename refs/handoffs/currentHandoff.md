@@ -1133,6 +1133,21 @@ vertical translation. Motion, lighting, title, and 2048-band EQ remain enabled.
 The standalone GUI workflow
 `user/default/workflows/video_raise_the_neon_black_full_visualizer_v2.json`
 now saves under `infra_choir/final/raise_the_neon_black_full_no_vertical_shift`.
+The corresponding full render completed successfully at
+`D:\comfyDesktop\output\infra_choir\final\raise_the_neon_black_full_no_vertical_shift_00001_.mp4`:
+3332 frames at 1920x1080/16 fps, maximum applied shift 0.0 pixels, with cached
+motion, lighting, generated title, 2048-band EQ, and AAC audio preserved.
+An independent whole-file phase-correlation scan at 160x90 found zero vertical
+translation in all 3331 adjacent-frame pairs.
+
+A separate reusable workflow now lives at
+`user/default/workflows/music_visualizer_cached_motion_full_song.json`. It has
+no selected source image, audio, cached-motion path, reviewed-mask fingerprint,
+track title, or track-specific output prefix. Its light detector and mask-review
+lane are driven directly by the currently selected source image. Cached motion
+starts disabled and must be enabled only after its Advanced Settings points to
+a reviewed clip for that same artwork. The song-specific workflow remains an
+immutable production record and is not the reusable template.
 
 The official Comfy Wan 2.1 VACE 1.3B checkpoint is installed and SHA-256
 verified (`640ccc0577e6a5d4bb15cd91b11b699ef914fc55f126c5a1c544e152130784f2`).

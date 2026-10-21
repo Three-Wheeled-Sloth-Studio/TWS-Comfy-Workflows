@@ -1,0 +1,86 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: 0b
+  files:
+  - path: scripts/build_generic_cached_motion_visualizer_workflow.py
+    analysis_version: 1
+    language: python
+    content_hash: 97d9d88a019233d6cfd2d8a3d62c25066bce5187
+    dependencies:
+    - __future__
+    - copy
+    - json
+    - pathlib
+    - uuid
+    provides:
+    - _link
+    - _named
+    - build
+    symbols:
+    - name: _link
+      kind: function
+      line_start: 14
+      line_end: 15
+      signature: '_link(link_id: int, origin: int, origin_slot: int, target: int, target_slot: int, kind: str) -> list'
+      inputs:
+      - 'link_id: int'
+      - 'origin: int'
+      - 'origin_slot: int'
+      - 'target: int'
+      - 'target_slot: int'
+      - 'kind: str'
+      output: list
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: _named
+      kind: function
+      line_start: 18
+      line_end: 21
+      signature: '_named(node: dict, values: dict) -> None'
+      inputs:
+      - 'node: dict'
+      - 'values: dict'
+      output: None
+      dependencies:
+      - dict
+      parser: python-ast
+      dependency_targets: []
+    - name: build
+      kind: function
+      line_start: 24
+      line_end: 176
+      signature: build() -> Path
+      inputs: []
+      output: Path
+      dependencies:
+      - SCAFFOLD.read_text
+      - WORKFLOW.write_text
+      - _link
+      - audio.update
+      - copy.deepcopy
+      - dict
+      - image.update
+      - int
+      - item.get
+      - json.dumps
+      - json.loads
+      - light_detector.update
+      - light_review.update
+      - light_target.update
+      - motion_target.update
+      - renderer.get
+      - renderer.update
+      - settings.update
+      - stack_one.update
+      - stack_two.update
+      - str
+      - uuid.uuid5
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/build_generic_cached_motion_visualizer_workflow.py
+        symbol: _link
+      - path: scripts/build_infra_choir_raise_neon_black_full_video.py
+        symbol: _link

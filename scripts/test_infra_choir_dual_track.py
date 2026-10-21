@@ -12,6 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = ROOT / "custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py"
 WORKFLOW_PATH = ROOT / "user/default/workflows/music_visualizer_infra_choir_dual_track_scaffold.json"
+GENERIC_CACHED_WORKFLOW_PATH = ROOT / "user/default/workflows/music_visualizer_cached_motion_full_song.json"
 ADVANCED_UI_PATH = ROOT / "custom_nodes/comfyui_audio_duration_plan/web/infra_choir_manual_advanced.js"
 
 
@@ -137,6 +138,33 @@ def _assert_workflow_schema(module) -> None:
     assert "Leave empty for procedural smoke" in atmospheric_required["generated_clip_path"][1]["tooltip"]
 
 
+def _assert_generic_cached_motion_workflow() -> None:
+    workflow = json.loads(GENERIC_CACHED_WORKFLOW_PATH.read_text(encoding="utf-8"))
+    nodes = {node["id"]: node for node in workflow["nodes"]}
+    assert nodes[1]["type"] == "LoadImage" and nodes[1]["widgets_values_named"]["image"] == ""
+    assert nodes[2]["type"] == "LoadAudio" and nodes[2]["widgets_values_named"]["audio"] == ""
+    assert nodes[4]["widgets_values_named"]["value"] is False
+    motion = json.loads(nodes[5]["widgets_values_named"]["advanced_settings_json"])
+    assert motion["generated_clip_path"] == ""
+    assert motion["atmospheric_motion_mode"] == "cached_clip"
+    assert nodes[7]["type"] == "VisualizerManualTargetDetector"
+    assert nodes[7]["widgets_values_named"]["search_area"] == "box 0 0 1 1"
+    assert nodes[7]["widgets_values_named"]["use_in_render"] is True
+    assert nodes[8]["type"] == "VisualizerMaskReview"
+    assert nodes[8]["widgets_values_named"]["source_fingerprint"] == ""
+    assert nodes[9]["widgets_values_named"]["target_role"] == "light_source"
+    assert nodes[9]["widgets_values_named"]["motion_type"] == "still"
+    assert nodes[11]["widgets_values_named"]["maximum_stabilization_percent"] == 0.0
+    assert nodes[11]["widgets_values_named"]["output_prefix"] == "music_visualizer/final/render"
+    links = {link[0]: link for link in workflow["links"]}
+    assert links[4][1:5] == [1, 0, 7, 0]
+    assert links[5][1:5] == [7, 0, 8, 1]
+    assert links[6][1:5] == [7, 1, 8, 0]
+    assert links[7][1:5] == [1, 0, 8, 2]
+    assert links[8][1:5] == [8, 0, 9, 0]
+    assert links[9][1:5] == [7, 4, 9, 1]
+
+
 def main() -> int:
     import numpy as np
     import torch
@@ -153,6 +181,7 @@ def main() -> int:
     assert np.array_equal(looped[0], ramp[3])
     assert loop_differences[-1] <= max(loop_differences[:-1])
     _assert_workflow_schema(module)
+    _assert_generic_cached_motion_workflow()
 
     sample_rate = 48000
     seconds = 0.5
