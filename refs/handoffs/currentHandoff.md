@@ -1126,6 +1126,14 @@ the static cover applied translations up to 7.5 pixels. The separate v2 workflow
 now sets `maximum_stabilization_percent=0.0`, which explicitly bypasses that
 translation; the reusable scaffold remains byte-identical.
 
+The corrected non-VACE path passed a 20-second/320-frame probe at
+`D:\comfyDesktop\output\infra_choir\tests\raise_the_neon_black_no_vertical_shift_probe_00001_.mp4`.
+Both the renderer report and an independent adjacent-frame scan found zero
+vertical translation. Motion, lighting, title, and 2048-band EQ remain enabled.
+The standalone GUI workflow
+`user/default/workflows/video_raise_the_neon_black_full_visualizer_v2.json`
+now saves under `infra_choir/final/raise_the_neon_black_full_no_vertical_shift`.
+
 The official Comfy Wan 2.1 VACE 1.3B checkpoint is installed and SHA-256
 verified (`640ccc0577e6a5d4bb15cd91b11b699ef914fc55f126c5a1c544e152130784f2`).
 Its 832x480 gate uses this image only by explicit authorization. Dynamic offload

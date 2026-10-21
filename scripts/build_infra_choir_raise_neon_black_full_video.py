@@ -19,7 +19,7 @@ IMAGE_NAME = "infra_choir/raise_the_neon_black/Banner.png"
 AUDIO_NAME = "infra_choir/raise_the_neon_black/Raise the Neon Black_48k.flac"
 LIGHT_MASK_NAME = "infra_choir/raise_the_neon_black/lighting_mask_v1.png"
 MOTION_CLIP = "infra_choir/motion_assets/raise_the_neon_black_atmosphere_boost_preview_v3.mp4"
-OUTPUT_PREFIX = "infra_choir/final/raise_the_neon_black_full_v2"
+OUTPUT_PREFIX = "infra_choir/final/raise_the_neon_black_full_no_vertical_shift"
 
 
 def _lighting_mask() -> Path:

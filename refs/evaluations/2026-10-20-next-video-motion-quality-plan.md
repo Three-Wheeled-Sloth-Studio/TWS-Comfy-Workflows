@@ -55,6 +55,16 @@ does not retain the former one-pixel minimum. This preserves the generated
 motion frames exactly while keeping nonzero stabilization available for future
 diagnostic workflows.
 
+A 20-second production-path probe passed on 2026-10-21 at
+`D:\comfyDesktop\output\infra_choir\tests\raise_the_neon_black_no_vertical_shift_probe_00001_.mp4`.
+The renderer processed 320 frames with a reported maximum applied shift of
+0.0 pixels. An independent downscaled adjacent-frame phase-correlation scan
+also found zero nonzero vertical translations across all 319 frame pairs. The
+probe retains cached Wan motion, localized lighting, generated title, and the
+2048-band EQ. This exact non-VACE configuration is approved for the full-song
+render; its saved output prefix is
+`infra_choir/final/raise_the_neon_black_full_no_vertical_shift`.
+
 Before the next full-song render, measure the candidate clip itself and the
 assembled probe at every cycle boundary. Report ordinary adjacent-frame change,
 boundary change, phase-correlation shift, and protected-subject change. Reject
