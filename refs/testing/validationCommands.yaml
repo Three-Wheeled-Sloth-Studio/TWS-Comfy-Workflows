@@ -43,7 +43,7 @@ commands:
     purpose: Rebuild the separate full-song cached-motion workflow, source-derived lighting mask, and API prompt without modifying the dual-track scaffold.
   - id: build-generic-cached-motion-visualizer-workflow
     command: .venv\Scripts\python.exe scripts/build_generic_cached_motion_visualizer_workflow.py
-    purpose: Rebuild the track-agnostic cached-motion workflow with source-bound light detection and no inherited media, reviewed masks, or motion clip.
+    purpose: Rebuild the track-agnostic end-to-end workflow that generates Wan motion in-graph, then adds source-bound lights, title, EQ, and final audio without inherited media.
   - id: test-infra-choir-enhanced
     command: .venv\Scripts\python.exe scripts/test_infra_choir_enhanced.py
     purpose: Validate cached high-resolution analysis, transient/envelope shaping, section overrides, and bounded EQ drawing without rendering media.

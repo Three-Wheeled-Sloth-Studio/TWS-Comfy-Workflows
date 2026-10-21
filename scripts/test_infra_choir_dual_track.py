@@ -144,11 +144,11 @@ def _assert_generic_cached_motion_workflow() -> None:
     nodes = {node["id"]: node for node in workflow["nodes"]}
     assert nodes[1]["type"] == "LoadImage" and nodes[1]["widgets_values_named"]["image"] == ""
     assert nodes[2]["type"] == "LoadAudio" and nodes[2]["widgets_values_named"]["audio"] == ""
-    assert nodes[4]["widgets_values_named"]["value"] is False
-    assert nodes[5]["type"] == "InfraChoirCachedMotionTarget"
-    assert nodes[5]["widgets_values_named"]["generated_clip_path"] == "(select a cached motion clip)"
-    assert nodes[7]["type"] == "VisualizerManualTargetDetector"
-    assert nodes[7]["widgets_values_named"]["search_area"] == "box 0 0 1 1"
+    assert nodes[4]["widgets_values_named"]["value"] is True
+    assert nodes[5]["type"] == "InfraChoirGeneratedMotionTarget"
+    assert nodes[5]["inputs"][1]["link"] == 2000
+    assert nodes[7]["type"] == "InfraChoirMultiLightDetector"
+    assert nodes[7]["widgets_values_named"]["max_candidates"] == 7
     assert nodes[7]["widgets_values_named"]["use_in_render"] is True
     assert nodes[8]["type"] == "VisualizerMaskReview"
     assert nodes[8]["widgets_values_named"]["source_fingerprint"] == ""
@@ -164,10 +164,11 @@ def _assert_generic_cached_motion_workflow() -> None:
     assert links[8][1:5] == [8, 0, 9, 0]
     assert links[9][1:5] == [7, 4, 9, 1]
     assert links[15][1:5] == [7, 1, 12, 0]
+    assert links[2000][1:5] == [296, 0, 5, 1]
     assert nodes[12]["type"] == "PreviewImage"
     saved = json.loads(USER_GENERIC_CACHED_WORKFLOW_PATH.read_text(encoding="utf-8"))
     saved_nodes = {node["id"]: node for node in saved["nodes"]}
-    assert saved_nodes[5]["type"] == "InfraChoirCachedMotionTarget"
+    assert saved_nodes[5]["type"] == "InfraChoirGeneratedMotionTarget"
     assert saved_nodes[5]["pos"] == [835.7916666666666, -339.97222222222206]
     assert saved_nodes[7]["pos"] == [228.33333333333348, 570.8333333333333]
     assert saved_nodes[12]["type"] == "PreviewImage"
@@ -192,6 +193,8 @@ def main() -> int:
     _assert_generic_cached_motion_workflow()
     choices = module.InfraChoirCachedMotionTarget.INPUT_TYPES()["required"]["generated_clip_path"][0]
     assert choices[0] == "(select a cached motion clip)"
+    generated = module.InfraChoirGeneratedMotionTarget.INPUT_TYPES()["required"]
+    assert generated["generated_motion"][0] == "IMAGE"
 
     sample_rate = 48000
     seconds = 0.5
@@ -246,6 +249,13 @@ def main() -> int:
     image[:, 4:20, 8:24, 0] = 0.8
     mask = torch.zeros((24, 32), dtype=torch.float32)
     mask[5:18, 9:22] = 1.0
+    generated_target, generated_diagnostic, _ = module.InfraChoirGeneratedMotionTarget().configure(
+        mask, image.repeat(4, 1, 1, 1), True, 1.0, 0.8,
+    )
+    assert generated_diagnostic.endswith(": ready")
+    assert generated_target["generated_motion"].shape[0] == 4
+    assert generated_target["motion_source"] == "generated_clip"
+    assert generated_target["motion_type"] == "still"
     encoded = module._mask_png_base64(mask)
     assert torch.allclose(module._mask_from_png_base64(encoded), mask)
     atmospheric_inputs = module.InfraChoirAtmosphericTargetEnhanced.INPUT_TYPES()["required"]

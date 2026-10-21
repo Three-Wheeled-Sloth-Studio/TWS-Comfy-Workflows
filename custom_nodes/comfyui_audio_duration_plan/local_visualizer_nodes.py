@@ -2534,7 +2534,11 @@ class VisualizerSemanticObjectDetector:
         else:
             semantic_floor = 0.24 + float(sensitivity) * 0.30 if used_provider == "semantic CLIPSeg" else 0.0
 
-        columns, rows = ((32, 18) if "smoke" in target_words else (16, 9))
+        detailed_targets = {
+            "smoke", "light", "lights", "lamp", "lamps", "bulb", "bulbs",
+            "flame", "flames", "candle", "candles", "neon", "emissive",
+        }
+        columns, rows = ((32, 18) if target_words.intersection(detailed_targets) else (16, 9))
         grid = np.full((rows, columns), -1.0, dtype=np.float32)
         for row in range(rows):
             y0, y1 = row * height // rows, (row + 1) * height // rows
@@ -2700,6 +2704,38 @@ class VisualizerManualTargetDetector(VisualizerSemanticObjectDetector):
         detected = super().detect(
             image, find, search_area, sensitivity, max_regions, padding_percent,
             detection_provider,
+        )
+        return (*detected, bool(use_in_render))
+
+
+class InfraChoirMultiLightDetector:
+    """Find up to N separate light-source candidates with a compact, stable UI."""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "image": ("IMAGE",),
+            "sensitivity": ("FLOAT", {"default": 0.48, "min": 0.1, "max": 0.95, "step": 0.05}),
+            "max_candidates": ("INT", {"default": 7, "min": 1, "max": 16}),
+            "padding_percent": ("FLOAT", {"default": 2.0, "min": 0.0, "max": 15.0, "step": 0.5}),
+            "use_in_render": ("BOOLEAN", {"default": True, "label_on": "include this mask", "label_off": "exclude this mask"}),
+        }}
+
+    RETURN_TYPES = ("MASK", "IMAGE", "STRING", "STRING", "BOOLEAN")
+    RETURN_NAMES = ("detected_mask", "verification_preview", "suggested_regions", "detector_report", "use_in_render")
+    FUNCTION = "detect"
+    CATEGORY = "audio/infra choir/setup"
+    DESCRIPTION = "Find up to the requested number of light-source candidates using a fine spatial grid."
+
+    def detect(self, image, sensitivity, max_candidates, padding_percent, use_in_render):
+        detected = VisualizerSemanticObjectDetector().detect(
+            image=image,
+            find="lights",
+            search_area="box 0 0 1 1",
+            sensitivity=float(sensitivity),
+            max_regions=int(max_candidates),
+            padding_percent=float(padding_percent),
+            detection_provider="semantic_or_heuristic",
         )
         return (*detected, bool(use_in_render))
 
@@ -3587,6 +3623,50 @@ class InfraChoirCachedMotionTarget:
         if bool(use_in_render) and placeholder:
             return result[0], "cached_full_scene_motion: select a cached motion clip", result[2]
         return result
+
+
+class InfraChoirGeneratedMotionTarget:
+    """Compact bridge from an in-workflow generated image batch to the full-song renderer."""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "mask": ("MASK",),
+                "generated_motion": ("IMAGE",),
+                "use_in_render": ("BOOLEAN", {"forceInput": True}),
+                "generated_motion_strength": (
+                    "FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.05},
+                ),
+                "loop_overlap_seconds": (
+                    "FLOAT", {"default": 0.8, "min": 0.0, "max": 3.0, "step": 0.05},
+                ),
+            }
+        }
+
+    RETURN_TYPES = ("LOCAL_VISUALIZER_TARGET", "STRING", "STRING")
+    RETURN_NAMES = ("animation_target", "diagnostic", "configuration_json")
+    FUNCTION = "configure"
+    CATEGORY = "audio/infra choir"
+    DESCRIPTION = "Use the Wan animation generated inside this workflow as the full-song motion layer."
+
+    def configure(self, mask, generated_motion, use_in_render, generated_motion_strength, loop_overlap_seconds):
+        active = bool(use_in_render)
+        return InfraChoirAnimationTargetEnhanced().configure(
+            mask=mask, generated_motion=generated_motion, enabled=active,
+            target_id="generated_full_scene_motion", object_name="generated full-scene motion",
+            animation_prompt="Loop the generated motion without adding procedural geometry motion.",
+            mask_verified=active, target_role="organic", envelope_group="environment",
+            audio_driver="slow", motion_source="generated_clip", motion_type="still",
+            on_beat_flicker=0.0, off_beat_flicker=0.0, on_beat_motion=0.0,
+            off_beat_motion=0.0, generated_motion_strength=float(generated_motion_strength),
+            max_luminance_change=0.0, glow_strength=0.0, glow_radius_px=0.0,
+            saturation_variation=0.0, hue_variation_degrees=0.0, approved_mask_mode="add",
+            secondary_audio_driver="none", secondary_driver_mix=0.0,
+            response_min=0.0, response_max=1.0, foreground_protection=False,
+            atmospheric_motion_mode="generated_batch", generated_clip_path="",
+            generated_clip_overlap_seconds=float(loop_overlap_seconds),
+        )
 
 
 class InfraChoirManualTargetCompact:
@@ -4953,6 +5033,7 @@ NODE_CLASS_MAPPINGS = {
     "VisualizerObjectDetector": VisualizerObjectDetector,
     "VisualizerSemanticObjectDetector": VisualizerSemanticObjectDetector,
     "VisualizerManualTargetDetector": VisualizerManualTargetDetector,
+    "InfraChoirMultiLightDetector": InfraChoirMultiLightDetector,
     "VisualizerMaskReview": VisualizerMaskReview,
     "VisualizerAnimationTarget": VisualizerAnimationTarget,
     "VisualizerTargetStack": VisualizerTargetStack,
@@ -4963,6 +5044,7 @@ NODE_CLASS_MAPPINGS = {
     "InfraChoirAtmosphericTargetEnhanced": InfraChoirAtmosphericTargetEnhanced,
     "InfraChoirManualAtmosphereTarget": InfraChoirManualAtmosphereTarget,
     "InfraChoirCachedMotionTarget": InfraChoirCachedMotionTarget,
+    "InfraChoirGeneratedMotionTarget": InfraChoirGeneratedMotionTarget,
     "InfraChoirManualTargetCompact": InfraChoirManualTargetCompact,
     "InfraChoirVisualizerEnhanced": InfraChoirVisualizerEnhanced,
     "InfraChoirVisualizerDualTrack": InfraChoirVisualizerDualTrack,
@@ -4980,6 +5062,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "VisualizerObjectDetector": "Detect Animation Target",
     "VisualizerSemanticObjectDetector": "Detect Animation Target (Semantic)",
     "VisualizerManualTargetDetector": "Box / Detect Manual Render Target",
+    "InfraChoirMultiLightDetector": "Detect Multiple Practical Lights",
     "VisualizerMaskReview": "Verify / Edit Detection Mask",
     "VisualizerAnimationTarget": "Configure Animation Target",
     "VisualizerTargetStack": "Add Animation Target",
@@ -4990,6 +5073,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "InfraChoirAtmosphericTargetEnhanced": "Configure Infra Choir Atmosphere (Enhanced)",
     "InfraChoirManualAtmosphereTarget": "Configure Manual Smoke / Haze",
     "InfraChoirCachedMotionTarget": "Select Cached Full-Scene Motion",
+    "InfraChoirGeneratedMotionTarget": "Use Generated Full-Scene Motion",
     "InfraChoirManualTargetCompact": "Configure Manual Target (Compact)",
     "InfraChoirVisualizerEnhanced": "Render Infra Choir Visualizer (Enhanced)",
     "InfraChoirVisualizerDualTrack": "Render Infra Choir Visualizer (Dual Track)",

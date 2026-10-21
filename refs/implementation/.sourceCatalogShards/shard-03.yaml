@@ -164,6 +164,8 @@ source_catalog:
         symbol: VisualizerObjectDetector.detect
       - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: VisualizerManualTargetDetector.detect
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: InfraChoirMultiLightDetector.detect
     - name: _targets
       kind: function
       line_start: 122

@@ -1,8 +1,8 @@
 {
   "id": "e244a842-89fa-588a-b845-13bb9ee1418a",
   "revision": 0,
-  "last_node_id": 12,
-  "last_link_id": 15,
+  "last_node_id": 309,
+  "last_link_id": 2000,
   "nodes": [
     {
       "id": 1,
@@ -47,7 +47,9 @@
           "links": [
             4,
             7,
-            12
+            12,
+            1010,
+            1017
           ]
         },
         {
@@ -125,7 +127,8 @@
           "type": "AUDIO",
           "slot_index": 0,
           "links": [
-            13
+            13,
+            1004
           ]
         }
       ],
@@ -215,23 +218,23 @@
         "Node name for S&R": "PrimitiveBoolean"
       },
       "widgets_values": [
-        false
+        true
       ],
       "widgets_values_named": {
-        "value": false
+        "value": true
       },
-      "title": "ENABLE after selecting cached motion clip"
+      "title": "INCLUDE generated Wan animation"
     },
     {
       "id": 5,
-      "type": "InfraChoirCachedMotionTarget",
+      "type": "InfraChoirGeneratedMotionTarget",
       "pos": [
         740,
         60
       ],
       "size": [
         500,
-        220
+        180
       ],
       "flags": {},
       "order": 4,
@@ -244,19 +247,16 @@
           "link": 1
         },
         {
+          "localized_name": "generated_motion",
+          "name": "generated_motion",
+          "type": "IMAGE",
+          "link": 2000
+        },
+        {
           "localized_name": "use_in_render",
           "name": "use_in_render",
           "type": "BOOLEAN",
           "link": 2
-        },
-        {
-          "localized_name": "generated_clip_path",
-          "name": "generated_clip_path",
-          "type": "COMBO",
-          "widget": {
-            "name": "generated_clip_path"
-          },
-          "link": null
         },
         {
           "localized_name": "generated_motion_strength",
@@ -268,20 +268,11 @@
           "link": null
         },
         {
-          "localized_name": "generated_clip_max_seconds",
-          "name": "generated_clip_max_seconds",
+          "localized_name": "loop_overlap_seconds",
+          "name": "loop_overlap_seconds",
           "type": "FLOAT",
           "widget": {
-            "name": "generated_clip_max_seconds"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "generated_clip_overlap_seconds",
-          "name": "generated_clip_overlap_seconds",
-          "type": "FLOAT",
-          "widget": {
-            "name": "generated_clip_overlap_seconds"
+            "name": "loop_overlap_seconds"
           },
           "link": null
         }
@@ -308,21 +299,17 @@
           "links": null
         }
       ],
-      "title": "CACHED MOTION — select reviewed clip here",
+      "title": "GENERATED MOTION — connected from Wan animation",
       "properties": {
-        "Node name for S&R": "InfraChoirCachedMotionTarget"
+        "Node name for S&R": "InfraChoirGeneratedMotionTarget"
       },
       "widgets_values": [
-        "(select a cached motion clip)",
         1.0,
-        10.0,
         0.8
       ],
       "widgets_values_named": {
-        "generated_clip_path": "(select a cached motion clip)",
         "generated_motion_strength": 1.0,
-        "generated_clip_max_seconds": 10.0,
-        "generated_clip_overlap_seconds": 0.8
+        "loop_overlap_seconds": 0.8
       },
       "color": "#31506b",
       "bgcolor": "#3d6484"
@@ -367,14 +354,14 @@
     },
     {
       "id": 7,
-      "type": "VisualizerManualTargetDetector",
+      "type": "InfraChoirMultiLightDetector",
       "pos": [
         430,
         470
       ],
       "size": [
-        430,
-        360
+        440,
+        250
       ],
       "flags": {},
       "order": 6,
@@ -387,24 +374,6 @@
           "link": 4
         },
         {
-          "localized_name": "find",
-          "name": "find",
-          "type": "STRING",
-          "widget": {
-            "name": "find"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "search_area",
-          "name": "search_area",
-          "type": "STRING",
-          "widget": {
-            "name": "search_area"
-          },
-          "link": null
-        },
-        {
           "localized_name": "sensitivity",
           "name": "sensitivity",
           "type": "FLOAT",
@@ -414,11 +383,11 @@
           "link": null
         },
         {
-          "localized_name": "max_regions",
-          "name": "max_regions",
+          "localized_name": "max_candidates",
+          "name": "max_candidates",
           "type": "INT",
           "widget": {
-            "name": "max_regions"
+            "name": "max_candidates"
           },
           "link": null
         },
@@ -428,15 +397,6 @@
           "type": "FLOAT",
           "widget": {
             "name": "padding_percent"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "detection_provider",
-          "name": "detection_provider",
-          "type": "COMBO",
-          "widget": {
-            "name": "detection_provider"
           },
           "link": null
         },
@@ -494,26 +454,20 @@
           ]
         }
       ],
-      "title": "DETECT LIGHTS ON CURRENT SOURCE — include in render",
+      "title": "DETECT UP TO 7 LIGHT CANDIDATES ON CURRENT SOURCE",
       "properties": {
-        "Node name for S&R": "VisualizerManualTargetDetector"
+        "Node name for S&R": "InfraChoirMultiLightDetector"
       },
       "widgets_values": [
-        "lights, lamps, flames, emissive signs, bright reflections",
-        "box 0 0 1 1",
-        0.65,
-        12,
+        0.48,
+        7,
         2.0,
-        "semantic_or_heuristic",
         true
       ],
       "widgets_values_named": {
-        "find": "lights, lamps, flames, emissive signs, bright reflections",
-        "search_area": "box 0 0 1 1",
-        "sensitivity": 0.65,
-        "max_regions": 12,
+        "sensitivity": 0.48,
+        "max_candidates": 7,
         "padding_percent": 2.0,
-        "detection_provider": "semantic_or_heuristic",
         "use_in_render": true
       },
       "color": "#55431d",
@@ -1544,7 +1498,7 @@
           "links": null
         }
       ],
-      "title": "FULL SONG — cached motion + source lights + title + EQ",
+      "title": "FULL SONG — generated motion + source lights + title + EQ",
       "properties": {
         "Node name for S&R": "InfraChoirVisualizerDualTrack"
       },
@@ -1714,6 +1668,1600 @@
       },
       "widgets_values": [],
       "title": "RUN THIS OUTPUT — preview detected lights"
+    },
+    {
+      "id": 238,
+      "type": "CLIPLoader",
+      "pos": [
+        -3880.0,
+        284.0
+      ],
+      "size": [
+        390,
+        106
+      ],
+      "flags": {},
+      "order": 100,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "clip_name",
+          "name": "clip_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "clip_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "type",
+          "name": "type",
+          "type": "COMBO",
+          "widget": {
+            "name": "type"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "device",
+          "name": "device",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "device"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "CLIP",
+          "name": "CLIP",
+          "type": "CLIP",
+          "slot_index": 0,
+          "links": [
+            1000,
+            1001
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "models": [
+          {
+            "name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+            "directory": "text_encoders"
+          }
+        ],
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+        "wan",
+        "default"
+      ],
+      "widgets_values_named": {
+        "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+        "type": "wan",
+        "device": "default"
+      }
+    },
+    {
+      "id": 280,
+      "type": "VAEDecode",
+      "pos": [
+        -1330.0,
+        170.0
+      ],
+      "size": [
+        210,
+        46
+      ],
+      "flags": {},
+      "order": 154,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "samples",
+          "name": "samples",
+          "type": "LATENT",
+          "link": 1019
+        },
+        {
+          "localized_name": "vae",
+          "name": "vae",
+          "type": "VAE",
+          "link": 1022
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            1023
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecode",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "tws_stage": "wan_generation"
+      }
+    },
+    {
+      "id": 207,
+      "type": "CLIPTextEncode",
+      "pos": [
+        -3430.0,
+        420.0
+      ],
+      "size": [
+        425.27801513671875,
+        180.6060791015625
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 132,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "clip",
+          "name": "clip",
+          "type": "CLIP",
+          "link": 1001
+        },
+        {
+          "localized_name": "text",
+          "name": "text",
+          "type": "STRING",
+          "widget": {
+            "name": "text"
+          },
+          "link": 1036
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "CONDITIONING",
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "slot_index": 0,
+          "links": [
+            1008,
+            1013
+          ]
+        }
+      ],
+      "title": "Negative conditioning — edit in green guidance node",
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        "lip sync, lips moving, mouth movement, singing, talking, speech, changing expression, blinking to the beat, face deformation, identity drift, body movement, dancing, camera shake, rapid zoom, scene change, new objects, warping, morphing, flicker across the whole image"
+      ],
+      "widgets_values_named": {
+        "text": "lip sync, lips moving, mouth movement, singing, talking, speech, changing expression, blinking to the beat, face deformation, identity drift, body movement, dancing, camera shake, rapid zoom, scene change, new objects, warping, morphing, flicker across the whole image"
+      },
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 239,
+      "type": "VAELoader",
+      "pos": [
+        -3880.0,
+        442.0
+      ],
+      "size": [
+        390,
+        60
+      ],
+      "flags": {},
+      "order": 101,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "vae_name",
+          "name": "vae_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "vae_name"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "VAE",
+          "name": "VAE",
+          "type": "VAE",
+          "slot_index": 0,
+          "links": [
+            1020,
+            1021,
+            1022
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "models": [
+          {
+            "name": "wan_2.1_vae.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors",
+            "directory": "vae"
+          }
+        ],
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        "wan_2.1_vae.safetensors"
+      ],
+      "widgets_values_named": {
+        "vae_name": "wan_2.1_vae.safetensors"
+      }
+    },
+    {
+      "id": 257,
+      "type": "AudioEncoderLoader",
+      "pos": [
+        -3880.0,
+        554.0
+      ],
+      "size": [
+        390,
+        70
+      ],
+      "flags": {},
+      "order": 102,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "audio_encoder_name",
+          "name": "audio_encoder_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "audio_encoder_name"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "AUDIO_ENCODER",
+          "name": "AUDIO_ENCODER",
+          "type": "AUDIO_ENCODER",
+          "links": [
+            1003
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "AudioEncoderLoader",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "models": [
+          {
+            "name": "wav2vec2_large_english_fp16.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/audio_encoders/wav2vec2_large_english_fp16.safetensors",
+            "directory": "audio_encoders"
+          }
+        ],
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        "wav2vec2_large_english_fp16.safetensors"
+      ],
+      "widgets_values_named": {
+        "audio_encoder_name": "wav2vec2_large_english_fp16.safetensors"
+      }
+    },
+    {
+      "id": 293,
+      "type": "WanSoundImageToVideo",
+      "pos": [
+        -2930.0,
+        290.0
+      ],
+      "size": [
+        270,
+        250
+      ],
+      "flags": {},
+      "order": 140,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "positive",
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 1012
+        },
+        {
+          "localized_name": "negative",
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 1013
+        },
+        {
+          "localized_name": "vae",
+          "name": "vae",
+          "type": "VAE",
+          "link": 1020
+        },
+        {
+          "localized_name": "audio_encoder_output",
+          "name": "audio_encoder_output",
+          "shape": 7,
+          "type": "AUDIO_ENCODER_OUTPUT",
+          "link": 1011
+        },
+        {
+          "localized_name": "ref_image",
+          "name": "ref_image",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 1010
+        },
+        {
+          "localized_name": "control_video",
+          "name": "control_video",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "localized_name": "ref_motion",
+          "name": "ref_motion",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "localized_name": "width",
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "height",
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "length",
+          "name": "length",
+          "type": "INT",
+          "widget": {
+            "name": "length"
+          },
+          "link": 1027
+        },
+        {
+          "localized_name": "batch_size",
+          "name": "batch_size",
+          "type": "INT",
+          "widget": {
+            "name": "batch_size"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "positive",
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": [
+            1014
+          ]
+        },
+        {
+          "localized_name": "negative",
+          "name": "negative",
+          "type": "CONDITIONING",
+          "links": [
+            1015
+          ]
+        },
+        {
+          "localized_name": "latent",
+          "name": "latent",
+          "type": "LATENT",
+          "links": [
+            1016
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "WanSoundImageToVideo",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        1024,
+        576,
+        77,
+        1
+      ],
+      "widgets_values_named": {
+        "width": 1024,
+        "height": 576,
+        "length": 77,
+        "batch_size": 1
+      }
+    },
+    {
+      "id": 254,
+      "type": "ModelSamplingSD3",
+      "pos": [
+        -2910.0,
+        160.0
+      ],
+      "size": [
+        250,
+        60
+      ],
+      "flags": {},
+      "order": 139,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 1026
+        },
+        {
+          "localized_name": "shift",
+          "name": "shift",
+          "type": "FLOAT",
+          "widget": {
+            "name": "shift"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "MODEL",
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            1002,
+            1005
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ModelSamplingSD3",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        8
+      ],
+      "widgets_values_named": {
+        "shift": 8
+      }
+    },
+    {
+      "id": 296,
+      "type": "ImageFromBatch",
+      "pos": [
+        -1070.0,
+        170.0
+      ],
+      "size": [
+        210,
+        82
+      ],
+      "flags": {},
+      "order": 156,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 1023
+        },
+        {
+          "localized_name": "batch_index",
+          "name": "batch_index",
+          "type": "INT",
+          "widget": {
+            "name": "batch_index"
+          },
+          "link": 1024
+        },
+        {
+          "localized_name": "length",
+          "name": "length",
+          "type": "INT",
+          "widget": {
+            "name": "length"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            2000
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageFromBatch",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        0,
+        4096
+      ],
+      "widgets_values_named": {
+        "batch_index": 0,
+        "length": 4096
+      }
+    },
+    {
+      "id": 295,
+      "type": "LatentConcat",
+      "pos": [
+        -1330.0,
+        260.0
+      ],
+      "size": [
+        210,
+        78
+      ],
+      "flags": {},
+      "order": 152,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "samples1",
+          "name": "samples1",
+          "type": "LATENT",
+          "link": 1018
+        },
+        {
+          "localized_name": "samples2",
+          "name": "samples2",
+          "type": "LATENT",
+          "link": 1034
+        },
+        {
+          "localized_name": "dim",
+          "name": "dim",
+          "type": "COMBO",
+          "widget": {
+            "name": "dim"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "LATENT",
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            1019
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LatentConcat",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        "t"
+      ],
+      "widgets_values_named": {
+        "dim": "t"
+      }
+    },
+    {
+      "id": 294,
+      "type": "LatentCut",
+      "pos": [
+        -1330.0,
+        380.0
+      ],
+      "size": [
+        210,
+        106
+      ],
+      "flags": {},
+      "order": 150,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "samples",
+          "name": "samples",
+          "type": "LATENT",
+          "link": 1033
+        },
+        {
+          "localized_name": "dim",
+          "name": "dim",
+          "type": "COMBO",
+          "widget": {
+            "name": "dim"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "index",
+          "name": "index",
+          "type": "INT",
+          "widget": {
+            "name": "index"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "amount",
+          "name": "amount",
+          "type": "INT",
+          "widget": {
+            "name": "amount"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "LATENT",
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            1018
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LatentCut",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        "t",
+        0,
+        1
+      ],
+      "widgets_values_named": {
+        "dim": "t",
+        "index": 0,
+        "amount": 1
+      }
+    },
+    {
+      "id": 206,
+      "type": "CLIPTextEncode",
+      "pos": [
+        -3430.0,
+        190.0
+      ],
+      "size": [
+        422.84503173828125,
+        164.31304931640625
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 131,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "clip",
+          "name": "clip",
+          "type": "CLIP",
+          "link": 1000
+        },
+        {
+          "localized_name": "text",
+          "name": "text",
+          "type": "STRING",
+          "widget": {
+            "name": "text"
+          },
+          "link": 1035
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "CONDITIONING",
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "slot_index": 0,
+          "links": [
+            1007,
+            1012
+          ]
+        }
+      ],
+      "title": "Positive conditioning — edit in green guidance node",
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        "Background motion only. Preserve the subject's identity, face, expression, mouth position, pose, framing, clothing, and the original composition. Animate only physically plausible environmental details: hair moves gently as if blown by a light wind, smoke billows slowly in the background, and street lights flicker intermittently. Subtle restrained motion, stable camera, seamless-loop-friendly pacing."
+      ],
+      "widgets_values_named": {
+        "text": "Background motion only. Preserve the subject's identity, face, expression, mouth position, pose, framing, clothing, and the original composition. Animate only physically plausible environmental details: hair moves gently as if blown by a light wind, smoke billows slowly in the background, and street lights flicker intermittently. Subtle restrained motion, stable camera, seamless-loop-friendly pacing."
+      },
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 304,
+      "type": "PrimitiveInt",
+      "pos": [
+        -3380.0,
+        880.0
+      ],
+      "size": [
+        306.36004638671875,
+        82
+      ],
+      "flags": {},
+      "order": 104,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "INT",
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            1027,
+            1030
+          ]
+        }
+      ],
+      "title": "Chunk Length",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        77,
+        "fixed"
+      ],
+      "widgets_values_named": {
+        "value": 77,
+        "fixed": "fixed"
+      }
+    },
+    {
+      "id": 300,
+      "type": "PrimitiveInt",
+      "pos": [
+        -3380.0,
+        740.0
+      ],
+      "size": [
+        306.36004638671875,
+        90
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 105,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "INT",
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            1024
+          ]
+        }
+      ],
+      "title": "Batch sizes",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        2,
+        "fixed"
+      ],
+      "widgets_values_named": {
+        "value": 2,
+        "fixed": "fixed"
+      }
+    },
+    {
+      "id": 279,
+      "type": "ad3f1d6b-f6de-4f22-abcf-caeed4bf8ce4",
+      "pos": [
+        -2280.0,
+        190.0
+      ],
+      "size": [
+        280,
+        318
+      ],
+      "flags": {},
+      "order": 144,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 1005
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 1007
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 1008
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 1021
+        },
+        {
+          "name": "video_latent",
+          "type": "LATENT",
+          "link": 1006
+        },
+        {
+          "name": "audio_encoder_output",
+          "shape": 7,
+          "type": "AUDIO_ENCODER_OUTPUT",
+          "link": 1009
+        },
+        {
+          "name": "ref_image",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 1017
+        },
+        {
+          "name": "control_video",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "label": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": 1038
+        },
+        {
+          "name": "steps",
+          "type": "INT",
+          "widget": {
+            "name": "steps"
+          },
+          "link": 1028
+        },
+        {
+          "name": "cfg",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg"
+          },
+          "link": 1029
+        },
+        {
+          "name": "sampler_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "sampler_name"
+          },
+          "link": null
+        },
+        {
+          "name": "scheduler",
+          "type": "COMBO",
+          "widget": {
+            "name": "scheduler"
+          },
+          "link": null
+        },
+        {
+          "name": "length",
+          "type": "INT",
+          "widget": {
+            "name": "length"
+          },
+          "link": 1030
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            1033,
+            1034
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "previewExposures": [
+          {
+            "name": "$$canvas-image-preview",
+            "sourceNodeId": "77",
+            "sourcePreviewName": "$$canvas-image-preview"
+          }
+        ],
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        1,
+        10,
+        6,
+        "uni_pc",
+        "simple",
+        77
+      ],
+      "widgets_values_named": {
+        "seed": 1,
+        "steps": 10,
+        "cfg": 6,
+        "sampler_name": "uni_pc",
+        "scheduler": "simple",
+        "length": 77
+      }
+    },
+    {
+      "id": 256,
+      "type": "AudioEncoderEncode",
+      "pos": [
+        -2670.0,
+        740.0
+      ],
+      "size": [
+        285.169921875,
+        46
+      ],
+      "flags": {},
+      "order": 137,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "audio_encoder",
+          "name": "audio_encoder",
+          "type": "AUDIO_ENCODER",
+          "link": 1003
+        },
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 1004
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "AUDIO_ENCODER_OUTPUT",
+          "name": "AUDIO_ENCODER_OUTPUT",
+          "type": "AUDIO_ENCODER_OUTPUT",
+          "links": [
+            1009,
+            1011
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "AudioEncoderEncode",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "tws_stage": "wan_generation"
+      }
+    },
+    {
+      "id": 307,
+      "type": "LoraLoaderModelOnly",
+      "pos": [
+        -3370.0,
+        -40.0
+      ],
+      "size": [
+        300,
+        90
+      ],
+      "flags": {},
+      "order": 135,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 1025
+        },
+        {
+          "localized_name": "lora_name",
+          "name": "lora_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "lora_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "strength_model",
+          "name": "strength_model",
+          "type": "FLOAT",
+          "widget": {
+            "name": "strength_model"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "MODEL",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            1026
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoraLoaderModelOnly",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "models": [
+          {
+            "name": "wan2.2_t2v_lightx2v_4steps_lora_v1.1_high_noise.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/loras/wan2.2_t2v_lightx2v_4steps_lora_v1.1_high_noise.safetensors",
+            "directory": "loras"
+          }
+        ],
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        "wan2.2_t2v_lightx2v_4steps_lora_v1.1_high_noise.safetensors",
+        1
+      ],
+      "widgets_values_named": {
+        "lora_name": "wan2.2_t2v_lightx2v_4steps_lora_v1.1_high_noise.safetensors",
+        "strength_model": 1
+      }
+    },
+    {
+      "id": 303,
+      "type": "PrimitiveInt",
+      "pos": [
+        -3380.0,
+        1050.0
+      ],
+      "size": [
+        306.36004638671875,
+        82
+      ],
+      "flags": {},
+      "order": 108,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "INT",
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            1028,
+            1031
+          ]
+        }
+      ],
+      "title": "Steps",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        4,
+        "fixed"
+      ],
+      "widgets_values_named": {
+        "value": 4,
+        "fixed": "fixed"
+      }
+    },
+    {
+      "id": 305,
+      "type": "PrimitiveFloat",
+      "pos": [
+        -3380.0,
+        1180.0
+      ],
+      "size": [
+        306.36004638671875,
+        58
+      ],
+      "flags": {},
+      "order": 109,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "FLOAT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "FLOAT",
+          "name": "FLOAT",
+          "type": "FLOAT",
+          "links": [
+            1029,
+            1032
+          ]
+        }
+      ],
+      "title": "CFG",
+      "properties": {
+        "Node name for S&R": "PrimitiveFloat",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        1
+      ],
+      "widgets_values_named": {
+        "value": 1
+      }
+    },
+    {
+      "id": 237,
+      "type": "UNETLoader",
+      "pos": [
+        -3880.0,
+        150.0
+      ],
+      "size": [
+        390,
+        82
+      ],
+      "flags": {},
+      "order": 122,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "unet_name",
+          "name": "unet_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "unet_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "weight_dtype",
+          "name": "weight_dtype",
+          "type": "COMBO",
+          "widget": {
+            "name": "weight_dtype"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "MODEL",
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            1025
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "models": [
+          {
+            "name": "wan2.2_s2v_14B_fp8_scaled.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_s2v_14B_fp8_scaled.safetensors",
+            "directory": "diffusion_models"
+          }
+        ],
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        "wan2.2_s2v_14B_fp8_scaled.safetensors",
+        "default"
+      ],
+      "widgets_values_named": {
+        "unet_name": "wan2.2_s2v_14B_fp8_scaled.safetensors",
+        "weight_dtype": "default"
+      }
+    },
+    {
+      "id": 203,
+      "type": "KSampler",
+      "pos": [
+        -2640.0,
+        150.0
+      ],
+      "size": [
+        280,
+        440
+      ],
+      "flags": {},
+      "order": 142,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 1002
+        },
+        {
+          "localized_name": "positive",
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 1014
+        },
+        {
+          "localized_name": "negative",
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 1015
+        },
+        {
+          "localized_name": "latent_image",
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 1016
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": 1037
+        },
+        {
+          "localized_name": "steps",
+          "name": "steps",
+          "type": "INT",
+          "widget": {
+            "name": "steps"
+          },
+          "link": 1031
+        },
+        {
+          "localized_name": "cfg",
+          "name": "cfg",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg"
+          },
+          "link": 1032
+        },
+        {
+          "localized_name": "sampler_name",
+          "name": "sampler_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "sampler_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "scheduler",
+          "name": "scheduler",
+          "type": "COMBO",
+          "widget": {
+            "name": "scheduler"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "denoise",
+          "name": "denoise",
+          "type": "FLOAT",
+          "widget": {
+            "name": "denoise"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "LATENT",
+          "name": "LATENT",
+          "type": "LATENT",
+          "slot_index": 0,
+          "links": [
+            1006
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KSampler",
+        "cnr_id": "comfy-core",
+        "ver": "0.3.54",
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        20,
+        "randomize",
+        10,
+        6,
+        "uni_pc",
+        "simple",
+        1
+      ],
+      "widgets_values_named": {
+        "seed": 20,
+        "control_after_generate": "randomize",
+        "steps": 10,
+        "cfg": 6,
+        "sampler_name": "uni_pc",
+        "scheduler": "simple",
+        "denoise": 1
+      }
+    },
+    {
+      "id": 308,
+      "type": "MotionPosterGuidance",
+      "pos": [
+        -3470.0,
+        -650.0
+      ],
+      "size": [
+        640,
+        700
+      ],
+      "flags": {},
+      "order": 131,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "positive_prompt",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "positive_prompt"
+          }
+        },
+        {
+          "name": "negative_prompt",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "negative_prompt"
+          }
+        },
+        {
+          "name": "allow_lip_motion",
+          "type": "BOOLEAN",
+          "link": null,
+          "widget": {
+            "name": "allow_lip_motion"
+          }
+        },
+        {
+          "name": "motion_targets",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "motion_targets"
+          }
+        },
+        {
+          "name": "lyrics_or_theme_context",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "lyrics_or_theme_context"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "positive_prompt",
+          "type": "STRING",
+          "links": [
+            1035
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "negative_prompt",
+          "type": "STRING",
+          "links": [
+            1036
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MotionPosterGuidance",
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        "Locked camera and composition. Generate ample, clearly visible, voluminous smoke, fog, mist, and cloud billowing where those elements exist. Hair and loose fabric flow naturally in a steady breeze. Flags wave, water waves ripple, and underwater tentacles wriggle where present. Preserve faces, bodies, architecture, objects, framing, and identity. Other environmental movement may be subtle and physically plausible. Do not animate light sources spatially; lighting flicker is added later by the compositor.",
+        "lip sync, lips moving, mouth movement, singing, talking, speech, changing expression, blinking to the beat, face deformation, identity drift, body movement, dancing, camera shake, rapid zoom, scene change, new objects, extra face, duplicate face, new face, face appearing in the background, extra person, duplicate person, disembodied face, warping, morphing, whole-image pulsing, exaggerated motion",
+        false,
+        "smoke fog mist clouds: strong voluminous billowing; hair and loose fabric: natural breeze; flags: visible waving; water: rippling waves; underwater tentacles: organic wriggling",
+        ""
+      ],
+      "widgets_values_named": {
+        "positive_prompt": "Locked camera and composition. Generate ample, clearly visible, voluminous smoke, fog, mist, and cloud billowing where those elements exist. Hair and loose fabric flow naturally in a steady breeze. Flags wave, water waves ripple, and underwater tentacles wriggle where present. Preserve faces, bodies, architecture, objects, framing, and identity. Other environmental movement may be subtle and physically plausible. Do not animate light sources spatially; lighting flicker is added later by the compositor.",
+        "negative_prompt": "lip sync, lips moving, mouth movement, singing, talking, speech, changing expression, blinking to the beat, face deformation, identity drift, body movement, dancing, camera shake, rapid zoom, scene change, new objects, extra face, duplicate face, new face, face appearing in the background, extra person, duplicate person, disembodied face, warping, morphing, whole-image pulsing, exaggerated motion",
+        "allow_lip_motion": false,
+        "motion_targets": "smoke fog mist clouds: strong voluminous billowing; hair and loose fabric: natural breeze; flags: visible waving; water: rippling waves; underwater tentacles: organic wriggling",
+        "lyrics_or_theme_context": ""
+      },
+      "title": "1. Edit positive and negative prompts",
+      "color": "#243",
+      "bgcolor": "#354"
+    },
+    {
+      "id": 309,
+      "type": "MotionPosterSeedPlan",
+      "pos": [
+        -2790.0,
+        -650.0
+      ],
+      "size": [
+        300,
+        130
+      ],
+      "flags": {},
+      "order": 132,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "variant_count",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "variant_count"
+          }
+        },
+        {
+          "name": "base_seed",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "base_seed"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "initial_seeds",
+          "type": "INT",
+          "links": [
+            1037
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "extension_seeds",
+          "type": "INT",
+          "links": [
+            1038
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MotionPosterSeedPlan",
+        "tws_stage": "wan_generation"
+      },
+      "widgets_values": [
+        1,
+        20261001,
+        "randomize"
+      ],
+      "widgets_values_named": {
+        "variant_count": 1,
+        "base_seed": 20261001,
+        "control_after_generate": "randomize"
+      },
+      "title": "2. Choose 1–3 variants",
+      "color": "#243",
+      "bgcolor": "#354"
     }
   ],
   "links": [
@@ -1724,14 +3272,6 @@
       5,
       0,
       "MASK"
-    ],
-    [
-      2,
-      4,
-      0,
-      5,
-      1,
-      "BOOLEAN"
     ],
     [
       3,
@@ -1835,6 +3375,334 @@
       1,
       12,
       0,
+      "IMAGE"
+    ],
+    [
+      1000,
+      238,
+      0,
+      206,
+      0,
+      "CLIP"
+    ],
+    [
+      1001,
+      238,
+      0,
+      207,
+      0,
+      "CLIP"
+    ],
+    [
+      1002,
+      254,
+      0,
+      203,
+      0,
+      "MODEL"
+    ],
+    [
+      1003,
+      257,
+      0,
+      256,
+      0,
+      "AUDIO_ENCODER"
+    ],
+    [
+      1004,
+      2,
+      0,
+      256,
+      1,
+      "AUDIO"
+    ],
+    [
+      1005,
+      254,
+      0,
+      279,
+      0,
+      "MODEL"
+    ],
+    [
+      1006,
+      203,
+      0,
+      279,
+      4,
+      "LATENT"
+    ],
+    [
+      1007,
+      206,
+      0,
+      279,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      1008,
+      207,
+      0,
+      279,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      1009,
+      256,
+      0,
+      279,
+      5,
+      "AUDIO_ENCODER_OUTPUT"
+    ],
+    [
+      1010,
+      1,
+      0,
+      293,
+      4,
+      "IMAGE"
+    ],
+    [
+      1011,
+      256,
+      0,
+      293,
+      3,
+      "AUDIO_ENCODER_OUTPUT"
+    ],
+    [
+      1012,
+      206,
+      0,
+      293,
+      0,
+      "CONDITIONING"
+    ],
+    [
+      1013,
+      207,
+      0,
+      293,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      1014,
+      293,
+      0,
+      203,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      1015,
+      293,
+      1,
+      203,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      1016,
+      293,
+      2,
+      203,
+      3,
+      "LATENT"
+    ],
+    [
+      1017,
+      1,
+      0,
+      279,
+      6,
+      "IMAGE"
+    ],
+    [
+      1018,
+      294,
+      0,
+      295,
+      0,
+      "LATENT"
+    ],
+    [
+      1019,
+      295,
+      0,
+      280,
+      0,
+      "LATENT"
+    ],
+    [
+      1020,
+      239,
+      0,
+      293,
+      2,
+      "VAE"
+    ],
+    [
+      1021,
+      239,
+      0,
+      279,
+      3,
+      "VAE"
+    ],
+    [
+      1022,
+      239,
+      0,
+      280,
+      1,
+      "VAE"
+    ],
+    [
+      1023,
+      280,
+      0,
+      296,
+      0,
+      "IMAGE"
+    ],
+    [
+      1024,
+      300,
+      0,
+      296,
+      1,
+      "INT"
+    ],
+    [
+      1025,
+      237,
+      0,
+      307,
+      0,
+      "MODEL"
+    ],
+    [
+      1026,
+      307,
+      0,
+      254,
+      0,
+      "MODEL"
+    ],
+    [
+      1027,
+      304,
+      0,
+      293,
+      9,
+      "INT"
+    ],
+    [
+      1028,
+      303,
+      0,
+      279,
+      9,
+      "INT"
+    ],
+    [
+      1029,
+      305,
+      0,
+      279,
+      10,
+      "FLOAT"
+    ],
+    [
+      1030,
+      304,
+      0,
+      279,
+      13,
+      "INT"
+    ],
+    [
+      1031,
+      303,
+      0,
+      203,
+      5,
+      "INT"
+    ],
+    [
+      1032,
+      305,
+      0,
+      203,
+      6,
+      "FLOAT"
+    ],
+    [
+      1033,
+      279,
+      0,
+      294,
+      0,
+      "LATENT"
+    ],
+    [
+      1034,
+      279,
+      0,
+      295,
+      1,
+      "LATENT"
+    ],
+    [
+      1035,
+      308,
+      0,
+      206,
+      1,
+      "STRING"
+    ],
+    [
+      1036,
+      308,
+      1,
+      207,
+      1,
+      "STRING"
+    ],
+    [
+      1037,
+      309,
+      0,
+      203,
+      4,
+      "INT"
+    ],
+    [
+      1038,
+      309,
+      1,
+      279,
+      8,
+      "INT"
+    ],
+    [
+      2,
+      4,
+      0,
+      5,
+      2,
+      "BOOLEAN"
+    ],
+    [
+      2000,
+      296,
+      0,
+      5,
+      1,
       "IMAGE"
     ]
   ],

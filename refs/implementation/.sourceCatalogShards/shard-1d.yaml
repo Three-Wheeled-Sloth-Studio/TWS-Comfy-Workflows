@@ -7,7 +7,7 @@ source_catalog:
   - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
     analysis_version: 1
     language: python
-    content_hash: ca58e91776f7bd1c62918fea2750cb7a6892aa62
+    content_hash: be12d7e4e09f88532d54f16ecff167b2cc85b67a
     dependencies:
     - PIL
     - __future__
@@ -122,6 +122,8 @@ source_catalog:
     - VisualizerObjectDetector.detect
     - VisualizerManualTargetDetector.INPUT_TYPES
     - VisualizerManualTargetDetector.detect
+    - InfraChoirMultiLightDetector.INPUT_TYPES
+    - InfraChoirMultiLightDetector.detect
     - VisualizerMaskReview.INPUT_TYPES
     - VisualizerMaskReview._saved_correction
     - VisualizerMaskReview._source_fingerprint
@@ -144,6 +146,8 @@ source_catalog:
     - InfraChoirManualAtmosphereTarget.configure
     - InfraChoirCachedMotionTarget.INPUT_TYPES
     - InfraChoirCachedMotionTarget.configure
+    - InfraChoirGeneratedMotionTarget.INPUT_TYPES
+    - InfraChoirGeneratedMotionTarget.configure
     - InfraChoirManualTargetCompact.INPUT_TYPES
     - InfraChoirManualTargetCompact.configure
     - _auto_target_settings
@@ -2385,7 +2389,7 @@ source_catalog:
     - name: VisualizerSemanticObjectDetector.detect
       kind: method
       line_start: 2469
-      line_end: 2647
+      line_end: 2651
       signature: VisualizerSemanticObjectDetector.detect(self, image, find, search_area, sensitivity, max_regions, padding_percent,
         detection_provider)
       inputs:
@@ -2434,8 +2438,8 @@ source_catalog:
       - *id003
     - name: VisualizerObjectDetector.INPUT_TYPES
       kind: method
-      line_start: 2654
-      line_end: 2658
+      line_start: 2658
+      line_end: 2662
       signature: VisualizerObjectDetector.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2448,8 +2452,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerObjectDetector.detect
       kind: method
-      line_start: 2662
-      line_end: 2671
+      line_start: 2666
+      line_end: 2675
       signature: VisualizerObjectDetector.detect(self, image, find, search_area, sensitivity, max_regions, padding_percent)
       inputs:
       - self
@@ -2466,8 +2470,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerManualTargetDetector.INPUT_TYPES
       kind: method
-      line_start: 2678
-      line_end: 2690
+      line_start: 2682
+      line_end: 2694
       signature: VisualizerManualTargetDetector.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2479,8 +2483,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerManualTargetDetector.detect
       kind: method
-      line_start: 2696
-      line_end: 2704
+      line_start: 2700
+      line_end: 2708
       signature: VisualizerManualTargetDetector.detect(self, image, find, search_area, sensitivity, max_regions, padding_percent,
         detection_provider, use_in_render)
       inputs:
@@ -2499,10 +2503,41 @@ source_catalog:
       - super
       parser: python-ast
       dependency_targets: []
+    - name: InfraChoirMultiLightDetector.INPUT_TYPES
+      kind: method
+      line_start: 2715
+      line_end: 2722
+      signature: InfraChoirMultiLightDetector.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: InfraChoirMultiLightDetector.detect
+      kind: method
+      line_start: 2730
+      line_end: 2740
+      signature: InfraChoirMultiLightDetector.detect(self, image, sensitivity, max_candidates, padding_percent, use_in_render)
+      inputs:
+      - self
+      - image
+      - sensitivity
+      - max_candidates
+      - padding_percent
+      - use_in_render
+      output: unspecified
+      dependencies:
+      - VisualizerSemanticObjectDetector
+      - bool
+      - float
+      - int
+      parser: python-ast
+      dependency_targets: []
     - name: VisualizerMaskReview.INPUT_TYPES
       kind: method
-      line_start: 2709
-      line_end: 2723
+      line_start: 2745
+      line_end: 2759
       signature: VisualizerMaskReview.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2512,8 +2547,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerMaskReview._saved_correction
       kind: method
-      line_start: 2733
-      line_end: 2759
+      line_start: 2769
+      line_end: 2795
       signature: VisualizerMaskReview._saved_correction(image_name, detected_mask)
       inputs:
       - image_name
@@ -2540,8 +2575,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerMaskReview._source_fingerprint
       kind: method
-      line_start: 2762
-      line_end: 2769
+      line_start: 2798
+      line_end: 2805
       signature: VisualizerMaskReview._source_fingerprint(source_image)
       inputs:
       - source_image
@@ -2559,8 +2594,8 @@ source_catalog:
       - *id009
     - name: VisualizerMaskReview._saved_preview_matches
       kind: method
-      line_start: 2772
-      line_end: 2779
+      line_start: 2808
+      line_end: 2815
       signature: VisualizerMaskReview._saved_preview_matches(saved_rgb, verification_preview)
       inputs:
       - saved_rgb
@@ -2579,8 +2614,8 @@ source_catalog:
       - *id009
     - name: VisualizerMaskReview._saved_image_reference
       kind: method
-      line_start: 2782
-      line_end: 2789
+      line_start: 2818
+      line_end: 2825
       signature: VisualizerMaskReview._saved_image_reference(image_name)
       inputs:
       - image_name
@@ -2598,8 +2633,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerMaskReview.review
       kind: method
-      line_start: 2791
-      line_end: 2822
+      line_start: 2827
+      line_end: 2858
       signature: VisualizerMaskReview.review(self, verification_preview, detected_mask, source_image, image, source_fingerprint)
       inputs:
       - self
@@ -2632,8 +2667,8 @@ source_catalog:
         symbol: VisualizerMaskReview._source_fingerprint
     - name: VisualizerAnimationTarget.INPUT_TYPES
       kind: method
-      line_start: 2827
-      line_end: 2844
+      line_start: 2863
+      line_end: 2880
       signature: VisualizerAnimationTarget.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2643,8 +2678,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerAnimationTarget.configure
       kind: method
-      line_start: 2852
-      line_end: 2918
+      line_start: 2888
+      line_end: 2954
       signature: VisualizerAnimationTarget.configure(self, mask, object_name, animation_prompt, mask_verified, approved_mask_mode,
         motion_type, on_beat_flicker, off_beat_flicker, on_beat_motion, off_beat_motion, approved_mask)
       inputs:
@@ -2691,8 +2726,8 @@ source_catalog:
         symbol: _target_effect_modes
     - name: VisualizerTargetStack.INPUT_TYPES
       kind: method
-      line_start: 2923
-      line_end: 2927
+      line_start: 2959
+      line_end: 2963
       signature: VisualizerTargetStack.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2702,8 +2737,8 @@ source_catalog:
       dependency_targets: []
     - name: VisualizerTargetStack.append
       kind: method
-      line_start: 2935
-      line_end: 2936
+      line_start: 2971
+      line_end: 2972
       signature: VisualizerTargetStack.append(self, target, previous_targets)
       inputs:
       - self
@@ -2716,8 +2751,8 @@ source_catalog:
       dependency_targets: []
     - name: GenericBeatAwareLocalVisualizer.INPUT_TYPES
       kind: method
-      line_start: 2941
-      line_end: 2963
+      line_start: 2977
+      line_end: 2999
       signature: GenericBeatAwareLocalVisualizer.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2727,8 +2762,8 @@ source_catalog:
       dependency_targets: []
     - name: GenericBeatAwareLocalVisualizer.render
       kind: method
-      line_start: 2972
-      line_end: 3161
+      line_start: 3008
+      line_end: 3197
       signature: GenericBeatAwareLocalVisualizer.render(self, image, audio, targets, brand_logo, brand_logo_mask, wordmark,
         wordmark_mask, fps, delivery_resolution, pattern_key, apply_brand_logo, brand_logo_width_percent, brand_logo_opacity,
         apply_wordmark, wordmark_width_percent, wordmark_opacity, overlay_margin_px, wordmark_halo_opacity, wordmark_halo_blur_px,
@@ -2803,8 +2838,8 @@ source_catalog:
       - *id024
     - name: InfraChoirAnimationTarget.INPUT_TYPES
       kind: method
-      line_start: 3168
-      line_end: 3198
+      line_start: 3204
+      line_end: 3234
       signature: InfraChoirAnimationTarget.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2814,8 +2849,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirAnimationTarget.configure
       kind: method
-      line_start: 3206
-      line_end: 3330
+      line_start: 3242
+      line_end: 3366
       signature: InfraChoirAnimationTarget.configure(self, enabled, target_id, object_name, animation_prompt, mask_verified,
         target_role, envelope_group, audio_driver, motion_source, motion_type, on_beat_flicker, off_beat_flicker, on_beat_motion,
         off_beat_motion, generated_motion_strength, max_luminance_change, glow_strength, glow_radius_px, saturation_variation,
@@ -2878,8 +2913,8 @@ source_catalog:
       - *id025
     - name: InfraChoirAnimationTargetEnhanced.INPUT_TYPES
       kind: method
-      line_start: 3337
-      line_end: 3369
+      line_start: 3373
+      line_end: 3405
       signature: InfraChoirAnimationTargetEnhanced.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2891,8 +2926,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirAtmosphericTargetEnhanced.INPUT_TYPES
       kind: method
-      line_start: 3378
-      line_end: 3412
+      line_start: 3414
+      line_end: 3448
       signature: InfraChoirAtmosphericTargetEnhanced.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2904,8 +2939,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirAtmosphericTargetEnhanced.configure
       kind: method
-      line_start: 3414
-      line_end: 3417
+      line_start: 3450
+      line_end: 3453
       signature: InfraChoirAtmosphericTargetEnhanced.configure(self, smoke_intensity, smoke_boundary_expansion_percent, **kwargs)
       inputs:
       - self
@@ -2919,8 +2954,8 @@ source_catalog:
       dependency_targets: []
     - name: _manual_advanced_settings
       kind: function
-      line_start: 3422
-      line_end: 3435
+      line_start: 3458
+      line_end: 3471
       signature: _manual_advanced_settings(value) -> dict
       inputs:
       - value
@@ -2936,8 +2971,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirManualAtmosphereTarget.INPUT_TYPES
       kind: method
-      line_start: 3442
-      line_end: 3466
+      line_start: 3478
+      line_end: 3502
       signature: InfraChoirManualAtmosphereTarget.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2947,8 +2982,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirManualAtmosphereTarget.configure
       kind: method
-      line_start: 3474
-      line_end: 3532
+      line_start: 3510
+      line_end: 3568
       signature: InfraChoirManualAtmosphereTarget.configure(self, mask, use_in_render, target_id, object_name, animation_prompt,
         smoke_intensity, smoke_boundary_expansion_percent, billow_amount, foreground_protection, advanced_settings_json)
       inputs:
@@ -2984,8 +3019,8 @@ source_catalog:
         symbol: _manual_advanced_settings
     - name: InfraChoirCachedMotionTarget.INPUT_TYPES
       kind: method
-      line_start: 3539
-      line_end: 3556
+      line_start: 3575
+      line_end: 3592
       signature: InfraChoirCachedMotionTarget.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -2998,8 +3033,8 @@ source_catalog:
         symbol: _cached_motion_clip_choices
     - name: InfraChoirCachedMotionTarget.configure
       kind: method
-      line_start: 3564
-      line_end: 3589
+      line_start: 3600
+      line_end: 3625
       signature: InfraChoirCachedMotionTarget.configure(self, mask, use_in_render, generated_clip_path, generated_motion_strength,
         generated_clip_max_seconds, generated_clip_overlap_seconds)
       inputs:
@@ -3019,10 +3054,41 @@ source_catalog:
       - str(generated_clip_path).strip
       parser: python-ast
       dependency_targets: []
+    - name: InfraChoirGeneratedMotionTarget.INPUT_TYPES
+      kind: method
+      line_start: 3632
+      line_end: 3645
+      signature: InfraChoirGeneratedMotionTarget.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: InfraChoirGeneratedMotionTarget.configure
+      kind: method
+      line_start: 3653
+      line_end: 3669
+      signature: InfraChoirGeneratedMotionTarget.configure(self, mask, generated_motion, use_in_render, generated_motion_strength,
+        loop_overlap_seconds)
+      inputs:
+      - self
+      - mask
+      - generated_motion
+      - use_in_render
+      - generated_motion_strength
+      - loop_overlap_seconds
+      output: unspecified
+      dependencies:
+      - InfraChoirAnimationTargetEnhanced
+      - bool
+      - float
+      parser: python-ast
+      dependency_targets: []
     - name: InfraChoirManualTargetCompact.INPUT_TYPES
       kind: method
-      line_start: 3596
-      line_end: 3625
+      line_start: 3676
+      line_end: 3705
       signature: InfraChoirManualTargetCompact.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -3032,8 +3098,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirManualTargetCompact.configure
       kind: method
-      line_start: 3633
-      line_end: 3690
+      line_start: 3713
+      line_end: 3770
       signature: InfraChoirManualTargetCompact.configure(self, mask, use_in_render, target_id, object_name, animation_prompt,
         target_role, linked_group, motion_type, beat_flicker, ambient_flicker, motion_amount, max_luminance_change, glow_strength,
         glow_radius_px, saturation_variation, hue_variation_degrees, advanced_settings_json)
@@ -3076,8 +3142,8 @@ source_catalog:
       - *id026
     - name: _auto_target_settings
       kind: function
-      line_start: 3693
-      line_end: 3766
+      line_start: 3773
+      line_end: 3846
       signature: '_auto_target_settings(object_class: str) -> dict'
       inputs:
       - 'object_class: str'
@@ -3088,8 +3154,8 @@ source_catalog:
       dependency_targets: []
     - name: _enforce_auto_target_behavior
       kind: function
-      line_start: 3769
-      line_end: 3820
+      line_start: 3849
+      line_end: 3900
       signature: '_enforce_auto_target_behavior(target: dict) -> dict'
       inputs:
       - 'target: dict'
@@ -3108,8 +3174,8 @@ source_catalog:
       dependency_targets: []
     - name: _protect_auto_motion_overlaps
       kind: function
-      line_start: 3823
-      line_end: 3867
+      line_start: 3903
+      line_end: 3947
       signature: '_protect_auto_motion_overlaps(plans: list[dict]) -> list[str]'
       inputs:
       - 'plans: list[dict]'
@@ -3145,8 +3211,8 @@ source_catalog:
       - *id003
     - name: _subtract_protected_mask
       kind: function
-      line_start: 3870
-      line_end: 3896
+      line_start: 3950
+      line_end: 3976
       signature: '_subtract_protected_mask(mask, protected, dilation_percent: float)'
       inputs:
       - mask
@@ -3175,8 +3241,8 @@ source_catalog:
       dependency_targets: []
     - name: _manifest_preview
       kind: function
-      line_start: 3899
-      line_end: 3929
+      line_start: 3979
+      line_end: 4009
       signature: _manifest_preview(image, targets)
       inputs:
       - image
@@ -3215,8 +3281,8 @@ source_catalog:
         symbol: _mask_from_png_base64
     - name: _auto_discover_response
       kind: function
-      line_start: 3932
-      line_end: 3962
+      line_start: 4012
+      line_end: 4042
       signature: '_auto_discover_response(manifest_text: str, preview, report: str, action: str, show_preview: bool)'
       inputs:
       - 'manifest_text: str'
@@ -3240,8 +3306,8 @@ source_catalog:
       - *id009
     - name: approve_infra_choir_discovery
       kind: function
-      line_start: 3965
-      line_end: 4019
+      line_start: 4045
+      line_end: 4099
       signature: 'approve_infra_choir_discovery(manifest_text: str, manifest_path: str, preserve_reviewed_targets: bool, approve_all:
         bool)'
       inputs:
@@ -3287,8 +3353,8 @@ source_catalog:
         symbol: WanSoundImageToVideoExtendState.extend
     - name: InfraChoirAutoDiscover.INPUT_TYPES
       kind: method
-      line_start: 4026
-      line_end: 4038
+      line_start: 4106
+      line_end: 4118
       signature: InfraChoirAutoDiscover.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -3298,8 +3364,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirAutoDiscover.run
       kind: method
-      line_start: 4047
-      line_end: 4150
+      line_start: 4127
+      line_end: 4230
       signature: InfraChoirAutoDiscover.run(self, image, discovery_profile, max_candidates, action, manifest_path, reviewed_manifest_json,
         preserve_reviewed_targets)
       inputs:
@@ -3365,10 +3431,12 @@ source_catalog:
         symbol: VisualizerObjectDetector.detect
       - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
         symbol: VisualizerManualTargetDetector.detect
+      - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
+        symbol: InfraChoirMultiLightDetector.detect
     - name: InfraChoirApprovedTargets.INPUT_TYPES
       kind: method
-      line_start: 4155
-      line_end: 4160
+      line_start: 4235
+      line_end: 4240
       signature: InfraChoirApprovedTargets.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -3378,8 +3446,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirApprovedTargets.load
       kind: method
-      line_start: 4168
-      line_end: 4205
+      line_start: 4248
+      line_end: 4285
       signature: InfraChoirApprovedTargets.load(self, image, manifest_path, enabled, stale_image_policy)
       inputs:
       - self
@@ -3421,8 +3489,8 @@ source_catalog:
       - *id003
     - name: _target_masks_overlap
       kind: function
-      line_start: 4208
-      line_end: 4225
+      line_start: 4288
+      line_end: 4305
       signature: _target_masks_overlap(left, right) -> float
       inputs:
       - left
@@ -3447,8 +3515,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirTargetMerge.INPUT_TYPES
       kind: method
-      line_start: 4230
-      line_end: 4235
+      line_start: 4310
+      line_end: 4315
       signature: InfraChoirTargetMerge.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -3458,8 +3526,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirTargetMerge.merge
       kind: method
-      line_start: 4243
-      line_end: 4269
+      line_start: 4323
+      line_end: 4349
       signature: InfraChoirTargetMerge.merge(self, manual_targets, auto_targets, merge_policy, overlap_threshold)
       inputs:
       - self
@@ -3491,8 +3559,8 @@ source_catalog:
       - *id003
     - name: InfraChoirVisualizer.INPUT_TYPES
       kind: method
-      line_start: 4274
-      line_end: 4319
+      line_start: 4354
+      line_end: 4399
       signature: InfraChoirVisualizer.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -3507,8 +3575,8 @@ source_catalog:
       - *id033
     - name: InfraChoirVisualizer._audio_drive
       kind: method
-      line_start: 4329
-      line_end: 4332
+      line_start: 4409
+      line_end: 4412
       signature: 'InfraChoirVisualizer._audio_drive(features, frame_index: int, driver: str) -> float'
       inputs:
       - features
@@ -3522,8 +3590,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirVisualizer.render
       kind: method
-      line_start: 4334
-      line_end: 4880
+      line_start: 4414
+      line_end: 4960
       signature: InfraChoirVisualizer.render(self, image, audio, targets, fps, delivery_resolution, pattern_key, maximum_stabilization_percent,
         apply_brand_logo, brand_logo_width_percent, brand_logo_opacity, apply_wordmark, wordmark_width_percent, wordmark_opacity,
         overlay_margin_px, title_card_enabled, band_name, song_title, title_card_image, title_card_placement, title_card_start_seconds,
@@ -3625,8 +3693,8 @@ source_catalog:
         symbol: _lighting_luminance_amount
     - name: InfraChoirVisualizerEnhanced.INPUT_TYPES
       kind: method
-      line_start: 4887
-      line_end: 4922
+      line_start: 4967
+      line_end: 5002
       signature: InfraChoirVisualizerEnhanced.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -3638,8 +3706,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirVisualizerDualTrack.INPUT_TYPES
       kind: method
-      line_start: 4931
-      line_end: 4942
+      line_start: 5011
+      line_end: 5022
       signature: InfraChoirVisualizerDualTrack.INPUT_TYPES(cls)
       inputs:
       - cls

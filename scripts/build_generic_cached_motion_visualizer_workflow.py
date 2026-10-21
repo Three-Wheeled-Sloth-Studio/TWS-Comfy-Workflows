@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCAFFOLD = ROOT / "user/default/workflows/music_visualizer_infra_choir_dual_track_scaffold.json"
+GUIDED_WAN = ROOT / "user/default/workflows/video_wan2_2_14B_s2v_motion_poster_guided.json"
 WORKFLOW = ROOT / "user/default/workflows/music_visualizer_cached_motion_full_song.json"
 USER_WORKFLOW = ROOT / "user/default/workflows/music_visualizer_cached_motion_full.json"
 
@@ -27,33 +28,49 @@ def _upgrade_cached_motion_ui(workflow: dict) -> dict:
     nodes = {int(node["id"]): node for node in workflow["nodes"]}
     old = nodes[5]
     old.update({
-        "type": "InfraChoirCachedMotionTarget",
-        "size": [500, 220],
-        "title": "CACHED MOTION — select reviewed clip here",
+        "type": "InfraChoirGeneratedMotionTarget",
+        "size": [500, 180],
+        "title": "GENERATED MOTION — connected from Wan animation",
         "inputs": [
             {"localized_name": "mask", "name": "mask", "type": "MASK", "link": 1},
+            {"localized_name": "generated_motion", "name": "generated_motion", "type": "IMAGE", "link": 2000},
             {"localized_name": "use_in_render", "name": "use_in_render", "type": "BOOLEAN", "link": 2},
-            {"localized_name": "generated_clip_path", "name": "generated_clip_path", "type": "COMBO", "widget": {"name": "generated_clip_path"}, "link": None},
             {"localized_name": "generated_motion_strength", "name": "generated_motion_strength", "type": "FLOAT", "widget": {"name": "generated_motion_strength"}, "link": None},
-            {"localized_name": "generated_clip_max_seconds", "name": "generated_clip_max_seconds", "type": "FLOAT", "widget": {"name": "generated_clip_max_seconds"}, "link": None},
-            {"localized_name": "generated_clip_overlap_seconds", "name": "generated_clip_overlap_seconds", "type": "FLOAT", "widget": {"name": "generated_clip_overlap_seconds"}, "link": None},
+            {"localized_name": "loop_overlap_seconds", "name": "loop_overlap_seconds", "type": "FLOAT", "widget": {"name": "loop_overlap_seconds"}, "link": None},
         ],
         "outputs": [
             {"localized_name": "animation_target", "name": "animation_target", "type": "LOCAL_VISUALIZER_TARGET", "links": [3]},
             {"localized_name": "diagnostic", "name": "diagnostic", "type": "STRING", "links": None},
             {"localized_name": "configuration_json", "name": "configuration_json", "type": "STRING", "links": None},
         ],
-        "properties": {"Node name for S&R": "InfraChoirCachedMotionTarget"},
-        "widgets_values": ["(select a cached motion clip)", 1.0, 10.0, 0.8],
+        "properties": {"Node name for S&R": "InfraChoirGeneratedMotionTarget"},
+        "widgets_values": [1.0, 0.8],
         "widgets_values_named": {
-            "generated_clip_path": "(select a cached motion clip)",
             "generated_motion_strength": 1.0,
-            "generated_clip_max_seconds": 10.0,
-            "generated_clip_overlap_seconds": 0.8,
+            "loop_overlap_seconds": 0.8,
         },
     })
+    nodes[4]["title"] = "INCLUDE generated Wan animation"
+    nodes[4]["widgets_values"] = [True]
+    nodes[4]["widgets_values_named"] = {"value": True}
+    nodes[11]["title"] = "FULL SONG — generated motion + source lights + title + EQ"
 
     detector = nodes[7]
+    detector.update({
+        "type": "InfraChoirMultiLightDetector",
+        "size": [440, 250],
+        "title": "DETECT UP TO 7 LIGHT CANDIDATES ON CURRENT SOURCE",
+        "inputs": [
+            {"localized_name": "image", "name": "image", "type": "IMAGE", "link": 4},
+            {"localized_name": "sensitivity", "name": "sensitivity", "type": "FLOAT", "widget": {"name": "sensitivity"}, "link": None},
+            {"localized_name": "max_candidates", "name": "max_candidates", "type": "INT", "widget": {"name": "max_candidates"}, "link": None},
+            {"localized_name": "padding_percent", "name": "padding_percent", "type": "FLOAT", "widget": {"name": "padding_percent"}, "link": None},
+            {"localized_name": "use_in_render", "name": "use_in_render", "type": "BOOLEAN", "widget": {"name": "use_in_render"}, "link": None},
+        ],
+        "properties": {"Node name for S&R": "InfraChoirMultiLightDetector"},
+        "widgets_values": [0.48, 7, 2.0, True],
+        "widgets_values_named": {"sensitivity": 0.48, "max_candidates": 7, "padding_percent": 2.0, "use_in_render": True},
+    })
     preview = next((node for node in workflow["nodes"] if node.get("type") == "PreviewImage" and node.get("title") == "RUN THIS OUTPUT — preview detected lights"), None)
     if preview is None:
         review = nodes[8]
@@ -71,6 +88,90 @@ def _upgrade_cached_motion_ui(workflow: dict) -> dict:
     workflow["links"].append(_link(15, 7, 1, int(preview["id"]), 0, "IMAGE"))
     workflow["last_node_id"] = max(int(workflow.get("last_node_id", 0)), int(preview["id"]))
     workflow["last_link_id"] = max(int(workflow.get("last_link_id", 0)), 15)
+    return workflow
+
+
+def _attach_wan_generation(workflow: dict) -> dict:
+    """Attach the proven guided Wan generator without moving the user's compositor nodes."""
+    workflow["nodes"] = [node for node in workflow["nodes"] if node.get("properties", {}).get("tws_stage") != "wan_generation"]
+    workflow["links"] = [link for link in workflow["links"] if int(link[0]) < 1000]
+    for node in workflow["nodes"]:
+        for output in node.get("outputs", []):
+            if output.get("links"):
+                output["links"] = [link for link in output["links"] if int(link) < 1000]
+
+    guided = json.loads(GUIDED_WAN.read_text(encoding="utf-8"))
+    dependencies = {3, 6, 7, 37, 38, 39, 52, 54, 56, 57, 58, 79, 80, 93, 94, 95, 96, 100, 103, 104, 105, 107, 108, 109}
+    substitutions = {52: 1, 58: 2}
+    copied_ids = dependencies - substitutions.keys()
+    node_map = {old: old + 200 for old in copied_ids} | substitutions
+    selected_links = [link for link in guided["links"] if link[1] in dependencies and link[3] in dependencies]
+    link_map = {link[0]: 1000 + index for index, link in enumerate(selected_links)}
+
+    copied = []
+    for original in guided["nodes"]:
+        if original["id"] not in copied_ids:
+            continue
+        node = copy.deepcopy(original)
+        node["id"] = node_map[original["id"]]
+        node["pos"] = [float(node["pos"][0]) - 3800.0, float(node["pos"][1])]
+        node["order"] = int(node.get("order", 0)) + 100
+        node.setdefault("properties", {})["tws_stage"] = "wan_generation"
+        for item in node.get("inputs", []):
+            if item.get("link") is not None:
+                item["link"] = link_map.get(item["link"])
+        for item in node.get("outputs", []):
+            if item.get("links"):
+                mapped = [link_map[value] for value in item["links"] if value in link_map]
+                item["links"] = mapped or None
+        copied.append(node)
+    workflow["nodes"].extend(copied)
+
+    remapped_links = [
+        _link(link_map[link[0]], node_map[link[1]], link[2], node_map[link[3]], link[4], link[5])
+        for link in selected_links
+    ]
+    workflow["links"].extend(remapped_links)
+    nodes = {int(node["id"]): node for node in workflow["nodes"]}
+    for original_id, replacement_id in substitutions.items():
+        original = next(node for node in guided["nodes"] if node["id"] == original_id)
+        replacement = nodes[replacement_id]
+        for slot, output in enumerate(original.get("outputs", [])):
+            mapped = [link_map[value] for value in (output.get("links") or []) if value in link_map]
+            if mapped:
+                current = replacement["outputs"][slot].get("links") or []
+                replacement["outputs"][slot]["links"] = list(dict.fromkeys([*current, *mapped]))
+
+    workflow["links"] = [link for link in workflow["links"] if link[0] != 2]
+    workflow["links"].append(_link(2, 4, 0, 5, 2, "BOOLEAN"))
+    nodes[4]["outputs"][0]["links"] = [2]
+    generated_id = node_map[96]
+    generated_output = nodes[generated_id]["outputs"][0]
+    generated_output["links"] = list(dict.fromkeys([*(generated_output.get("links") or []), 2000]))
+    workflow["links"].append(_link(2000, generated_id, 0, 5, 1, "IMAGE"))
+    nodes[5]["inputs"][1]["link"] = 2000
+    nodes[5]["inputs"][2]["link"] = 2
+    guidance = nodes[node_map[108]]
+    positive = (
+        "Locked camera and composition. Generate ample, clearly visible, voluminous smoke, fog, mist, and cloud "
+        "billowing where those elements exist. Hair and loose fabric flow naturally in a steady breeze. Flags wave, "
+        "water waves ripple, and underwater tentacles wriggle where present. Preserve faces, bodies, architecture, "
+        "objects, framing, and identity. Other environmental movement may be subtle and physically plausible. "
+        "Do not animate light sources spatially; lighting flicker is added later by the compositor."
+    )
+    targets = (
+        "smoke fog mist clouds: strong voluminous billowing; hair and loose fabric: natural breeze; "
+        "flags: visible waving; water: rippling waves; underwater tentacles: organic wriggling"
+    )
+    guidance["widgets_values"][0] = positive
+    guidance["widgets_values"][2] = False
+    guidance["widgets_values"][3] = targets
+    if guidance.get("widgets_values_named"):
+        guidance["widgets_values_named"].update({
+            "positive_prompt": positive, "allow_lip_motion": False, "motion_targets": targets,
+        })
+    workflow["last_node_id"] = max(int(node["id"]) for node in workflow["nodes"])
+    workflow["last_link_id"] = max(int(link[0]) for link in workflow["links"])
     return workflow
 
 
@@ -193,7 +294,7 @@ def build() -> Path:
     ]
     stack_two["outputs"][0]["links"] = [14]
 
-    renderer.update({"id": 11, "pos": [1880, 40], "order": 10, "title": "FULL SONG — cached motion + source lights + title + EQ"})
+    renderer.update({"id": 11, "pos": [1880, 40], "order": 10, "title": "FULL SONG — generated motion + source lights + title + EQ"})
     renderer["inputs"][0]["link"] = 12
     renderer["inputs"][1]["link"] = 13
     renderer["inputs"][2]["link"] = 14
@@ -226,10 +327,12 @@ def build() -> Path:
         "extra": {"ds": {"scale": 0.72, "offset": [20, 20]}}, "version": 0.4,
     }
     _upgrade_cached_motion_ui(workflow)
+    _attach_wan_generation(workflow)
     WORKFLOW.write_text(json.dumps(workflow, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     if USER_WORKFLOW.is_file():
         user_workflow = json.loads(USER_WORKFLOW.read_text(encoding="utf-8"))
         _upgrade_cached_motion_ui(user_workflow)
+        _attach_wan_generation(user_workflow)
         USER_WORKFLOW.write_text(json.dumps(user_workflow, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return WORKFLOW
 

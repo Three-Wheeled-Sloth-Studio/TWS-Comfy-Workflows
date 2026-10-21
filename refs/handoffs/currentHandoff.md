@@ -7,6 +7,33 @@ tags: [handoff, comfyui, music-video, compositing, visualizer, wan]
 ---
 # Current Handoff
 
+## 2026-10-21 End-to-End Generic Workflow
+
+`user/default/workflows/music_visualizer_cached_motion_full.json` is now an
+end-to-end workflow despite its retained user-chosen filename. It accepts the
+currently selected artwork and song, generates a 77-frame 1024x576 Wan 2.2 14B
+S2V motion clip in the graph, loops that generated IMAGE batch for the full song,
+then applies source-bound lighting, generated title, 2048-band EQ, and audio in
+the dual-track renderer. No previously generated clip or filesystem path is
+required. The generator is the already-proven four-step LightX2V path copied
+from `video_wan2_2_14B_s2v_motion_poster_guided.json`.
+
+The motion guidance is deliberately image- and song-agnostic: substantial
+smoke/fog/mist/cloud billowing, breeze-driven hair and loose fabric, waving
+flags, rippling water, and wriggling underwater tentacles where those elements
+actually exist, with locked camera/composition and protected identity. Lighting
+sources do not move spatially; music-synchronized light behavior is added by
+the compositor after generative motion.
+
+The light lane uses a compact `InfraChoirMultiLightDetector` capped at seven
+candidates. Internally it asks for `lights` on a 32x18 spatial grid, which keeps
+small practical sources separate. A direct current-artwork probe found distinct
+moon, foreground-lamp, and ship/bridge groups. Preview and review remain visible.
+
+Artwork, audio, compositor settings, and existing node positions were preserved;
+the Wan cluster sits well left. The new nodes require a normal ComfyUI restart
+and reload; the implementation did not restart ComfyUI or alter its queue.
+
 ## 2026-10-20 Next Video Quality Priorities
 
 Raise the Neon Black v2 `_00002_` is the current accepted render. The old
@@ -1140,24 +1167,18 @@ motion, lighting, generated title, 2048-band EQ, and AAC audio preserved.
 An independent whole-file phase-correlation scan at 160x90 found zero vertical
 translation in all 3331 adjacent-frame pairs.
 
-A separate reusable workflow now lives at
+A separate clean reusable template lives at
 `user/default/workflows/music_visualizer_cached_motion_full_song.json`. It has
-no selected source image, audio, cached-motion path, reviewed-mask fingerprint,
-track title, or track-specific output prefix. Its light detector and mask-review
-lane are driven directly by the currently selected source image. Cached motion
-starts disabled and must be enabled only after its Advanced Settings points to
-a reviewed clip for that same artwork. The song-specific workflow remains an
-immutable production record and is not the reusable template.
+no selected source image, audio, reviewed-mask fingerprint, track title, or
+track-specific output prefix. It now includes the same in-graph Wan generator
+and therefore has no cached-motion prerequisite.
 
 The user resaved and spaced the live reusable copy as
 `user/default/workflows/music_visualizer_cached_motion_full.json`; preserve its
-saved image/audio choices and all node positions. That copy now uses the
-dedicated `InfraChoirCachedMotionTarget`, whose short card exposes a populated
-input/output/temp video dropdown, strength, maximum seconds, and loop overlap.
-It also has a standard `PreviewImage` output below the light detector so the
-detection branch can be queued independently with a visible result. Loading
-the new node class requires a ComfyUI restart; do not collapse or regenerate
-the user's layout.
+saved image/audio choices and all pre-existing node positions. Its short
+`InfraChoirGeneratedMotionTarget` card now receives the generated Wan IMAGE
+batch directly. It also retains a standard `PreviewImage` below the light
+detector so detection can be queued independently with a visible result.
 
 The official Comfy Wan 2.1 VACE 1.3B checkpoint is installed and SHA-256
 verified (`640ccc0577e6a5d4bb15cd91b11b699ef914fc55f126c5a1c544e152130784f2`).
@@ -1175,26 +1196,19 @@ impractical at this offload cost; the interrupted 81-frame run produced no file.
 
 ## Current Usage
 
-After installing node changes, restart Comfy Desktop and open
-`video_wan2_2_14B_s2v_motion_poster_guided.json`:
+After restart, open `music_visualizer_cached_motion_full.json`:
 
-1. Select the cover art in `Load Image` and the song in `Load Song`.
-2. Edit `Motion Poster Guidance`; keep lip motion off. In `motion_targets`, name
-   exact existing regions and physical motion, separated by semicolons.
-3. Set `variant_count`; use one normally, and `fixed` seed mode to reproduce a
-   run. Two or three variants remain experimental due to transition blur.
-4. Set optional crossfade/camera controls in `Assemble Full Motion Poster`.
-   Zoom `1.0` means no zoom and drift defaults to zero. Update the song-title
-   field when changing audio; it is prepended to the output filename.
-5. Optionally select transparent PNGs in the lower-right brand-logo loader and
-   upper-left wordmark loader, then enable and tune either overlay in the
-   assembler. The wordmark halo defaults to a dark 55%-opacity, 18-pixel blur;
-   choose `light` or `off` as needed.
-6. Leave `delivery_resolution` at `1080p` for the exact 1920×1080 YouTube-ready
-   no-pad/no-crop output, or choose `source` for a 1024×576 diagnostic render.
-   `1080p_fill` remains available for non-16:9 diagnostic assets but is
-   equivalent to normal scaling for the production canvas.
-7. Queue once. The final node previews and saves the full-song MP4.
+1. Pick artwork/song; motion is generated in-graph.
+2. Set guidance targets; keep lip motion off.
+3. Preview/edit the light mask; keep it included for synced glow/flicker.
+4. Set artist/title, title-card, EQ, and output-prefix controls on the full-song
+   renderer. Leave stabilization at zero to avoid the prior vertical jump.
+5. Queue the final output once. Wan generates the reusable short motion batch;
+   the renderer loops it across the selected song and saves the complete MP4.
+
+The older `video_wan2_2_14B_s2v_motion_poster_guided.json` remains the isolated
+Wan-generation reference and diagnostic fallback, not the ordinary finished-
+video workflow.
 
 The experimental
 `video_wan2_2_14B_s2v_motion_poster_visualizer.json` remains installable for
