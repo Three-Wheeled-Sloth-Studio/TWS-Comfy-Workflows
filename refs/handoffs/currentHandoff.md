@@ -1149,6 +1149,16 @@ starts disabled and must be enabled only after its Advanced Settings points to
 a reviewed clip for that same artwork. The song-specific workflow remains an
 immutable production record and is not the reusable template.
 
+The user resaved and spaced the live reusable copy as
+`user/default/workflows/music_visualizer_cached_motion_full.json`; preserve its
+saved image/audio choices and all node positions. That copy now uses the
+dedicated `InfraChoirCachedMotionTarget`, whose short card exposes a populated
+input/output/temp video dropdown, strength, maximum seconds, and loop overlap.
+It also has a standard `PreviewImage` output below the light detector so the
+detection branch can be queued independently with a visible result. Loading
+the new node class requires a ComfyUI restart; do not collapse or regenerate
+the user's layout.
+
 The official Comfy Wan 2.1 VACE 1.3B checkpoint is installed and SHA-256
 verified (`640ccc0577e6a5d4bb15cd91b11b699ef914fc55f126c5a1c544e152130784f2`).
 Its 832x480 gate uses this image only by explicit authorization. Dynamic offload

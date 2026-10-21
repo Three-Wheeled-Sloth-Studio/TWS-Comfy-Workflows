@@ -1,8 +1,8 @@
 {
   "id": "e244a842-89fa-588a-b845-13bb9ee1418a",
   "revision": 0,
-  "last_node_id": 11,
-  "last_link_id": 14,
+  "last_node_id": 12,
+  "last_link_id": 15,
   "nodes": [
     {
       "id": 1,
@@ -224,14 +224,14 @@
     },
     {
       "id": 5,
-      "type": "InfraChoirManualTargetCompact",
+      "type": "InfraChoirCachedMotionTarget",
       "pos": [
         740,
         60
       ],
       "size": [
         500,
-        390
+        220
       ],
       "flags": {},
       "order": 4,
@@ -250,137 +250,38 @@
           "link": 2
         },
         {
-          "localized_name": "target_id",
-          "name": "target_id",
-          "type": "STRING",
-          "widget": {
-            "name": "target_id"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "object_name",
-          "name": "object_name",
-          "type": "STRING",
-          "widget": {
-            "name": "object_name"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "animation_prompt",
-          "name": "animation_prompt",
-          "type": "STRING",
-          "widget": {
-            "name": "animation_prompt"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "target_role",
-          "name": "target_role",
+          "localized_name": "generated_clip_path",
+          "name": "generated_clip_path",
           "type": "COMBO",
           "widget": {
-            "name": "target_role"
+            "name": "generated_clip_path"
           },
           "link": null
         },
         {
-          "localized_name": "linked_group",
-          "name": "linked_group",
-          "type": "STRING",
-          "widget": {
-            "name": "linked_group"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "motion_type",
-          "name": "motion_type",
-          "type": "COMBO",
-          "widget": {
-            "name": "motion_type"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "beat_flicker",
-          "name": "beat_flicker",
+          "localized_name": "generated_motion_strength",
+          "name": "generated_motion_strength",
           "type": "FLOAT",
           "widget": {
-            "name": "beat_flicker"
+            "name": "generated_motion_strength"
           },
           "link": null
         },
         {
-          "localized_name": "ambient_flicker",
-          "name": "ambient_flicker",
+          "localized_name": "generated_clip_max_seconds",
+          "name": "generated_clip_max_seconds",
           "type": "FLOAT",
           "widget": {
-            "name": "ambient_flicker"
+            "name": "generated_clip_max_seconds"
           },
           "link": null
         },
         {
-          "localized_name": "motion_amount",
-          "name": "motion_amount",
+          "localized_name": "generated_clip_overlap_seconds",
+          "name": "generated_clip_overlap_seconds",
           "type": "FLOAT",
           "widget": {
-            "name": "motion_amount"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "max_luminance_change",
-          "name": "max_luminance_change",
-          "type": "FLOAT",
-          "widget": {
-            "name": "max_luminance_change"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "glow_strength",
-          "name": "glow_strength",
-          "type": "FLOAT",
-          "widget": {
-            "name": "glow_strength"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "glow_radius_px",
-          "name": "glow_radius_px",
-          "type": "FLOAT",
-          "widget": {
-            "name": "glow_radius_px"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "saturation_variation",
-          "name": "saturation_variation",
-          "type": "FLOAT",
-          "widget": {
-            "name": "saturation_variation"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "hue_variation_degrees",
-          "name": "hue_variation_degrees",
-          "type": "FLOAT",
-          "widget": {
-            "name": "hue_variation_degrees"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "advanced_settings_json",
-          "name": "advanced_settings_json",
-          "type": "STRING",
-          "widget": {
-            "name": "advanced_settings_json"
+            "name": "generated_clip_overlap_seconds"
           },
           "link": null
         }
@@ -390,7 +291,6 @@
           "localized_name": "animation_target",
           "name": "animation_target",
           "type": "LOCAL_VISUALIZER_TARGET",
-          "slot_index": 0,
           "links": [
             3
           ]
@@ -399,57 +299,30 @@
           "localized_name": "diagnostic",
           "name": "diagnostic",
           "type": "STRING",
-          "slot_index": 1,
           "links": null
         },
         {
           "localized_name": "configuration_json",
           "name": "configuration_json",
           "type": "STRING",
-          "slot_index": 2,
           "links": null
         }
       ],
-      "title": "CACHED MOTION — set clip path in Advanced Settings",
+      "title": "CACHED MOTION — select reviewed clip here",
       "properties": {
-        "Node name for S&R": "InfraChoirManualTargetCompact"
+        "Node name for S&R": "InfraChoirCachedMotionTarget"
       },
       "widgets_values": [
-        false,
-        "cached_full_scene_motion",
-        "cached full-scene motion",
-        "Loop the reviewed motion clip without adding procedural geometry motion.",
-        "organic",
-        "environment",
-        "still",
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        "{\"motion_source\":\"generated_clip\",\"generated_motion_strength\":1.0,\"atmospheric_motion_mode\":\"cached_clip\",\"generated_clip_path\":\"\",\"generated_clip_max_seconds\":10.0,\"generated_clip_overlap_seconds\":0.8,\"audio_driver\":\"slow\",\"secondary_audio_driver\":\"none\",\"secondary_driver_mix\":0.0,\"on_beat_motion\":0.0,\"response_min\":0.0,\"response_max\":1.0,\"foreground_protection\":false,\"target_id\":\"cached_full_scene_motion\"}",
-        null
+        "(select a cached motion clip)",
+        1.0,
+        10.0,
+        0.8
       ],
       "widgets_values_named": {
-        "target_id": "cached_full_scene_motion",
-        "object_name": "cached full-scene motion",
-        "animation_prompt": "Loop the reviewed motion clip without adding procedural geometry motion.",
-        "target_role": "organic",
-        "linked_group": "environment",
-        "motion_type": "still",
-        "beat_flicker": 0.0,
-        "ambient_flicker": 0.0,
-        "motion_amount": 0.0,
-        "max_luminance_change": 0.0,
-        "glow_strength": 0.0,
-        "glow_radius_px": 0.0,
-        "saturation_variation": 0.0,
-        "hue_variation_degrees": 0.0,
-        "advanced_settings_json": "{\"motion_source\":\"generated_clip\",\"generated_motion_strength\":1.0,\"atmospheric_motion_mode\":\"cached_clip\",\"generated_clip_path\":\"\",\"generated_clip_max_seconds\":10.0,\"generated_clip_overlap_seconds\":0.8,\"audio_driver\":\"slow\",\"secondary_audio_driver\":\"none\",\"secondary_driver_mix\":0.0,\"on_beat_motion\":0.0,\"response_min\":0.0,\"response_max\":1.0,\"foreground_protection\":false,\"target_id\":\"cached_full_scene_motion\"}",
-        "advanced_settings": null
+        "generated_clip_path": "(select a cached motion clip)",
+        "generated_motion_strength": 1.0,
+        "generated_clip_max_seconds": 10.0,
+        "generated_clip_overlap_seconds": 0.8
       },
       "color": "#31506b",
       "bgcolor": "#3d6484"
@@ -593,7 +466,8 @@
           "type": "IMAGE",
           "slot_index": 1,
           "links": [
-            6
+            6,
+            15
           ]
         },
         {
@@ -1810,6 +1684,36 @@
       },
       "color": "#243",
       "bgcolor": "#354"
+    },
+    {
+      "id": 12,
+      "type": "PreviewImage",
+      "pos": [
+        800,
+        900.0
+      ],
+      "size": [
+        392,
+        300
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 15
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.9.2",
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "title": "RUN THIS OUTPUT — preview detected lights"
     }
   ],
   "links": [
@@ -1924,6 +1828,14 @@
       11,
       2,
       "LOCAL_VISUALIZER_TARGETS"
+    ],
+    [
+      15,
+      7,
+      1,
+      12,
+      0,
+      "IMAGE"
     ]
   ],
   "groups": [],

@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = ROOT / "custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py"
 WORKFLOW_PATH = ROOT / "user/default/workflows/music_visualizer_infra_choir_dual_track_scaffold.json"
 GENERIC_CACHED_WORKFLOW_PATH = ROOT / "user/default/workflows/music_visualizer_cached_motion_full_song.json"
+USER_GENERIC_CACHED_WORKFLOW_PATH = ROOT / "user/default/workflows/music_visualizer_cached_motion_full.json"
 ADVANCED_UI_PATH = ROOT / "custom_nodes/comfyui_audio_duration_plan/web/infra_choir_manual_advanced.js"
 
 
@@ -144,9 +145,8 @@ def _assert_generic_cached_motion_workflow() -> None:
     assert nodes[1]["type"] == "LoadImage" and nodes[1]["widgets_values_named"]["image"] == ""
     assert nodes[2]["type"] == "LoadAudio" and nodes[2]["widgets_values_named"]["audio"] == ""
     assert nodes[4]["widgets_values_named"]["value"] is False
-    motion = json.loads(nodes[5]["widgets_values_named"]["advanced_settings_json"])
-    assert motion["generated_clip_path"] == ""
-    assert motion["atmospheric_motion_mode"] == "cached_clip"
+    assert nodes[5]["type"] == "InfraChoirCachedMotionTarget"
+    assert nodes[5]["widgets_values_named"]["generated_clip_path"] == "(select a cached motion clip)"
     assert nodes[7]["type"] == "VisualizerManualTargetDetector"
     assert nodes[7]["widgets_values_named"]["search_area"] == "box 0 0 1 1"
     assert nodes[7]["widgets_values_named"]["use_in_render"] is True
@@ -163,6 +163,14 @@ def _assert_generic_cached_motion_workflow() -> None:
     assert links[7][1:5] == [1, 0, 8, 2]
     assert links[8][1:5] == [8, 0, 9, 0]
     assert links[9][1:5] == [7, 4, 9, 1]
+    assert links[15][1:5] == [7, 1, 12, 0]
+    assert nodes[12]["type"] == "PreviewImage"
+    saved = json.loads(USER_GENERIC_CACHED_WORKFLOW_PATH.read_text(encoding="utf-8"))
+    saved_nodes = {node["id"]: node for node in saved["nodes"]}
+    assert saved_nodes[5]["type"] == "InfraChoirCachedMotionTarget"
+    assert saved_nodes[5]["pos"] == [835.7916666666666, -339.97222222222206]
+    assert saved_nodes[7]["pos"] == [228.33333333333348, 570.8333333333333]
+    assert saved_nodes[12]["type"] == "PreviewImage"
 
 
 def main() -> int:
@@ -182,6 +190,8 @@ def main() -> int:
     assert loop_differences[-1] <= max(loop_differences[:-1])
     _assert_workflow_schema(module)
     _assert_generic_cached_motion_workflow()
+    choices = module.InfraChoirCachedMotionTarget.INPUT_TYPES()["required"]["generated_clip_path"][0]
+    assert choices[0] == "(select a cached motion clip)"
 
     sample_rate = 48000
     seconds = 0.5

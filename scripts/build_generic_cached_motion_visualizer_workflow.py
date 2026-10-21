@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SCAFFOLD = ROOT / "user/default/workflows/music_visualizer_infra_choir_dual_track_scaffold.json"
 WORKFLOW = ROOT / "user/default/workflows/music_visualizer_cached_motion_full_song.json"
+USER_WORKFLOW = ROOT / "user/default/workflows/music_visualizer_cached_motion_full.json"
 
 
 def _link(link_id: int, origin: int, origin_slot: int, target: int, target_slot: int, kind: str) -> list:
@@ -19,6 +20,58 @@ def _named(node: dict, values: dict) -> None:
     names = [item["widget"]["name"] for item in node["inputs"] if "widget" in item]
     node["widgets_values"] = [values[name] for name in names]
     node["widgets_values_named"] = dict(values)
+
+
+def _upgrade_cached_motion_ui(workflow: dict) -> dict:
+    """Upgrade only the cached-motion card and preview branch; preserve saved layout and media."""
+    nodes = {int(node["id"]): node for node in workflow["nodes"]}
+    old = nodes[5]
+    old.update({
+        "type": "InfraChoirCachedMotionTarget",
+        "size": [500, 220],
+        "title": "CACHED MOTION — select reviewed clip here",
+        "inputs": [
+            {"localized_name": "mask", "name": "mask", "type": "MASK", "link": 1},
+            {"localized_name": "use_in_render", "name": "use_in_render", "type": "BOOLEAN", "link": 2},
+            {"localized_name": "generated_clip_path", "name": "generated_clip_path", "type": "COMBO", "widget": {"name": "generated_clip_path"}, "link": None},
+            {"localized_name": "generated_motion_strength", "name": "generated_motion_strength", "type": "FLOAT", "widget": {"name": "generated_motion_strength"}, "link": None},
+            {"localized_name": "generated_clip_max_seconds", "name": "generated_clip_max_seconds", "type": "FLOAT", "widget": {"name": "generated_clip_max_seconds"}, "link": None},
+            {"localized_name": "generated_clip_overlap_seconds", "name": "generated_clip_overlap_seconds", "type": "FLOAT", "widget": {"name": "generated_clip_overlap_seconds"}, "link": None},
+        ],
+        "outputs": [
+            {"localized_name": "animation_target", "name": "animation_target", "type": "LOCAL_VISUALIZER_TARGET", "links": [3]},
+            {"localized_name": "diagnostic", "name": "diagnostic", "type": "STRING", "links": None},
+            {"localized_name": "configuration_json", "name": "configuration_json", "type": "STRING", "links": None},
+        ],
+        "properties": {"Node name for S&R": "InfraChoirCachedMotionTarget"},
+        "widgets_values": ["(select a cached motion clip)", 1.0, 10.0, 0.8],
+        "widgets_values_named": {
+            "generated_clip_path": "(select a cached motion clip)",
+            "generated_motion_strength": 1.0,
+            "generated_clip_max_seconds": 10.0,
+            "generated_clip_overlap_seconds": 0.8,
+        },
+    })
+
+    detector = nodes[7]
+    preview = next((node for node in workflow["nodes"] if node.get("type") == "PreviewImage" and node.get("title") == "RUN THIS OUTPUT — preview detected lights"), None)
+    if preview is None:
+        review = nodes[8]
+        preview = {
+            "id": 12, "type": "PreviewImage",
+            "pos": [review["pos"][0], review["pos"][1] + float(review.get("size", [390, 360])[1]) + 70],
+            "size": [392, 300], "flags": {}, "order": 8, "mode": 0,
+            "inputs": [{"name": "images", "type": "IMAGE", "link": 15}], "outputs": [],
+            "properties": {"cnr_id": "comfy-core", "ver": "0.9.2", "Node name for S&R": "PreviewImage"},
+            "widgets_values": [], "title": "RUN THIS OUTPUT — preview detected lights",
+        }
+        workflow["nodes"].append(preview)
+    detector["outputs"][1]["links"] = list(dict.fromkeys([*(detector["outputs"][1].get("links") or []), 15]))
+    workflow["links"] = [link for link in workflow["links"] if link[0] != 15]
+    workflow["links"].append(_link(15, 7, 1, int(preview["id"]), 0, "IMAGE"))
+    workflow["last_node_id"] = max(int(workflow.get("last_node_id", 0)), int(preview["id"]))
+    workflow["last_link_id"] = max(int(workflow.get("last_link_id", 0)), 15)
+    return workflow
 
 
 def build() -> Path:
@@ -172,7 +225,12 @@ def build() -> Path:
         "links": links, "groups": [], "config": {},
         "extra": {"ds": {"scale": 0.72, "offset": [20, 20]}}, "version": 0.4,
     }
+    _upgrade_cached_motion_ui(workflow)
     WORKFLOW.write_text(json.dumps(workflow, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    if USER_WORKFLOW.is_file():
+        user_workflow = json.loads(USER_WORKFLOW.read_text(encoding="utf-8"))
+        _upgrade_cached_motion_ui(user_workflow)
+        USER_WORKFLOW.write_text(json.dumps(user_workflow, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return WORKFLOW
 
 

@@ -791,13 +791,44 @@ def _resolve_cached_motion_path(value: str) -> Path:
         ]
     except (ImportError, AttributeError):
         roots = [Path(__file__).resolve().parents[2] / "input"]
-    requested = Path(str(value).strip().replace("\\", "/"))
-    candidates = [requested] if requested.is_absolute() else [root / requested for root in roots]
+    raw = str(value).strip().replace("\\", "/")
+    labeled = re.match(r"^(input|output|temp):(.*)$", raw, flags=re.IGNORECASE)
+    if labeled:
+        root_by_label = dict(zip(("input", "output", "temp"), roots))
+        requested = Path(labeled.group(2).lstrip("/"))
+        candidates = [root_by_label[labeled.group(1).casefold()] / requested]
+    else:
+        requested = Path(raw)
+        candidates = [requested] if requested.is_absolute() else [root / requested for root in roots]
     for candidate in candidates:
         resolved = candidate.resolve()
         if resolved.is_file() and any(root.resolve() == resolved.parent or root.resolve() in resolved.parents for root in roots):
             return resolved
     raise FileNotFoundError(f"Cached motion clip was not found below a Comfy input/output/temp directory: {value}")
+
+
+def _cached_motion_clip_choices() -> list[str]:
+    """Return stable, root-labelled local video choices for a Comfy combo widget."""
+    choices = ["(select a cached motion clip)"]
+    try:
+        import folder_paths
+
+        roots = (
+            ("input", Path(folder_paths.get_input_directory())),
+            ("output", Path(folder_paths.get_output_directory())),
+            ("temp", Path(folder_paths.get_temp_directory())),
+        )
+    except (ImportError, AttributeError):
+        return choices
+    extensions = {".mp4", ".mov", ".mkv", ".webm", ".avi"}
+    found = []
+    for label, root in roots:
+        if not root.is_dir():
+            continue
+        for path in root.rglob("*"):
+            if path.is_file() and path.suffix.casefold() in extensions:
+                found.append(f"{label}:{path.relative_to(root).as_posix()}")
+    return choices + sorted(found, key=str.casefold)
 
 
 def _load_cached_motion_file(
@@ -3501,6 +3532,63 @@ class InfraChoirManualAtmosphereTarget:
         )
 
 
+class InfraChoirCachedMotionTarget:
+    """Compact full-frame cached-motion lane with an actual local-video selector."""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        choices = _cached_motion_clip_choices()
+        return {
+            "required": {
+                "mask": ("MASK",),
+                "use_in_render": ("BOOLEAN", {"forceInput": True}),
+                "generated_clip_path": (choices, {"default": choices[0]}),
+                "generated_motion_strength": (
+                    "FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.05},
+                ),
+                "generated_clip_max_seconds": (
+                    "FLOAT", {"default": 10.0, "min": 0.25, "max": 10.0, "step": 0.25},
+                ),
+                "generated_clip_overlap_seconds": (
+                    "FLOAT", {"default": 0.8, "min": 0.0, "max": 3.0, "step": 0.05},
+                ),
+            }
+        }
+
+    RETURN_TYPES = ("LOCAL_VISUALIZER_TARGET", "STRING", "STRING")
+    RETURN_NAMES = ("animation_target", "diagnostic", "configuration_json")
+    FUNCTION = "configure"
+    CATEGORY = "audio/infra choir"
+    DESCRIPTION = "Select and loop a reviewed local motion clip without hiding its path in advanced JSON."
+
+    def configure(
+        self, mask, use_in_render, generated_clip_path, generated_motion_strength,
+        generated_clip_max_seconds, generated_clip_overlap_seconds,
+    ):
+        selection = str(generated_clip_path).strip()
+        placeholder = selection == "(select a cached motion clip)"
+        active = bool(use_in_render) and not placeholder
+        result = InfraChoirAnimationTargetEnhanced().configure(
+            mask=mask, enabled=active, target_id="cached_full_scene_motion",
+            object_name="cached full-scene motion",
+            animation_prompt="Loop the reviewed motion clip without adding procedural geometry motion.",
+            mask_verified=active, target_role="organic", envelope_group="environment",
+            audio_driver="slow", motion_source="generated_clip", motion_type="still",
+            on_beat_flicker=0.0, off_beat_flicker=0.0, on_beat_motion=0.0,
+            off_beat_motion=0.0, generated_motion_strength=float(generated_motion_strength),
+            max_luminance_change=0.0, glow_strength=0.0, glow_radius_px=0.0,
+            saturation_variation=0.0, hue_variation_degrees=0.0, approved_mask_mode="add",
+            secondary_audio_driver="none", secondary_driver_mix=0.0,
+            response_min=0.0, response_max=1.0, foreground_protection=False,
+            atmospheric_motion_mode="cached_clip", generated_clip_path="" if placeholder else selection,
+            generated_clip_max_seconds=float(generated_clip_max_seconds),
+            generated_clip_overlap_seconds=float(generated_clip_overlap_seconds),
+        )
+        if bool(use_in_render) and placeholder:
+            return result[0], "cached_full_scene_motion: select a cached motion clip", result[2]
+        return result
+
+
 class InfraChoirManualTargetCompact:
     """Compact manual organic/lighting target with inclusion owned by its detector."""
 
@@ -4874,6 +4962,7 @@ NODE_CLASS_MAPPINGS = {
     "InfraChoirAnimationTargetEnhanced": InfraChoirAnimationTargetEnhanced,
     "InfraChoirAtmosphericTargetEnhanced": InfraChoirAtmosphericTargetEnhanced,
     "InfraChoirManualAtmosphereTarget": InfraChoirManualAtmosphereTarget,
+    "InfraChoirCachedMotionTarget": InfraChoirCachedMotionTarget,
     "InfraChoirManualTargetCompact": InfraChoirManualTargetCompact,
     "InfraChoirVisualizerEnhanced": InfraChoirVisualizerEnhanced,
     "InfraChoirVisualizerDualTrack": InfraChoirVisualizerDualTrack,
@@ -4900,6 +4989,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "InfraChoirAnimationTargetEnhanced": "Configure Infra Choir Target (Enhanced)",
     "InfraChoirAtmosphericTargetEnhanced": "Configure Infra Choir Atmosphere (Enhanced)",
     "InfraChoirManualAtmosphereTarget": "Configure Manual Smoke / Haze",
+    "InfraChoirCachedMotionTarget": "Select Cached Full-Scene Motion",
     "InfraChoirManualTargetCompact": "Configure Manual Target (Compact)",
     "InfraChoirVisualizerEnhanced": "Render Infra Choir Visualizer (Enhanced)",
     "InfraChoirVisualizerDualTrack": "Render Infra Choir Visualizer (Dual Track)",

@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/test_infra_choir_dual_track.py
     analysis_version: 1
     language: python
-    content_hash: 5333b7c65fbd29e43072faae912a3e8de143e110
+    content_hash: 2f87e73137afe1a7d8a87b31a613978b1e8af704
     dependencies:
     - __future__
     - importlib.util
@@ -27,8 +27,8 @@ source_catalog:
     symbols:
     - name: _module
       kind: function
-      line_start: 19
-      line_end: 24
+      line_start: 20
+      line_end: 25
       signature: _module()
       inputs: []
       output: unspecified
@@ -40,8 +40,8 @@ source_catalog:
       dependency_targets: []
     - name: _assert_workflow_schema
       kind: function
-      line_start: 27
-      line_end: 138
+      line_start: 28
+      line_end: 139
       signature: _assert_workflow_schema(module) -> None
       inputs:
       - module
@@ -77,20 +77,21 @@ source_catalog:
         symbol: VisualizerTargetStack.append
     - name: _assert_generic_cached_motion_workflow
       kind: function
-      line_start: 141
-      line_end: 165
+      line_start: 142
+      line_end: 173
       signature: _assert_generic_cached_motion_workflow() -> None
       inputs: []
       output: None
       dependencies:
       - GENERIC_CACHED_WORKFLOW_PATH.read_text
+      - USER_GENERIC_CACHED_WORKFLOW_PATH.read_text
       - json.loads
       parser: python-ast
       dependency_targets: []
     - name: main
       kind: function
-      line_start: 168
-      line_end: 528
+      line_start: 176
+      line_end: 538
       signature: main() -> int
       inputs: []
       output: int
