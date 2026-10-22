@@ -342,10 +342,12 @@ def build() -> Path:
     _attach_wan_generation(workflow)
     WORKFLOW.write_text(json.dumps(workflow, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     if USER_WORKFLOW.is_file():
+        # The live copy is user-owned. Exercise migrations against an in-memory
+        # copy for compatibility, but never rewrite its media, settings, layout,
+        # timestamp, or formatting as a side effect of repository validation.
         user_workflow = json.loads(USER_WORKFLOW.read_text(encoding="utf-8"))
         _upgrade_cached_motion_ui(user_workflow)
         _attach_wan_generation(user_workflow)
-        USER_WORKFLOW.write_text(json.dumps(user_workflow, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return WORKFLOW
 
 

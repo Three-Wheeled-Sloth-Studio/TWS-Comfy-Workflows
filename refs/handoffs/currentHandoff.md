@@ -7,6 +7,72 @@ tags: [handoff, comfyui, music-video, compositing, visualizer, wan]
 ---
 # Current Handoff
 
+## 2026-10-22 Generic TI2V 5B Workflow Integration
+
+`user/default/workflows/music_visualizer_ti2v5b_full.json` is the new separate,
+generic integration workflow. Its builder clones the user's saved
+`music_visualizer_cached_motion_full.json`, removes only the tagged legacy 14B
+generation lane, and leaves the selected image, audio, compositor values, and
+positions of every retained node unchanged. The source workflow remained at
+SHA-256 `D2900FA5AA785317907A86DBB9CD061011FB634BA9E98D4BD586332C0B84C1AA`
+after building.
+
+The new left-side lane uses native Wan 2.2 TI2V 5B nodes at 1024x576, 77 frames,
+16 fps, 20 steps, and CFG 5. Its behavioral prompts apply only where features
+exist and do not assume a particular artwork, track, person, or scene.
+
+`InfraChoirPersistMotionClip` atomically saves the decoded IMAGE batch under
+`output/music_visualizer/motion_assets/` before passing the same batch to the
+full-song renderer. The persistence card is an output node and has a connected
+preview, so it can be queued independently to generate, save, and inspect the
+short asset before the final render. The compositor still uses zero geometric
+stabilization and its existing overlap-aware motion loop, then adds the saved
+workflow's source-bound lighting, title, EQ, branding, and audio.
+
+The builder and tests do not modify the source graph. Tests include real FFmpeg
+persistence and verify saved widgets and retained positions. Restart ComfyUI
+once to register the new project-owned node before running the workflow.
+
+An isolated live ComfyUI run accepted the exact node schema with no prompt
+errors and completed the integrated 77-frame generation/persistence path in
+137.53 seconds. The accepted-seed asset is
+`D:\comfyDesktop\output\infra_choir\tests\ti2v5b_integrated_persist_gate_accepted_seed_00001_.mp4`:
+1024x576 H.264, 16 fps, 77 frames, 4.8125 seconds. Contact-frame review found
+substantial smoke/cloud, water, banner, and foreground organic motion without
+the first trial's progressive darkening. Maximum adjacent vertical phase shift
+was 0.271 pixels. With the workflow's 13-frame overlap, the simulated loop
+boundary luma change was 7.38 versus a 6.83 ordinary adjacent-frame median.
+The isolated backend was stopped after the test; the active ComfyUI queue was
+not touched.
+
+## 2026-10-21 Wan 2.2 TI2V 5B Benchmark
+
+The user authorized a smaller-model benchmark with all new model storage on
+D:. The official Comfy-Org `wan2.2_ti2v_5B_fp16.safetensors` and
+`wan2.2_vae.safetensors` were downloaded, size- and SHA-256-verified, and kept
+under `D:\comfyDesktop\models\shared`. The existing FP8 UMT5 encoder was
+reused. No saved workflow was rewritten.
+
+The benchmark read the current live generic workflow and therefore used its
+currently selected `The Logo and the Maw - banner.png`, not any older jazz or
+Raise the Neon Black image. A cold 832x480, 17-frame, four-step graph completed
+in 25.60 seconds. An 832x480, 81-frame, 20-step quality pass completed in 85.22
+seconds. The production-shaped 1024x576, 77-frame, 20-step, 16 fps gate
+completed in 129.84 seconds and saved:
+
+`D:\comfyDesktop\output\infra_choir\tests\wan22_ti2v5b_production_gate_1024x576_77f_20step_00001_.mp4`
+
+The final prompt kept the camera and structures fixed, drove dark multi-layer
+cloud/smoke/fog, water, banners, chains, practical lights, and the foreground
+sea structure, and rejected pale opaque haze. Contact-frame review showed
+strong environmental motion with stable major geometry. Adjacent-frame phase
+correlation measured a 0.595-pixel maximum vertical displacement, 0.145-pixel
+median, and 0.430-pixel 95th percentile; the prior periodic approximately
+10-pixel jump is absent. This is now the preferred smaller-model candidate.
+Loop continuity and integration with the generic full-song compositor remain
+separate gates. Full evidence is in
+`refs/evaluations/2026-10-21-wan22-ti2v-5b-benchmark.md`.
+
 ## 2026-10-21 End-to-End Run Crash
 
 The first real end-to-end run began at 16:14:55. Wan 2.2 14B initial sampling

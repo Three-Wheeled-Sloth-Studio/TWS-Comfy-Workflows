@@ -3669,6 +3669,85 @@ class InfraChoirGeneratedMotionTarget:
         )
 
 
+class InfraChoirPersistMotionClip:
+    """Atomically save a generated IMAGE batch before the full-song compositor uses it."""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "images": ("IMAGE",),
+                "fps": ("INT", {"default": 16, "min": 1, "max": 60}),
+                "output_prefix": (
+                    "STRING", {"default": "music_visualizer/motion_assets/generated_motion"},
+                ),
+            }
+        }
+
+    RETURN_TYPES = ("IMAGE", "STRING", "STRING")
+    RETURN_NAMES = ("persisted_images", "generated_clip_path", "diagnostic")
+    OUTPUT_NODE = True
+    FUNCTION = "persist"
+    CATEGORY = "audio/infra choir"
+    DESCRIPTION = "Save the generated motion batch as a reusable MP4 before passing it to the full-song renderer."
+
+    def persist(self, images, fps, output_prefix):
+        import folder_paths
+        import numpy as np
+
+        if shutil.which("ffmpeg") is None:
+            raise RuntimeError("FFmpeg must be available on PATH to persist generated motion.")
+        if not hasattr(images, "shape") or len(images.shape) != 4:
+            raise ValueError("Generated motion must be an IMAGE batch with shape [frames, height, width, channels].")
+        frame_count, height, width, channels = (int(value) for value in images.shape)
+        if frame_count < 2 or height < 2 or width < 2 or channels < 3:
+            raise ValueError("Generated motion must contain at least two RGB frames.")
+
+        prefix = _safe_name(str(output_prefix).replace("\\", "/").split("/")[-1])
+        parent = Path(str(output_prefix).replace("\\", "/")).parent.as_posix()
+        save_prefix = f"{parent}/{prefix}" if parent not in {"", "."} else prefix
+        output_folder, filename, counter, subfolder, _ = folder_paths.get_save_image_path(
+            save_prefix, folder_paths.get_output_directory(), width, height
+        )
+        output_file = f"{filename}_{counter:05}_.mp4"
+        output_path = Path(output_folder) / output_file
+        partial_path = output_path.with_name(f"{output_path.stem}.partial{output_path.suffix}")
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        command = [
+            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+            "-f", "rawvideo", "-pixel_format", "rgb24",
+            "-video_size", f"{width}x{height}", "-framerate", str(int(fps)),
+            "-i", "-", "-an", "-c:v", "libx264", "-preset", "fast", "-crf", "18",
+            "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(partial_path),
+        ]
+        process = subprocess.Popen(command, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            pixels = images.detach().cpu().numpy() if hasattr(images, "detach") else np.asarray(images)
+            pixels = np.clip(pixels[..., :3] * 255.0, 0.0, 255.0).astype(np.uint8)
+            assert process.stdin is not None
+            for frame in pixels:
+                process.stdin.write(np.ascontiguousarray(frame).tobytes())
+            process.stdin.close()
+            assert process.stderr is not None
+            error = process.stderr.read().decode("utf-8", errors="replace")
+            return_code = process.wait()
+            if return_code != 0:
+                raise RuntimeError(f"FFmpeg failed while saving generated motion: {error.strip()}")
+            partial_path.replace(output_path)
+        except Exception:
+            if process.poll() is None:
+                process.kill()
+                process.wait()
+            partial_path.unlink(missing_ok=True)
+            raise
+
+        relative_path = Path(subfolder) / output_file if subfolder else Path(output_file)
+        selection = f"output:{relative_path.as_posix()}"
+        diagnostic = f"Saved {frame_count} frames at {int(fps)} fps to {selection}"
+        return {"ui": {"text": [diagnostic]}, "result": (images, selection, diagnostic)}
+
+
 class InfraChoirManualTargetCompact:
     """Compact manual organic/lighting target with inclusion owned by its detector."""
 
@@ -5045,6 +5124,7 @@ NODE_CLASS_MAPPINGS = {
     "InfraChoirManualAtmosphereTarget": InfraChoirManualAtmosphereTarget,
     "InfraChoirCachedMotionTarget": InfraChoirCachedMotionTarget,
     "InfraChoirGeneratedMotionTarget": InfraChoirGeneratedMotionTarget,
+    "InfraChoirPersistMotionClip": InfraChoirPersistMotionClip,
     "InfraChoirManualTargetCompact": InfraChoirManualTargetCompact,
     "InfraChoirVisualizerEnhanced": InfraChoirVisualizerEnhanced,
     "InfraChoirVisualizerDualTrack": InfraChoirVisualizerDualTrack,
@@ -5074,6 +5154,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "InfraChoirManualAtmosphereTarget": "Configure Manual Smoke / Haze",
     "InfraChoirCachedMotionTarget": "Select Cached Full-Scene Motion",
     "InfraChoirGeneratedMotionTarget": "Use Generated Full-Scene Motion",
+    "InfraChoirPersistMotionClip": "Save Generated Motion Before Rendering",
     "InfraChoirManualTargetCompact": "Configure Manual Target (Compact)",
     "InfraChoirVisualizerEnhanced": "Render Infra Choir Visualizer (Enhanced)",
     "InfraChoirVisualizerDualTrack": "Render Infra Choir Visualizer (Dual Track)",

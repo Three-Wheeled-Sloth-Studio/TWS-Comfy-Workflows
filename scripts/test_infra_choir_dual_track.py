@@ -14,6 +14,7 @@ MODULE_PATH = ROOT / "custom_nodes/comfyui_audio_duration_plan/local_visualizer_
 WORKFLOW_PATH = ROOT / "user/default/workflows/music_visualizer_infra_choir_dual_track_scaffold.json"
 GENERIC_CACHED_WORKFLOW_PATH = ROOT / "user/default/workflows/music_visualizer_cached_motion_full_song.json"
 USER_GENERIC_CACHED_WORKFLOW_PATH = ROOT / "user/default/workflows/music_visualizer_cached_motion_full.json"
+TI2V5B_WORKFLOW_PATH = ROOT / "user/default/workflows/music_visualizer_ti2v5b_full.json"
 ADVANCED_UI_PATH = ROOT / "custom_nodes/comfyui_audio_duration_plan/web/infra_choir_manual_advanced.js"
 
 
@@ -180,6 +181,33 @@ def _assert_generic_cached_motion_workflow() -> None:
     assert saved_nodes[12]["type"] == "PreviewImage"
 
 
+def _assert_ti2v5b_workflow() -> None:
+    workflow = json.loads(TI2V5B_WORKFLOW_PATH.read_text(encoding="utf-8"))
+    nodes = {node["id"]: node for node in workflow["nodes"]}
+    links = {link[0]: link for link in workflow["links"]}
+    source = json.loads(USER_GENERIC_CACHED_WORKFLOW_PATH.read_text(encoding="utf-8"))
+    source_nodes = {node["id"]: node for node in source["nodes"]}
+    assert nodes[1]["widgets_values"] == source_nodes[1]["widgets_values"]
+    assert nodes[2]["widgets_values"] == source_nodes[2]["widgets_values"]
+    assert nodes[11]["widgets_values"] == source_nodes[11]["widgets_values"]
+    for node_id in (1, 2, 4, 5, 7, 8, 9, 11, 12):
+        assert nodes[node_id]["pos"] == source_nodes[node_id]["pos"]
+    assert not any(node.get("properties", {}).get("tws_stage") == "wan_generation" for node in workflow["nodes"])
+    assert nodes[400]["widgets_values"][0] == "wan2.2_ti2v_5B_fp16.safetensors"
+    assert nodes[402]["widgets_values"][0] == "wan2.2_vae.safetensors"
+    assert nodes[406]["widgets_values"] == [1024, 576, 77, 1]
+    assert nodes[407]["widgets_values"][2:4] == [20, 5]
+    assert nodes[409]["type"] == "InfraChoirPersistMotionClip"
+    assert nodes[409]["widgets_values"] == [16, "music_visualizer/motion_assets/generated_motion"]
+    assert nodes[410]["type"] == "PreviewImage"
+    assert links[2108][1:5] == [408, 0, 409, 0]
+    assert links[2109][1:5] == [409, 0, 410, 0]
+    assert links[2110][1:5] == [409, 0, 5, 1]
+    assert links[2112][1:5] == [1, 0, 406, 1]
+    assert nodes[11]["widgets_values_named"]["maximum_stabilization_percent"] == 0.0
+    assert workflow["groups"][-1]["title"].startswith("WAN 2.2 TI2V 5B")
+
+
 def main() -> int:
     import numpy as np
     import torch
@@ -197,6 +225,7 @@ def main() -> int:
     assert loop_differences[-1] <= max(loop_differences[:-1])
     _assert_workflow_schema(module)
     _assert_generic_cached_motion_workflow()
+    _assert_ti2v5b_workflow()
     choices = module.InfraChoirCachedMotionTarget.INPUT_TYPES()["required"]["generated_clip_path"][0]
     assert choices[0] == "(select a cached motion clip)"
     generated = module.InfraChoirGeneratedMotionTarget.INPUT_TYPES()["required"]
@@ -262,6 +291,33 @@ def main() -> int:
     assert generated_target["generated_motion"].shape[0] == 4
     assert generated_target["motion_source"] == "generated_clip"
     assert generated_target["motion_type"] == "still"
+    with tempfile.TemporaryDirectory(prefix="infra-choir-persist-motion-") as temporary:
+        output_directory = Path(temporary) / "output"
+        output_directory.mkdir()
+        persisted_directory = output_directory / "music_visualizer" / "motion_assets"
+        fake_paths = types.SimpleNamespace(
+            get_output_directory=lambda: str(output_directory),
+            get_save_image_path=lambda prefix, output, width, height: (
+                str(persisted_directory), "generated_motion", 1,
+                "music_visualizer/motion_assets", prefix,
+            ),
+        )
+        previous = sys.modules.get("folder_paths")
+        sys.modules["folder_paths"] = fake_paths
+        try:
+            result = module.InfraChoirPersistMotionClip().persist(
+                image.repeat(2, 1, 1, 1), 16,
+                "music_visualizer/motion_assets/generated_motion",
+            )
+            persisted = persisted_directory / "generated_motion_00001_.mp4"
+            assert persisted.exists() and persisted.stat().st_size > 0
+            assert result["result"][1] == "output:music_visualizer/motion_assets/generated_motion_00001_.mp4"
+            assert result["result"][0].shape[0] == 2
+        finally:
+            if previous is None:
+                sys.modules.pop("folder_paths", None)
+            else:
+                sys.modules["folder_paths"] = previous
     encoded = module._mask_png_base64(mask)
     assert torch.allclose(module._mask_from_png_base64(encoded), mask)
     atmospheric_inputs = module.InfraChoirAtmosphericTargetEnhanced.INPUT_TYPES()["required"]

@@ -7,7 +7,7 @@ source_catalog:
   - path: custom_nodes/comfyui_audio_duration_plan/local_visualizer_nodes.py
     analysis_version: 1
     language: python
-    content_hash: be12d7e4e09f88532d54f16ecff167b2cc85b67a
+    content_hash: 59d1bb772dd28278b73134dd2ddab2e63b5ee48a
     dependencies:
     - PIL
     - __future__
@@ -148,6 +148,8 @@ source_catalog:
     - InfraChoirCachedMotionTarget.configure
     - InfraChoirGeneratedMotionTarget.INPUT_TYPES
     - InfraChoirGeneratedMotionTarget.configure
+    - InfraChoirPersistMotionClip.INPUT_TYPES
+    - InfraChoirPersistMotionClip.persist
     - InfraChoirManualTargetCompact.INPUT_TYPES
     - InfraChoirManualTargetCompact.configure
     - _auto_target_settings
@@ -3085,10 +3087,60 @@ source_catalog:
       - float
       parser: python-ast
       dependency_targets: []
-    - name: InfraChoirManualTargetCompact.INPUT_TYPES
+    - name: InfraChoirPersistMotionClip.INPUT_TYPES
       kind: method
       line_start: 3676
-      line_end: 3705
+      line_end: 3685
+      signature: InfraChoirPersistMotionClip.INPUT_TYPES(cls)
+      inputs:
+      - cls
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: InfraChoirPersistMotionClip.persist
+      kind: method
+      line_start: 3694
+      line_end: 3748
+      signature: InfraChoirPersistMotionClip.persist(self, images, fps, output_prefix)
+      inputs:
+      - self
+      - images
+      - fps
+      - output_prefix
+      output: unspecified
+      dependencies:
+      - Path
+      - Path(str(output_prefix).replace('\\', '/')).parent.as_posix
+      - RuntimeError
+      - ValueError
+      - _safe_name
+      - error.strip
+      - folder_paths.get_output_directory
+      - folder_paths.get_save_image_path
+      - hasattr
+      - images.detach
+      - images.detach().cpu
+      - images.detach().cpu().numpy
+      - int
+      - len
+      - np.asarray
+      - np.ascontiguousarray
+      - np.ascontiguousarray(frame).tobytes
+      - np.clip
+      - np.clip(pixels[..., :3] * 255.0, 0.0, 255.0).astype
+      - output_path.parent.mkdir
+      - output_path.with_name
+      - partial_path.replace
+      - partial_path.unlink
+      - process.kill
+      parser: python-ast
+      dependency_targets:
+      - *id022
+    - name: InfraChoirManualTargetCompact.INPUT_TYPES
+      kind: method
+      line_start: 3755
+      line_end: 3784
       signature: InfraChoirManualTargetCompact.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -3098,8 +3150,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirManualTargetCompact.configure
       kind: method
-      line_start: 3713
-      line_end: 3770
+      line_start: 3792
+      line_end: 3849
       signature: InfraChoirManualTargetCompact.configure(self, mask, use_in_render, target_id, object_name, animation_prompt,
         target_role, linked_group, motion_type, beat_flicker, ambient_flicker, motion_amount, max_luminance_change, glow_strength,
         glow_radius_px, saturation_variation, hue_variation_degrees, advanced_settings_json)
@@ -3142,8 +3194,8 @@ source_catalog:
       - *id026
     - name: _auto_target_settings
       kind: function
-      line_start: 3773
-      line_end: 3846
+      line_start: 3852
+      line_end: 3925
       signature: '_auto_target_settings(object_class: str) -> dict'
       inputs:
       - 'object_class: str'
@@ -3154,8 +3206,8 @@ source_catalog:
       dependency_targets: []
     - name: _enforce_auto_target_behavior
       kind: function
-      line_start: 3849
-      line_end: 3900
+      line_start: 3928
+      line_end: 3979
       signature: '_enforce_auto_target_behavior(target: dict) -> dict'
       inputs:
       - 'target: dict'
@@ -3174,8 +3226,8 @@ source_catalog:
       dependency_targets: []
     - name: _protect_auto_motion_overlaps
       kind: function
-      line_start: 3903
-      line_end: 3947
+      line_start: 3982
+      line_end: 4026
       signature: '_protect_auto_motion_overlaps(plans: list[dict]) -> list[str]'
       inputs:
       - 'plans: list[dict]'
@@ -3211,8 +3263,8 @@ source_catalog:
       - *id003
     - name: _subtract_protected_mask
       kind: function
-      line_start: 3950
-      line_end: 3976
+      line_start: 4029
+      line_end: 4055
       signature: '_subtract_protected_mask(mask, protected, dilation_percent: float)'
       inputs:
       - mask
@@ -3241,8 +3293,8 @@ source_catalog:
       dependency_targets: []
     - name: _manifest_preview
       kind: function
-      line_start: 3979
-      line_end: 4009
+      line_start: 4058
+      line_end: 4088
       signature: _manifest_preview(image, targets)
       inputs:
       - image
@@ -3281,8 +3333,8 @@ source_catalog:
         symbol: _mask_from_png_base64
     - name: _auto_discover_response
       kind: function
-      line_start: 4012
-      line_end: 4042
+      line_start: 4091
+      line_end: 4121
       signature: '_auto_discover_response(manifest_text: str, preview, report: str, action: str, show_preview: bool)'
       inputs:
       - 'manifest_text: str'
@@ -3306,8 +3358,8 @@ source_catalog:
       - *id009
     - name: approve_infra_choir_discovery
       kind: function
-      line_start: 4045
-      line_end: 4099
+      line_start: 4124
+      line_end: 4178
       signature: 'approve_infra_choir_discovery(manifest_text: str, manifest_path: str, preserve_reviewed_targets: bool, approve_all:
         bool)'
       inputs:
@@ -3353,8 +3405,8 @@ source_catalog:
         symbol: WanSoundImageToVideoExtendState.extend
     - name: InfraChoirAutoDiscover.INPUT_TYPES
       kind: method
-      line_start: 4106
-      line_end: 4118
+      line_start: 4185
+      line_end: 4197
       signature: InfraChoirAutoDiscover.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -3364,8 +3416,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirAutoDiscover.run
       kind: method
-      line_start: 4127
-      line_end: 4230
+      line_start: 4206
+      line_end: 4309
       signature: InfraChoirAutoDiscover.run(self, image, discovery_profile, max_candidates, action, manifest_path, reviewed_manifest_json,
         preserve_reviewed_targets)
       inputs:
@@ -3435,8 +3487,8 @@ source_catalog:
         symbol: InfraChoirMultiLightDetector.detect
     - name: InfraChoirApprovedTargets.INPUT_TYPES
       kind: method
-      line_start: 4235
-      line_end: 4240
+      line_start: 4314
+      line_end: 4319
       signature: InfraChoirApprovedTargets.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -3446,8 +3498,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirApprovedTargets.load
       kind: method
-      line_start: 4248
-      line_end: 4285
+      line_start: 4327
+      line_end: 4364
       signature: InfraChoirApprovedTargets.load(self, image, manifest_path, enabled, stale_image_policy)
       inputs:
       - self
@@ -3489,8 +3541,8 @@ source_catalog:
       - *id003
     - name: _target_masks_overlap
       kind: function
-      line_start: 4288
-      line_end: 4305
+      line_start: 4367
+      line_end: 4384
       signature: _target_masks_overlap(left, right) -> float
       inputs:
       - left
@@ -3515,8 +3567,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirTargetMerge.INPUT_TYPES
       kind: method
-      line_start: 4310
-      line_end: 4315
+      line_start: 4389
+      line_end: 4394
       signature: InfraChoirTargetMerge.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -3526,8 +3578,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirTargetMerge.merge
       kind: method
-      line_start: 4323
-      line_end: 4349
+      line_start: 4402
+      line_end: 4428
       signature: InfraChoirTargetMerge.merge(self, manual_targets, auto_targets, merge_policy, overlap_threshold)
       inputs:
       - self
@@ -3559,8 +3611,8 @@ source_catalog:
       - *id003
     - name: InfraChoirVisualizer.INPUT_TYPES
       kind: method
-      line_start: 4354
-      line_end: 4399
+      line_start: 4433
+      line_end: 4478
       signature: InfraChoirVisualizer.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -3575,8 +3627,8 @@ source_catalog:
       - *id033
     - name: InfraChoirVisualizer._audio_drive
       kind: method
-      line_start: 4409
-      line_end: 4412
+      line_start: 4488
+      line_end: 4491
       signature: 'InfraChoirVisualizer._audio_drive(features, frame_index: int, driver: str) -> float'
       inputs:
       - features
@@ -3590,8 +3642,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirVisualizer.render
       kind: method
-      line_start: 4414
-      line_end: 4960
+      line_start: 4493
+      line_end: 5039
       signature: InfraChoirVisualizer.render(self, image, audio, targets, fps, delivery_resolution, pattern_key, maximum_stabilization_percent,
         apply_brand_logo, brand_logo_width_percent, brand_logo_opacity, apply_wordmark, wordmark_width_percent, wordmark_opacity,
         overlay_margin_px, title_card_enabled, band_name, song_title, title_card_image, title_card_placement, title_card_start_seconds,
@@ -3693,8 +3745,8 @@ source_catalog:
         symbol: _lighting_luminance_amount
     - name: InfraChoirVisualizerEnhanced.INPUT_TYPES
       kind: method
-      line_start: 4967
-      line_end: 5002
+      line_start: 5046
+      line_end: 5081
       signature: InfraChoirVisualizerEnhanced.INPUT_TYPES(cls)
       inputs:
       - cls
@@ -3706,8 +3758,8 @@ source_catalog:
       dependency_targets: []
     - name: InfraChoirVisualizerDualTrack.INPUT_TYPES
       kind: method
-      line_start: 5011
-      line_end: 5022
+      line_start: 5090
+      line_end: 5101
       signature: InfraChoirVisualizerDualTrack.INPUT_TYPES(cls)
       inputs:
       - cls

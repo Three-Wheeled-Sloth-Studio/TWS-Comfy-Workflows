@@ -20,6 +20,25 @@ accumulate full-song frames in Python memory.
 Model weights and runtime media remain external dependencies. Never download
 them during ordinary validation or track them in Git.
 
+## Wan 2.2 TI2V 5B benchmark assets
+
+The user authorized a D:-resident Wan 2.2 TI2V 5B benchmark on 2026-10-21.
+The following official Comfy-Org files are installed under
+`D:\comfyDesktop\models\shared` and exposed to the active D:-resident local
+model tree by hard links. They remain ignored external runtime state:
+
+- `diffusion_models/wan2.2_ti2v_5B_fp16.safetensors`
+  (9,999,658,848 bytes; SHA-256
+  `456f901338bd9eadbded3828b819109a9b68e8a525ca5cf8d0049a69fcfeca1e`)
+- `vae/wan2.2_vae.safetensors` (1,409,400,960 bytes; SHA-256
+  `e40321bd36b9709991dae2530eb4ac303dd168276980d3e9bc4b6e2b75fed156`)
+
+The existing `text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors` is reused.
+The model is a portable optional motion-generation dependency, not a
+requirement for the deterministic compositor. Its generated short clip must be
+saved before full-song assembly so a later failure does not discard completed
+diffusion work.
+
 ACE-Step 1.5 uses ComfyUI's native nodes and built-in `Text to Audio
 (ACE-Step 1.5)` blueprint; no third-party custom node or additional Python
 package is required. On 2026-10-01 the following Comfy-Org assets were

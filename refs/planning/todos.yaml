@@ -1,11 +1,15 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: 2026-10-20
+updated: 2026-10-22
 todos:
   - id: evaluate-wan21-vace-13b-motion-loop
+    status: done
+    area: generation-fidelity
+    summary: The installed VACE 1.3B gate produced real environmental motion but required 45 minutes 31 seconds for 17 frames at 832x480, making it impractical here. A subsequent native Wan 2.2 TI2V 5B benchmark completed 77 frames at 1024x576/20 steps in 129.84 seconds and is the preferred candidate.
+  - id: integrate-wan22-ti2v-5b-generic-workflow
     status: in_progress
     area: generation-fidelity
-    summary: Benchmark uninstalled Wan 2.1 VACE 1.3B separately at fixed-seed 832x480/~81 frames on the next selected image; compare lossless processing stages, protect static content, measure runtime/VRAM/motion/seams, and require a clean loop plus 8-second compositor probe before any full song.
+    summary: A separate generic TI2V 5B workflow now preserves the source graph's image, audio, compositor values, and retained-node layout; it atomically persists the 77-frame motion batch before the existing zero-stabilization, overlap-aware full-song compositor. The accepted-seed live gate completed in 137.53 seconds with strong motion, 0.271-pixel maximum adjacent vertical shift, and an overlap-loop boundary within ordinary motion scale. Complete the remaining full-song review of lighting, title, EQ, and audio before marking done.
   - id: validate-infra-choir-dual-track-runtime
     status: in_progress
     area: lightweight-visualizer

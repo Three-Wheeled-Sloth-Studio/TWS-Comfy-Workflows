@@ -39,6 +39,7 @@ ALLOWED_WORKFLOWS = {
     "user/default/workflows/video_raise_the_neon_black_full_visualizer_v2.json",
     "user/default/workflows/music_visualizer_cached_motion_full_song.json",
     "user/default/workflows/music_visualizer_cached_motion_full.json",
+    "user/default/workflows/music_visualizer_ti2v5b_full.json",
 }
 FORBIDDEN_SUFFIXES = {
     ".bin", ".ckpt", ".flac", ".gif", ".jpeg", ".jpg", ".mkv", ".mov",

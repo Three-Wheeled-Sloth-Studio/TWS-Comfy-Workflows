@@ -1,7 +1,17 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: 2026-10-20
+updated: 2026-10-21
 decisions:
+  - id: prefer-wan22-ti2v-5b-for-generic-motion-assets
+    status: accepted
+    date: 2026-10-21
+    decision: Use Wan 2.2 TI2V 5B as the next generic image-conditioned motion-asset candidate instead of the two-stage Wan 2.2 S2V 14B path or Wan 2.1 VACE 1.3B.
+    rationale: On the RTX 4070 12 GB system, the official native ComfyUI FP16 model completed a 77-frame 1024x576 20-step gate in 129.84 seconds, with dynamic atmospheric and water motion and no material frame translation. The comparable 14B path takes roughly two hours per four-step sampler, while the VACE 1.3B gate needed 45 minutes 31 seconds for only 17 frames.
+    consequences:
+      - Generate a short image-conditioned visual motion asset without audio conditioning; add music-synchronized lighting, EQ, titles, branding, and final audio in the deterministic compositor afterward.
+      - Keep prompts and source selection generic and bound to the current workflow; never restore benchmark artwork or track values into a saved production workflow.
+      - Retain a fixed camera and zero compositor stabilization; validate loop assembly separately because this gate tested motion and registration, not an end-to-start loop.
+      - Do not overwrite the current user-arranged workflow until a separate generic TI2V 5B workflow revision is deliberately built and reviewed.
   - id: next-video-vace-and-loop-quality-gate
     status: accepted
     date: 2026-10-20
