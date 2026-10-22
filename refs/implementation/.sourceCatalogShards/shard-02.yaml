@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/test_infra_choir_dual_track.py
     analysis_version: 1
     language: python
-    content_hash: f543cec30fdfd45537f7c0abaf04af0a99fa06c5
+    content_hash: 6ede1817198e948045cf0db67fa7508b5bf768e7
     dependencies:
     - __future__
     - importlib.util
@@ -78,7 +78,7 @@ source_catalog:
     - name: _assert_generic_cached_motion_workflow
       kind: function
       line_start: 142
-      line_end: 174
+      line_end: 180
       signature: _assert_generic_cached_motion_workflow() -> None
       inputs: []
       output: None
@@ -86,12 +86,14 @@ source_catalog:
       - GENERIC_CACHED_WORKFLOW_PATH.read_text
       - USER_GENERIC_CACHED_WORKFLOW_PATH.read_text
       - json.loads
+      - workflow.get
+      - workflow.get('definitions', {}).get
       parser: python-ast
       dependency_targets: []
     - name: main
       kind: function
-      line_start: 177
-      line_end: 548
+      line_start: 183
+      line_end: 554
       signature: main() -> int
       inputs: []
       output: int

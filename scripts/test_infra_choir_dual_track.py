@@ -165,6 +165,12 @@ def _assert_generic_cached_motion_workflow() -> None:
     assert links[9][1:5] == [7, 4, 9, 1]
     assert links[15][1:5] == [7, 1, 12, 0]
     assert links[2000][1:5] == [296, 0, 5, 1]
+    subgraphs = {item["id"]: item for item in workflow.get("definitions", {}).get("subgraphs", [])}
+    extension_type = nodes[279]["type"]
+    assert extension_type in subgraphs
+    assert subgraphs[extension_type]["name"] == "Video S2V Extend"
+    assert workflow["state"]["lastNodeId"] == workflow["last_node_id"]
+    assert workflow["state"]["lastLinkId"] == workflow["last_link_id"]
     assert nodes[12]["type"] == "PreviewImage"
     saved = json.loads(USER_GENERIC_CACHED_WORKFLOW_PATH.read_text(encoding="utf-8"))
     saved_nodes = {node["id"]: node for node in saved["nodes"]}

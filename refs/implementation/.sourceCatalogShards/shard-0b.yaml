@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/build_generic_cached_motion_visualizer_workflow.py
     analysis_version: 1
     language: python
-    content_hash: 53fd5d3251443c031ae120a3a592fd346ad19146
+    content_hash: 47b2b4cb0f3e86a7b16a789eae979aa5797f5088
     dependencies:
     - __future__
     - copy
@@ -91,7 +91,7 @@ source_catalog:
     - name: _attach_wan_generation
       kind: function
       line_start: 94
-      line_end: 175
+      line_end: 187
       signature: '_attach_wan_generation(workflow: dict) -> dict'
       inputs:
       - 'workflow: dict'
@@ -101,12 +101,17 @@ source_catalog:
       - _link
       - copied.append
       - copy.deepcopy
+      - definition.get
+      - definitions_by_id.values
       - dict.fromkeys
       - enumerate
       - float
       - generated_output.get
+      - group.get
       - guidance.get
       - guidance['widgets_values_named'].update
+      - guided.get
+      - guided.get('definitions', {}).get
       - int
       - item.get
       - json.loads
@@ -116,11 +121,6 @@ source_catalog:
       - next
       - node.get
       - node.get('properties', {}).get
-      - node.setdefault
-      - original.get
-      - output.get
-      - replacement['outputs'][slot].get
-      - substitutions.items
       parser: python-ast
       dependency_targets:
       - *id001
@@ -129,8 +129,8 @@ source_catalog:
       - *id004
     - name: build
       kind: function
-      line_start: 178
-      line_end: 337
+      line_start: 190
+      line_end: 349
       signature: build() -> Path
       inputs: []
       output: Path

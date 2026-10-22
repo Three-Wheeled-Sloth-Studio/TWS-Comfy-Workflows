@@ -105,6 +105,14 @@ def _attach_wan_generation(workflow: dict) -> dict:
     substitutions = {52: 1, 58: 2}
     copied_ids = dependencies - substitutions.keys()
     node_map = {old: old + 200 for old in copied_ids} | substitutions
+    copied_types = {str(node["type"]) for node in guided["nodes"] if node["id"] in copied_ids}
+    existing_definitions = copy.deepcopy(workflow.get("definitions", {}).get("subgraphs", []))
+    definitions_by_id = {str(item["id"]): item for item in existing_definitions}
+    for definition in guided.get("definitions", {}).get("subgraphs", []):
+        if str(definition.get("id")) in copied_types:
+            definitions_by_id[str(definition["id"])] = copy.deepcopy(definition)
+    if definitions_by_id:
+        workflow["definitions"] = {"subgraphs": list(definitions_by_id.values())}
     selected_links = [link for link in guided["links"] if link[1] in dependencies and link[3] in dependencies]
     link_map = {link[0]: 1000 + index for index, link in enumerate(selected_links)}
 
@@ -172,6 +180,10 @@ def _attach_wan_generation(workflow: dict) -> dict:
         })
     workflow["last_node_id"] = max(int(node["id"]) for node in workflow["nodes"])
     workflow["last_link_id"] = max(int(link[0]) for link in workflow["links"])
+    state = workflow.setdefault("state", {})
+    state["lastNodeId"] = workflow["last_node_id"]
+    state["lastLinkId"] = workflow["last_link_id"]
+    state["lastGroupId"] = max((int(group.get("id", 0)) for group in workflow.get("groups", [])), default=0)
     return workflow
 
 

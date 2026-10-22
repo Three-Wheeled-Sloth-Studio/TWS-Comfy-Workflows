@@ -7,7 +7,24 @@ tags: [handoff, comfyui, music-video, compositing, visualizer, wan]
 ---
 # Current Handoff
 
+## 2026-10-21 End-to-End Run Crash
+
+The first real end-to-end run began at 16:14:55. Wan 2.2 14B initial sampling
+completed four steps at 18:56:23 after 2:02:40, and the extension stage began at
+18:58:52. Windows stopped unexpectedly at 19:17:05 with bugcheck `0x133`
+(`DPC_WATCHDOG_VIOLATION`) and rebooted at 19:46:46. ComfyUI logged no workflow
+exception, no final decode/save occurred, and no new MP4 or reusable motion file
+was written; the completed first-stage latent existed only in memory and was
+lost. The protected dump is `C:\Windows\Minidump\102126-16734-01.dmp`. This
+two-stage 14B path is not a reasonable production default on the current 12 GB
+GPU: each four-step sampler is approximately two hours under dynamic offload.
+
 ## 2026-10-21 End-to-End Generic Workflow
+
+The first generated revision omitted the serialized `Video S2V Extend` subgraph
+definition and failed during front-end load with an undefined `LGraph`. The
+builder now copies every referenced subgraph definition and synchronizes the
+top-level graph state; focused tests require both before accepting the workflow.
 
 `user/default/workflows/music_visualizer_cached_motion_full.json` is now an
 end-to-end workflow despite its retained user-chosen filename. It accepts the
