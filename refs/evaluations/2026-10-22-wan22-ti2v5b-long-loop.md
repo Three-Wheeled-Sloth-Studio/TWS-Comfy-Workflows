@@ -53,7 +53,9 @@ attributed solely to frame count: the saved user prompt now explicitly asks for
 gentler water and adds subtle crane motion. Runtime scaling remains comparable
 because those prompt changes do not materially alter sampler cost.
 
-Do not promote the longer setting over the accepted 77-frame default until the
-user reviews the saved clip or blended preview. A later timing pass should
-instrument conditioning/model load, sampling, VAE decode, persistence, light
-detection, and full-song composition independently.
+The user subsequently reviewed the result and saved the production candidate
+as `music_visualizer_ti2v5b_long_loop.json`. Treat that saved workflow as the
+current long-loop version and retain the 77-frame workflow as the faster
+fallback. The `_experiment` file remains historical benchmark evidence. A later
+timing pass should instrument conditioning/model load, sampling, VAE decode,
+persistence, light detection, and full-song composition independently.

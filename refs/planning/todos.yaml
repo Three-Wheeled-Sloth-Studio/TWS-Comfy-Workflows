@@ -15,9 +15,9 @@ todos:
     area: user-interface
     summary: Place the two EQ color controls together and expose color pickers for both. Explore a Suggest colors action that selects two mutually distinct colors with strong contrast against the bottom EQ region while favoring hues complementary to colors elsewhere in the current artwork.
   - id: benchmark-longer-ti2v5b-motion-assets
-    status: in_progress
+    status: done
     area: generation-fidelity
-    summary: The separate 121-frame gate completed in 233.98 seconds, scaling to 1.69x the prior wall time for 1.57x the frames. It produced a stable 7.56-second asset and a 6.75-second overlap-aware loop whose boundary was at ordinary-motion 95th-percentile scale. Await user review before promotion, then instrument generation, decode/persistence, lighting/compositing, and encoding separately before considering 161 frames or more steps.
+    summary: The 121-frame gate completed in 233.98 seconds, scaling to 1.69x the prior wall time for 1.57x the frames. It produced a stable 7.56-second asset and a 6.75-second overlap-aware loop whose boundary was at ordinary-motion 95th-percentile scale. The user promoted it as music_visualizer_ti2v5b_long_loop.json. Instrument stages separately before considering 161 frames or more steps.
   - id: validate-infra-choir-dual-track-runtime
     status: in_progress
     area: lightweight-visualizer

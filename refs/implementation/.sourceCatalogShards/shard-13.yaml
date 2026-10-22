@@ -99,7 +99,7 @@ source_catalog:
   - path: scripts/build_ti2v5b_long_loop_experiment.py
     analysis_version: 1
     language: python
-    content_hash: 2229d9d5ea1f1af36d3f2fed75a28d30589c4d0e
+    content_hash: ab3c6f8178af1392ea5d037c0b4815601bea61bc
     dependencies:
     - __future__
     - hashlib
@@ -126,12 +126,13 @@ source_catalog:
     - name: build
       kind: function
       line_start: 19
-      line_end: 67
+      line_end: 76
       signature: build()
       inputs: []
       output: unspecified
       dependencies:
       - SOURCE.read_bytes
+      - WORKFLOW.exists
       - WORKFLOW.read_text
       - WORKFLOW.write_text
       - _node
@@ -140,6 +141,7 @@ source_catalog:
       - hashlib.sha256
       - hashlib.sha256(SOURCE.read_bytes()).hexdigest
       - hashlib.sha256(source_bytes).hexdigest
+      - isinstance
       - item.get
       - item.get('widget', {}).get
       - json.dumps
@@ -153,7 +155,6 @@ source_catalog:
       - str
       - sum
       - uuid.uuid5
-      - workflow.get
       parser: python-ast
       dependency_targets:
       - path: scripts/build_generic_ti2v5b_visualizer_workflow.py

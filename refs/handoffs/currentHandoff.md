@@ -9,11 +9,13 @@ tags: [handoff, comfyui, music-video, compositing, visualizer, wan]
 
 ## 2026-10-22 TI2V 5B Longer-Loop Experiment
 
-The accepted `music_visualizer_ti2v5b_full.json` was preserved and forked to
-`music_visualizer_ti2v5b_long_loop_experiment.json`. The experiment changes
-only the motion length to 121 frames plus experiment-specific labels/output
-prefixes; current artwork, audio, prompts, seed, sampler, compositor settings,
-and node positions remain inherited from the accepted saved workflow.
+The user reviewed and saved the 121-frame candidate as
+`music_visualizer_ti2v5b_long_loop.json`; this is now the current usable
+long-loop workflow. The shorter `music_visualizer_ti2v5b_full.json` remains the
+faster fallback. The historical
+`music_visualizer_ti2v5b_long_loop_experiment.json` records the original gate.
+The long-loop version retains the current artwork, audio, prompts, seed,
+sampler, compositor settings, and node positions from the accepted workflow.
 
 The isolated motion gate completed in 233.98 seconds: 121 frames at 1024x576
 and 16 fps, producing a 7.5625-second asset. That is 1.57x the frames for 1.69x
@@ -26,9 +28,9 @@ Review assets are
 `D:\comfyDesktop\output\infra_choir\tests\ti2v5b_121f_long_loop_gate_00001_.mp4`
 and the two-cycle
 `D:\comfyDesktop\output\infra_choir\tests\ti2v5b_121f_long_loop_blended_preview.mp4`.
-Promote 121 frames only after user review. The current prompt also asks for
-gentler water, so lower measured water variation is not a frame-count-only
-result. EQ UI changes remain deferred: safely grouping the two existing string
+The current prompt asks for gentler water, so lower measured water variation is
+not a frame-count-only result. EQ UI changes remain deferred: safely grouping
+the two existing string
 widgets and adding native color pickers requires a separately tested frontend
 extension and should not be slipped into the accepted renderer schema.
 

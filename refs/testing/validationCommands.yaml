@@ -47,9 +47,9 @@ commands:
   - id: build-generic-ti2v5b-visualizer-workflow
     command: .venv\Scripts\python.exe scripts/build_generic_ti2v5b_visualizer_workflow.py
     purpose: Build the separate generic Wan 2.2 TI2V 5B workflow from the saved user graph without modifying its image, audio, layout, or compositor settings.
-  - id: build-ti2v5b-long-loop-experiment
+  - id: build-ti2v5b-long-loop-workflow
     command: .venv\Scripts\python.exe scripts/build_ti2v5b_long_loop_experiment.py
-    purpose: Fork the accepted TI2V 5B workflow into a 121-frame experiment without modifying the accepted source graph or its saved user settings.
+    purpose: Validate or create the user-promoted 121-frame long-loop workflow without modifying either accepted saved workflow or its user settings.
   - id: test-infra-choir-enhanced
     command: .venv\Scripts\python.exe scripts/test_infra_choir_enhanced.py
     purpose: Validate cached high-resolution analysis, transient/envelope shaping, section overrides, and bounded EQ drawing without rendering media.

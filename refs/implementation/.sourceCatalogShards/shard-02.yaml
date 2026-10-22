@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/test_infra_choir_dual_track.py
     analysis_version: 1
     language: python
-    content_hash: daa911b93ee4dcc40f10b77bb47a16a003b130a8
+    content_hash: 026f21d1fe430aa2a34c4e6d32486568420e9ab5
     dependencies:
     - __future__
     - importlib.util

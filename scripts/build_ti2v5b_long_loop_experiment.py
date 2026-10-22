@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "user/default/workflows/music_visualizer_ti2v5b_full.json"
-WORKFLOW = ROOT / "user/default/workflows/music_visualizer_ti2v5b_long_loop_experiment.json"
+WORKFLOW = ROOT / "user/default/workflows/music_visualizer_ti2v5b_long_loop.json"
 FRAME_COUNT = 121
 
 
@@ -54,7 +54,14 @@ def build():
             group["title"] = "WAN 2.2 TI2V 5B — 121-FRAME LONG-LOOP EXPERIMENT"
 
     workflow["id"] = str(uuid.uuid5(uuid.NAMESPACE_URL, "tws:music-visualizer:ti2v5b:121-frame-experiment"))
-    WORKFLOW.write_text(json.dumps(workflow, separators=(",", ":")) + "\n", encoding="utf-8")
+    if not WORKFLOW.exists():
+        WORKFLOW.write_text(json.dumps(workflow, separators=(",", ":")) + "\n", encoding="utf-8")
+        action = "Wrote"
+    else:
+        # The user-promoted long-loop workflow is authoritative once saved.
+        # Validate its contract without reverting its output prefix, prompts,
+        # media, layout, or ComfyUI serialization.
+        action = "Validated candidate; preserved existing"
 
     assert hashlib.sha256(SOURCE.read_bytes()).hexdigest() == source_hash
     rebuilt = json.loads(WORKFLOW.read_text(encoding="utf-8"))
@@ -62,7 +69,9 @@ def build():
     assert _node(rebuilt, 407)["widgets_values"][2] == 20
     assert _node(rebuilt, 5)["widgets_values_named"]["loop_overlap_seconds"] == 0.8
     assert _node(rebuilt, 11)["widgets_values_named"]["maximum_stabilization_percent"] == 0
-    print(f"Wrote {WORKFLOW}")
+    assert isinstance(_node(rebuilt, 11)["widgets_values_named"]["output_prefix"], str)
+    assert _node(rebuilt, 11)["widgets_values_named"]["output_prefix"]
+    print(f"{action} {WORKFLOW}")
     print(f"Preserved accepted source SHA256 {source_hash.upper()}")
     return WORKFLOW
 
