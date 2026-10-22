@@ -7,6 +7,31 @@ tags: [handoff, comfyui, music-video, compositing, visualizer, wan]
 ---
 # Current Handoff
 
+## 2026-10-22 TI2V 5B Longer-Loop Experiment
+
+The accepted `music_visualizer_ti2v5b_full.json` was preserved and forked to
+`music_visualizer_ti2v5b_long_loop_experiment.json`. The experiment changes
+only the motion length to 121 frames plus experiment-specific labels/output
+prefixes; current artwork, audio, prompts, seed, sampler, compositor settings,
+and node positions remain inherited from the accepted saved workflow.
+
+The isolated motion gate completed in 233.98 seconds: 121 frames at 1024x576
+and 16 fps, producing a 7.5625-second asset. That is 1.57x the frames for 1.69x
+the prior live-gate time, with no performance cliff or schema error. Maximum
+adjacent vertical shift was 0.098 pixels. The 0.8-second overlap produces a
+6.75-second effective loop; its boundary change (3.80) is essentially the
+ordinary adjacent-motion 95th percentile (3.76).
+
+Review assets are
+`D:\comfyDesktop\output\infra_choir\tests\ti2v5b_121f_long_loop_gate_00001_.mp4`
+and the two-cycle
+`D:\comfyDesktop\output\infra_choir\tests\ti2v5b_121f_long_loop_blended_preview.mp4`.
+Promote 121 frames only after user review. The current prompt also asks for
+gentler water, so lower measured water variation is not a frame-count-only
+result. EQ UI changes remain deferred: safely grouping the two existing string
+widgets and adding native color pickers requires a separately tested frontend
+extension and should not be slipped into the accepted renderer schema.
+
 ## 2026-10-22 TI2V 5B User Acceptance
 
 The user completed a full workflow run and accepted the generic Wan 2.2 TI2V

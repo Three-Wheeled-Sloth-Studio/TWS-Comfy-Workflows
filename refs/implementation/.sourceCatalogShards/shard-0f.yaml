@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/build_generic_ti2v5b_visualizer_workflow.py
     analysis_version: 1
     language: python
-    content_hash: 4ef4654ae46458dc4ffd92e3f2cc690c9acb034e
+    content_hash: 9a920101e0e29363ac231be417782992a96b9f9c
     dependencies:
     - __future__
     - copy
@@ -133,6 +133,8 @@ source_catalog:
         symbol: _input
       - path: scripts/build_generic_ti2v5b_visualizer_workflow.py
         symbol: _node
+      - path: scripts/build_ti2v5b_long_loop_experiment.py
+        symbol: _node
       - path: scripts/build_generic_ti2v5b_visualizer_workflow.py
         symbol: _output
     - name: _validate
@@ -158,13 +160,14 @@ source_catalog:
     - name: build
       kind: function
       line_start: 166
-      line_end: 209
+      line_end: 216
       signature: build()
       inputs: []
       output: unspecified
       dependencies:
       - SOURCE.read_bytes
       - SOURCE.read_text
+      - WORKFLOW.exists
       - WORKFLOW.write_text
       - _connect
       - _generation_nodes

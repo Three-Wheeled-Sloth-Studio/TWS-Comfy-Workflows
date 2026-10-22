@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/validate_repository.py
     analysis_version: 1
     language: python
-    content_hash: 97c964b0fa8d53175bb493b87e16cc13e8d9dfdc
+    content_hash: 6b4a8c78ee3bfa8b069c921f27d638be572fcac8
     dependencies:
     - __future__
     - pathlib
@@ -19,8 +19,8 @@ source_catalog:
     symbols:
     - name: tracked_paths
       kind: function
-      line_start: 51
-      line_end: 55
+      line_start: 52
+      line_end: 56
       signature: tracked_paths() -> list[str]
       inputs: []
       output: list[str]
@@ -34,8 +34,8 @@ source_catalog:
         symbol: InfraChoirAutoDiscover.run
     - name: main
       kind: function
-      line_start: 58
-      line_end: 87
+      line_start: 59
+      line_end: 88
       signature: main() -> int
       inputs: []
       output: int

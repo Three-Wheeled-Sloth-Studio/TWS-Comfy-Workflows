@@ -11,6 +11,7 @@ Generated OKF discovery index. Do not edit manually.
 * [Raise the Neon Black Full-Song Hybrid Render](2026-10-20-raise-neon-black-full-render.md) - Production evidence for the cached-motion, title, 2048-band EQ, and localized music-lighting render.
 * [Raise the Neon Black Environmental Motion Test](2026-10-20-raise-neon-black-motion-test.md) - One fixed-seed Wan S2V review of scene-wide environmental motion and downstream hybrid-compositing suitability.
 * [Wan 2.2 TI2V 5B Local Benchmark](2026-10-21-wan22-ti2v-5b-benchmark.md) - Fixed-seed native ComfyUI benchmark of the official 5B image-to-video model on the studio RTX 4070.
+* [Wan 2.2 TI2V 5B 121-Frame Long-Loop Gate](2026-10-22-wan22-ti2v5b-long-loop.md) - Controlled longer-duration fork of the accepted generic TI2V 5B workflow.
 * [Infra Choir Music Generation Candidate Spike](infraChoirMusicGenerationCandidates.md) - Installation and runtime evidence for pytraveler/YuE2-ComfyUI and Remiqora.
 
 ## Supporting Files

@@ -203,9 +203,16 @@ def build():
     workflow["last_node_id"] = workflow["state"]["lastNodeId"] = 410
     workflow["last_link_id"] = workflow["state"]["lastLinkId"] = 2114
     _validate(workflow, source_hash)
-    WORKFLOW.write_text(json.dumps(workflow, indent=2) + "\n", encoding="utf-8")
+    if not WORKFLOW.exists():
+        WORKFLOW.write_text(json.dumps(workflow, indent=2) + "\n", encoding="utf-8")
+        action = "Wrote"
+    else:
+        # Once created and reviewed, this workflow is user-owned. Validation
+        # exercises the candidate entirely in memory and must not revert saved
+        # prompts, media, compositor settings, layout, or serialization.
+        action = "Validated candidate; preserved existing"
     assert hashlib.sha256(SOURCE.read_bytes()).hexdigest() == source_hash
-    print(f"Wrote {WORKFLOW}")
+    print(f"{action} {WORKFLOW}")
     print(f"Preserved source SHA256 {source_hash.upper()}")
 
 

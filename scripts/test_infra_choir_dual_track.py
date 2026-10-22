@@ -15,6 +15,7 @@ WORKFLOW_PATH = ROOT / "user/default/workflows/music_visualizer_infra_choir_dual
 GENERIC_CACHED_WORKFLOW_PATH = ROOT / "user/default/workflows/music_visualizer_cached_motion_full_song.json"
 USER_GENERIC_CACHED_WORKFLOW_PATH = ROOT / "user/default/workflows/music_visualizer_cached_motion_full.json"
 TI2V5B_WORKFLOW_PATH = ROOT / "user/default/workflows/music_visualizer_ti2v5b_full.json"
+TI2V5B_LONG_LOOP_WORKFLOW_PATH = ROOT / "user/default/workflows/music_visualizer_ti2v5b_long_loop_experiment.json"
 ADVANCED_UI_PATH = ROOT / "custom_nodes/comfyui_audio_duration_plan/web/infra_choir_manual_advanced.js"
 
 
@@ -189,7 +190,6 @@ def _assert_ti2v5b_workflow() -> None:
     source_nodes = {node["id"]: node for node in source["nodes"]}
     assert nodes[1]["widgets_values"] == source_nodes[1]["widgets_values"]
     assert nodes[2]["widgets_values"] == source_nodes[2]["widgets_values"]
-    assert nodes[11]["widgets_values"] == source_nodes[11]["widgets_values"]
     for node_id in (1, 2, 4, 5, 7, 8, 9, 11, 12):
         assert nodes[node_id]["pos"] == source_nodes[node_id]["pos"]
     assert not any(node.get("properties", {}).get("tws_stage") == "wan_generation" for node in workflow["nodes"])
@@ -205,7 +205,27 @@ def _assert_ti2v5b_workflow() -> None:
     assert links[2110][1:5] == [409, 0, 5, 1]
     assert links[2112][1:5] == [1, 0, 406, 1]
     assert nodes[11]["widgets_values_named"]["maximum_stabilization_percent"] == 0.0
+    assert nodes[11]["widgets_values_named"]["eq_ultra_band_count"] == 2048
+    assert nodes[11]["widgets_values_named"]["eq_enabled"] is True
     assert workflow["groups"][-1]["title"].startswith("WAN 2.2 TI2V 5B")
+
+
+def _assert_ti2v5b_long_loop_workflow() -> None:
+    source = json.loads(TI2V5B_WORKFLOW_PATH.read_text(encoding="utf-8"))
+    experiment = json.loads(TI2V5B_LONG_LOOP_WORKFLOW_PATH.read_text(encoding="utf-8"))
+    source_nodes = {node["id"]: node for node in source["nodes"]}
+    nodes = {node["id"]: node for node in experiment["nodes"]}
+    assert set(nodes) == set(source_nodes)
+    for node_id in set(nodes) - {11, 406, 407, 409}:
+        assert nodes[node_id] == source_nodes[node_id]
+    assert nodes[406]["widgets_values_named"]["length"] == 121
+    assert nodes[406]["widgets_values"][2] == 121
+    assert nodes[407]["widgets_values"][2] == source_nodes[407]["widgets_values"][2] == 20
+    assert nodes[409]["widgets_values_named"]["output_prefix"].endswith("generated_motion_121f_experiment")
+    assert nodes[5]["widgets_values_named"]["loop_overlap_seconds"] == 0.8
+    assert nodes[11]["widgets_values_named"]["maximum_stabilization_percent"] == 0
+    assert nodes[11]["widgets_values_named"]["output_prefix"] == "music_visualizer/experiments/ti2v5b_121f/final"
+    assert experiment["links"] == source["links"]
 
 
 def main() -> int:
@@ -226,6 +246,7 @@ def main() -> int:
     _assert_workflow_schema(module)
     _assert_generic_cached_motion_workflow()
     _assert_ti2v5b_workflow()
+    _assert_ti2v5b_long_loop_workflow()
     choices = module.InfraChoirCachedMotionTarget.INPUT_TYPES()["required"]["generated_clip_path"][0]
     assert choices[0] == "(select a cached motion clip)"
     generated = module.InfraChoirGeneratedMotionTarget.INPUT_TYPES()["required"]

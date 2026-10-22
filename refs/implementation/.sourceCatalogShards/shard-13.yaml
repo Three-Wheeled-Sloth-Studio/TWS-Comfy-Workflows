@@ -96,3 +96,67 @@ source_catalog:
         symbol: _link
       - path: scripts/build_infra_choir_raise_neon_black_full_video.py
         symbol: _link
+  - path: scripts/build_ti2v5b_long_loop_experiment.py
+    analysis_version: 1
+    language: python
+    content_hash: 2229d9d5ea1f1af36d3f2fed75a28d30589c4d0e
+    dependencies:
+    - __future__
+    - hashlib
+    - json
+    - pathlib
+    - uuid
+    provides:
+    - _node
+    - build
+    symbols:
+    - name: _node
+      kind: function
+      line_start: 15
+      line_end: 16
+      signature: _node(workflow, node_id)
+      inputs:
+      - workflow
+      - node_id
+      output: unspecified
+      dependencies:
+      - next
+      parser: python-ast
+      dependency_targets: []
+    - name: build
+      kind: function
+      line_start: 19
+      line_end: 67
+      signature: build()
+      inputs: []
+      output: unspecified
+      dependencies:
+      - SOURCE.read_bytes
+      - WORKFLOW.read_text
+      - WORKFLOW.write_text
+      - _node
+      - enumerate
+      - group.get
+      - hashlib.sha256
+      - hashlib.sha256(SOURCE.read_bytes()).hexdigest
+      - hashlib.sha256(source_bytes).hexdigest
+      - item.get
+      - item.get('widget', {}).get
+      - json.dumps
+      - json.loads
+      - latent.setdefault
+      - next
+      - persist.setdefault
+      - print
+      - renderer.setdefault
+      - source_hash.upper
+      - str
+      - sum
+      - uuid.uuid5
+      - workflow.get
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/build_generic_ti2v5b_visualizer_workflow.py
+        symbol: _node
+      - path: scripts/build_ti2v5b_long_loop_experiment.py
+        symbol: _node

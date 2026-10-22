@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/test_infra_choir_dual_track.py
     analysis_version: 1
     language: python
-    content_hash: 5d27c271e41461ff923790142bd9c359834de004
+    content_hash: daa911b93ee4dcc40f10b77bb47a16a003b130a8
     dependencies:
     - __future__
     - importlib.util
@@ -24,12 +24,13 @@ source_catalog:
     - _assert_workflow_schema
     - _assert_generic_cached_motion_workflow
     - _assert_ti2v5b_workflow
+    - _assert_ti2v5b_long_loop_workflow
     - main
     symbols:
     - name: _module
       kind: function
-      line_start: 21
-      line_end: 26
+      line_start: 22
+      line_end: 27
       signature: _module()
       inputs: []
       output: unspecified
@@ -41,8 +42,8 @@ source_catalog:
       dependency_targets: []
     - name: _assert_workflow_schema
       kind: function
-      line_start: 29
-      line_end: 140
+      line_start: 30
+      line_end: 141
       signature: _assert_workflow_schema(module) -> None
       inputs:
       - module
@@ -78,8 +79,8 @@ source_catalog:
         symbol: VisualizerTargetStack.append
     - name: _assert_generic_cached_motion_workflow
       kind: function
-      line_start: 143
-      line_end: 181
+      line_start: 144
+      line_end: 182
       signature: _assert_generic_cached_motion_workflow() -> None
       inputs: []
       output: None
@@ -93,8 +94,8 @@ source_catalog:
       dependency_targets: []
     - name: _assert_ti2v5b_workflow
       kind: function
-      line_start: 184
-      line_end: 208
+      line_start: 185
+      line_end: 210
       signature: _assert_ti2v5b_workflow() -> None
       inputs: []
       output: None
@@ -108,10 +109,25 @@ source_catalog:
       - workflow['groups'][-1]['title'].startswith
       parser: python-ast
       dependency_targets: []
+    - name: _assert_ti2v5b_long_loop_workflow
+      kind: function
+      line_start: 213
+      line_end: 228
+      signature: _assert_ti2v5b_long_loop_workflow() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - TI2V5B_LONG_LOOP_WORKFLOW_PATH.read_text
+      - TI2V5B_WORKFLOW_PATH.read_text
+      - json.loads
+      - nodes[409]['widgets_values_named']['output_prefix'].endswith
+      - set
+      parser: python-ast
+      dependency_targets: []
     - name: main
       kind: function
-      line_start: 211
-      line_end: 610
+      line_start: 231
+      line_end: 631
       signature: main() -> int
       inputs: []
       output: int
@@ -120,6 +136,7 @@ source_catalog:
       - MODULE_PATH.read_text
       - Path
       - _assert_generic_cached_motion_workflow
+      - _assert_ti2v5b_long_loop_workflow
       - _assert_ti2v5b_workflow
       - _assert_workflow_schema
       - _module
@@ -139,11 +156,12 @@ source_catalog:
       - float
       - generated_diagnostic.endswith
       - glow.mask.sum
-      - guarded[5:7, 9:11].min
       parser: python-ast
       dependency_targets:
       - path: scripts/test_infra_choir_dual_track.py
         symbol: _assert_generic_cached_motion_workflow
+      - path: scripts/test_infra_choir_dual_track.py
+        symbol: _assert_ti2v5b_long_loop_workflow
       - path: scripts/test_infra_choir_dual_track.py
         symbol: _assert_ti2v5b_workflow
       - path: scripts/test_infra_choir_dual_track.py
