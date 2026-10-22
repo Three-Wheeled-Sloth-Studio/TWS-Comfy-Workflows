@@ -7,9 +7,17 @@ todos:
     area: generation-fidelity
     summary: The installed VACE 1.3B gate produced real environmental motion but required 45 minutes 31 seconds for 17 frames at 832x480, making it impractical here. A subsequent native Wan 2.2 TI2V 5B benchmark completed 77 frames at 1024x576/20 steps in 129.84 seconds and is the preferred candidate.
   - id: integrate-wan22-ti2v-5b-generic-workflow
-    status: in_progress
+    status: done
     area: generation-fidelity
-    summary: A separate generic TI2V 5B workflow now preserves the source graph's image, audio, compositor values, and retained-node layout; it atomically persists the 77-frame motion batch before the existing zero-stabilization, overlap-aware full-song compositor. The accepted-seed live gate completed in 137.53 seconds with strong motion, 0.271-pixel maximum adjacent vertical shift, and an overlap-loop boundary within ordinary motion scale. Complete the remaining full-song review of lighting, title, EQ, and audio before marking done.
+    summary: "User review accepted the generic TI2V 5B workflow as production-workable: reasonable runtime, responsive workstation, highly dynamic cloud/smoke/fog, and appropriate music-synchronized lighting. Wave motion was somewhat aggressive but prompt-tunable. The persisted 77-frame lane, overlap loop, and downstream compositor are validated for continued use."
+  - id: improve-eq-color-controls
+    status: deferred
+    area: user-interface
+    summary: Place the two EQ color controls together and expose color pickers for both. Explore a Suggest colors action that selects two mutually distinct colors with strong contrast against the bottom EQ region while favoring hues complementary to colors elsewhere in the current artwork.
+  - id: benchmark-longer-ti2v5b-motion-assets
+    status: deferred
+    area: generation-fidelity
+    summary: Incrementally test longer Wan 2.2 TI2V 5B frame counts or durations, separately timing generation, lighting/compositing, and encoding. Compare motion variety, loop seam quality, memory, and workstation responsiveness before changing the production default.
   - id: validate-infra-choir-dual-track-runtime
     status: in_progress
     area: lightweight-visualizer

@@ -7,6 +7,28 @@ tags: [handoff, comfyui, music-video, compositing, visualizer, wan]
 ---
 # Current Handoff
 
+## 2026-10-22 TI2V 5B User Acceptance
+
+The user completed a full workflow run and accepted the generic Wan 2.2 TI2V
+5B path as workable for production. Runtime was reasonable, the workstation
+remained responsive, cloud/smoke/fog motion was highly dynamic, and the
+music-synchronized lighting was appropriate. Wave motion was somewhat too
+aggressive, but is considered prompt-tunable rather than a workflow blocker.
+
+Deferred UI improvements: place the two EQ color controls together, expose
+native color pickers for both, and consider a `Suggest colors` action. A useful
+suggestion algorithm should choose two mutually distinct colors with strong
+contrast against the bottom image region occupied by the EQ, while biasing
+toward hues that complement colors elsewhere in the artwork.
+
+The 5B checkpoint also leaves room to test longer generated motion assets. A
+future benchmark should increase frame count or duration incrementally, measure
+generation, lighting/compositing, and encode time separately, and compare loop
+variety, seam quality, memory use, and workstation responsiveness. The user's
+initial impression was that lighting/compositing consumed more of the wall time
+than generation; record stage timing before using that impression to allocate
+more generation resources.
+
 ## 2026-10-22 Generic TI2V 5B Workflow Integration
 
 `user/default/workflows/music_visualizer_ti2v5b_full.json` is the new separate,

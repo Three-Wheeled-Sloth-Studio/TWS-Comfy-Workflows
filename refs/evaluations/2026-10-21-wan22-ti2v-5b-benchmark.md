@@ -93,3 +93,14 @@ strong atmospheric, water, banner, and foreground organic motion. Its maximum
 adjacent vertical phase shift was 0.271 pixels. The compositor's 13-frame loop
 overlap produced a simulated boundary luma change of 7.38 against a 6.83 median
 ordinary adjacent change, so the loop boundary is within ordinary motion scale.
+
+## User review
+
+The subsequent full workflow run was accepted as production-workable. The
+workstation remained responsive, runtime was reasonable, cloud/smoke/fog motion
+was very dynamic, and music-synchronized lighting behaved appropriately. Wave
+motion was somewhat aggressive, but can be tuned through the behavioral prompt.
+Future evaluation may spend more time or frames on a longer motion asset, but
+must first instrument generation, lighting/compositing, and encoding separately;
+the user's initial subjective impression was that downstream lighting and
+composition occupied most of the run time.
